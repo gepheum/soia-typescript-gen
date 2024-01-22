@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2020"],
+    "esModuleInterop": true,
+    "target": "ES6",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "sourceMap": true,
+    "outDir": "dist",
+    "paths": {
+      "@/soiagen/*": ["./soiagen/src/*"]
+    }
+  }
+}

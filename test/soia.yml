@@ -1,0 +1,3 @@
+generators:
+  - mod: ../../../index.js
+    config: ~
