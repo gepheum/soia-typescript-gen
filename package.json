@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\"",
-    "test": "soiac -r ./test && npm run build && mocha"
+    "test": "soiac -r ./e2e && npm run build && mocha"
   },
   "keywords": [],
   "author": "",

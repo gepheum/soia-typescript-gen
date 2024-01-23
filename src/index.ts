@@ -116,7 +116,7 @@ class TsModuleCodeGenerator {
     const thisPath = paths.dirname(this.inModule.path);
     for (const entry of Object.entries(this.inModule.pathToImportedNames)) {
       const [path, importedNames] = entry;
-      let tsPath = paths.relative(thisPath, path);
+      let tsPath = `${paths.relative(thisPath, path)}.js`;
       if (!tsPath.startsWith(".")) {
         tsPath = `./${tsPath}`;
       }

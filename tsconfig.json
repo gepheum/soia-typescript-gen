@@ -16,6 +16,9 @@
     "allowUnreachableCode": true,
     "skipLibCheck": true,
     "module": "nodenext",
-    "moduleResolution": "nodenext"
+    "moduleResolution": "nodenext",
+    "paths": {
+      "@/soiagen/*": ["./e2e/soiagen/src/*"]
+    }
   }
 }
