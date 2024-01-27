@@ -17,11 +17,7 @@ describe("module-level constants", () => {
         },
         {
           kind: "string",
-          value: [
-            "",
-            "        foo",
-            "        bar",
-          ].join("\n"),
+          value: ["", "        foo", "        bar"].join("\n"),
         },
         {
           kind: "object",

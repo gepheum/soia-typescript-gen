@@ -30,13 +30,13 @@ describe("simple enum", () => {
   describe("switch", () => {
     it("works", () => {
       const switchResult = monday.switch({
-        "MONDAY": () => "Monday",
-        "TUESDAY": () => "Tuesday",
-        "WEDNESDAY": () => "Wednesday",
-        "THURSDAY": () => "Thursday",
-        "FRIDAY": () => "Friday",
-        "SATURDAY": () => "Saturday",
-        "SUNDAY": () => "Sunday",
+        MONDAY: () => "Monday",
+        TUESDAY: () => "Tuesday",
+        WEDNESDAY: () => "Wednesday",
+        THURSDAY: () => "Thursday",
+        FRIDAY: () => "Friday",
+        SATURDAY: () => "Saturday",
+        SUNDAY: () => "Sunday",
       });
       expect(switchResult).toBe("Monday");
     });
@@ -103,8 +103,8 @@ describe("recursive enum", () => {
         kind: "object",
         value: [
           {
-            "name": "foo",
-            "value": {
+            name: "foo",
+            value: {
               kind: "string",
               value: "bar",
             },
@@ -120,37 +120,34 @@ describe("recursive enum", () => {
     readableJson: "NULL",
     binaryFormBase16: "00",
   });
-  serializerTester.reserializeAndAssert(
-    complexValue,
-    {
-      denseJson: [4, [0, [1, true], 0, [5, [["foo", [3, "bar"]]]]]],
-      readableJson: {
-        kind: "array",
-        value: [
-          "NULL",
-          {
-            kind: "boolean",
-            value: true,
-          },
-          "NULL",
-          {
-            kind: "object",
-            value: [
-              {
-                name: "foo",
-                value: {
-                  kind: "string",
-                  value: "bar",
-                },
+  serializerTester.reserializeAndAssert(complexValue, {
+    denseJson: [4, [0, [1, true], 0, [5, [["foo", [3, "bar"]]]]]],
+    readableJson: {
+      kind: "array",
+      value: [
+        "NULL",
+        {
+          kind: "boolean",
+          value: true,
+        },
+        "NULL",
+        {
+          kind: "object",
+          value: [
+            {
+              name: "foo",
+              value: {
+                kind: "string",
+                value: "bar",
               },
-            ],
-          },
-        ],
-      }, // Here, this 03 is for length, and it's 0d in other...
-      binaryFormBase16: "fef90400fb0100f805f7f8f303666f6ffdf303626172",
-      // fef90400fb0100f805f7f8f30d666f6fefbfbdefbfbd03626172fdf303626172
-    },
-  );
+            },
+          ],
+        },
+      ],
+    }, // Here, this 03 is for length, and it's 0d in other...
+    binaryFormBase16: "fef90400fb0100f805f7f8f303666f6ffdf303626172",
+    // fef90400fb0100f805f7f8f30d666f6fefbfbdefbfbd03626172fdf303626172
+  });
 
   it("#kind", () => {
     expect(complexValue.kind).toBe("array");
@@ -162,43 +159,45 @@ describe("recursive enum", () => {
 
   it("switch", () => {
     const arrayLength = complexValue.switch({
-      "NULL": () => 0,
-      "array": (v: readonly JsonValue[]) => v.length,
-      "boolean": () => 0,
-      "number": () => 0,
-      "object": () => 0,
-      "string": () => 0,
+      NULL: () => 0,
+      array: (v: readonly JsonValue[]) => v.length,
+      boolean: () => 0,
+      number: () => 0,
+      object: () => 0,
+      string: () => 0,
       fallbackTo: () => -1,
     });
     expect(arrayLength).toBe(4);
   });
 
   it("#toString", () => {
-    expect(complexValue.toString()).toBe([
-      "{",
-      '  "kind": "array",',
-      '  "value": [',
-      '    "NULL",',
-      "    {",
-      '      "kind": "boolean",',
-      '      "value": true',
-      "    },",
-      '    "NULL",',
-      "    {",
-      '      "kind": "object",',
-      '      "value": [',
-      "        {",
-      '          "name": "foo",',
-      '          "value": {',
-      '            "kind": "string",',
-      '            "value": "bar"',
-      "          }",
-      "        }",
-      "      ]",
-      "    }",
-      "  ]",
-      "}",
-    ].join("\n"));
+    expect(complexValue.toString()).toBe(
+      [
+        "{",
+        '  "kind": "array",',
+        '  "value": [',
+        '    "NULL",',
+        "    {",
+        '      "kind": "boolean",',
+        '      "value": true',
+        "    },",
+        '    "NULL",',
+        "    {",
+        '      "kind": "object",',
+        '      "value": [',
+        "        {",
+        '          "name": "foo",',
+        '          "value": {',
+        '            "kind": "string",',
+        '            "value": "bar"',
+        "          }",
+        "        }",
+        "      ]",
+        "    }",
+        "  ]",
+        "}",
+      ].join("\n"),
+    );
   });
 
   {
@@ -228,9 +227,7 @@ describe("enum with recursive default", () => {
 
 describe("enum reflection", () => {
   it("get module path", () => {
-    expect(Car.SERIALIZER.typeDescriptor.modulePath).toBe(
-      "vehicles/car.soia",
-    );
+    expect(Car.SERIALIZER.typeDescriptor.modulePath).toBe("vehicles/car.soia");
   });
 
   it("get record name", () => {
@@ -243,9 +240,7 @@ describe("enum reflection", () => {
   });
 
   it("get parent type", () => {
-    expect(
-      JsonValue.Pair.SERIALIZER.typeDescriptor.parentType,
-    ).toBe(
+    expect(JsonValue.Pair.SERIALIZER.typeDescriptor.parentType).toBe(
       JsonValue.SERIALIZER.typeDescriptor,
     );
     expect(JsonValue.SERIALIZER.typeDescriptor.parentType).toBe(undefined);

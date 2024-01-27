@@ -17,8 +17,10 @@ describe("procedures", () => {
       });
     }
     {
-      const _: soia.Method<ReadonlyArray<Point>, JsonValue | null> =
-        WITH_EXPLICIT_NUMBER;
+      const _: soia.Method<
+        ReadonlyArray<Point>,
+        JsonValue | null
+      > = WITH_EXPLICIT_NUMBER;
       expect(WITH_EXPLICIT_NUMBER).toMatch({
         name: "WithExplicitNumber",
         number: 3,

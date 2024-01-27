@@ -1,6 +1,12 @@
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
-import { FullName, Item, Items, Point, Triangle } from "./soiagen/structs.soia.js";
+import {
+  FullName,
+  Item,
+  Items,
+  Point,
+  Triangle,
+} from "./soiagen/structs.soia.js";
 import { MutableForm, StructDescriptor, StructField } from "soia";
 import { SerializerTester } from "./serializer_tester.js";
 
@@ -22,22 +28,16 @@ describe("simple struct", () => {
         binaryFormBase16: "f80a0b",
       },
     );
-    serializerTester.reserializeAndAssert(
-      Point.DEFAULT,
-      {
-        denseJson: [],
-        readableJson: {},
-        binaryFormBase16: "f6",
-      },
-    );
-    serializerTester.reserializeAndAssert(
-      Point.DEFAULT.toMutable(),
-      {
-        denseJson: [],
-        readableJson: {},
-        binaryFormBase16: "f6",
-      },
-    );
+    serializerTester.reserializeAndAssert(Point.DEFAULT, {
+      denseJson: [],
+      readableJson: {},
+      binaryFormBase16: "f6",
+    });
+    serializerTester.reserializeAndAssert(Point.DEFAULT.toMutable(), {
+      denseJson: [],
+      readableJson: {},
+      binaryFormBase16: "f6",
+    });
     serializerTester.deserializeZeroAndAssert((p) => p.x === 0 && p.y === 0);
   });
 
@@ -63,9 +63,7 @@ describe("simple struct", () => {
   it("#toString()", () => {
     expect(Point.DEFAULT.toString()).toBe("{}");
     expect(Point.create({ x: 10 }).toString()).toBe('{\n  "x": 10\n}');
-    expect(
-      Point.create({ x: 10, y: 20 }).toString(),
-    ).toBe(
+    expect(Point.create({ x: 10, y: 20 }).toString()).toBe(
       '{\n  "x": 10,\n  "y": 20\n}',
     );
   });
@@ -129,11 +127,7 @@ describe("simple struct", () => {
 
 describe("struct reflection", () => {
   it("get module path", () => {
-    expect(
-      FullName.SERIALIZER.typeDescriptor.modulePath,
-    ).toBe(
-      "structs.soia",
-    );
+    expect(FullName.SERIALIZER.typeDescriptor.modulePath).toBe("structs.soia");
   });
 
   it("get record name", () => {
@@ -154,12 +148,10 @@ describe("struct reflection", () => {
     const typeDescriptor = FullName.SERIALIZER.typeDescriptor;
     expect(typeDescriptor.kind).toBe("struct");
 
-    const firstName: StructField<FullName> = typeDescriptor.getField(
-      "firstName",
-    );
-    const lastName: StructField<FullName> = typeDescriptor.getField(
-      "lastName",
-    )!;
+    const firstName: StructField<FullName> =
+      typeDescriptor.getField("firstName");
+    const lastName: StructField<FullName> =
+      typeDescriptor.getField("lastName")!;
     expect(firstName).toBe(typeDescriptor.getField(0)!);
     expect(lastName).toBe(typeDescriptor.getField(2)!);
     expect(lastName).toBe(typeDescriptor.getField("last_name")!);
@@ -192,9 +184,8 @@ describe("struct reflection", () => {
 
   it("get and set field", () => {
     const typeDescriptor = FullName.SERIALIZER.typeDescriptor;
-    const firstName: StructField<FullName> = typeDescriptor.getField(
-      "firstName",
-    );
+    const firstName: StructField<FullName> =
+      typeDescriptor.getField("firstName");
 
     const fullName = FullName.create({
       firstName: "Jane",
