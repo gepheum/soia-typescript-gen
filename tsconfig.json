@@ -17,5 +17,5 @@
     "skipLibCheck": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-  }
+  },
 }

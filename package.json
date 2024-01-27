@@ -5,9 +5,12 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "npm run build:src",
+    "build:src": "tsc -b src",
+    "build:e2e-test": "tsc -b e2e-test",
     "format": "prettier --write \"src/**/*.ts\"",
-    "test": "soiac -r ./e2e-test && npm run build && mocha"
+    "soiagen": "npm run build:src && soiac -r ./e2e-test",
+    "test": "npm run soiagen && npm run build:e2e-test && mocha"
   },
   "keywords": [],
   "author": "",
