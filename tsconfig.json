@@ -15,10 +15,7 @@
     "outDir": "dist",
     "allowUnreachableCode": true,
     "skipLibCheck": true,
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "paths": {
-      "@/soiagen/*": ["./e2e/soiagen/src/*"]
-    }
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
   }
 }
