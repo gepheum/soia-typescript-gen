@@ -1,4 +1,4 @@
-name: Soia Compiler CI
+name: Soia TypeScript Generator CI
 
 on:
   push:
