@@ -6,7 +6,7 @@ import {
   Items,
   Point,
   Triangle,
-} from "../soiagen/structs.soia.js";
+} from "../soiagen/src/structs.soia.js";
 import { MutableForm, StructDescriptor, StructField } from "soia";
 import { SerializerTester } from "./serializer_tester.js";
 
@@ -127,7 +127,9 @@ describe("simple struct", () => {
 
 describe("struct reflection", () => {
   it("get module path", () => {
-    expect(FullName.SERIALIZER.typeDescriptor.modulePath).toBe("structs.soia");
+    expect(FullName.SERIALIZER.typeDescriptor.modulePath).toBe(
+      "src/structs.soia",
+    );
   });
 
   it("get record name", () => {
