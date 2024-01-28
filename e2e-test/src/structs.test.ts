@@ -6,7 +6,7 @@ import {
   Items,
   Point,
   Triangle,
-} from "./soiagen/structs.soia.js";
+} from "../soiagen/structs.soia.js";
 import { MutableForm, StructDescriptor, StructField } from "soia";
 import { SerializerTester } from "./serializer_tester.js";
 

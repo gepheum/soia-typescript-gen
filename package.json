@@ -3,14 +3,22 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "index.js",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
-    "build": "npm run build:src",
-    "build:src": "tsc -b src",
+    "build": "tsc",
     "build:e2e-test": "tsc -b e2e-test",
     "format": "prettier --write \"**/*.ts\"",
     "format:check": "prettier --check \"**/*.ts\"",
-    "soiagen": "npm run build:src && soiac -r ./e2e-test",
+    "soiagen": "npm run build && soiac -r ./e2e-test",
     "test": "npm run soiagen && npm run build:e2e-test && mocha"
   },
   "keywords": [],

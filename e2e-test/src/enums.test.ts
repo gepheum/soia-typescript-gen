@@ -4,10 +4,10 @@ import {
   EnumWithRecursiveDefault,
   JsonValue,
   Weekday,
-} from "./soiagen/enums.soia.js";
+} from "../soiagen/enums.soia.js";
 import { EnumField } from "soia";
 import { SerializerTester } from "./serializer_tester.js";
-import { Car } from "./soiagen/vehicles/car.soia.js";
+import { Car } from "../soiagen/vehicles/car.soia.js";
 
 describe("simple enum", () => {
   const monday = Weekday.MONDAY;

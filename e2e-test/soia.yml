@@ -1,3 +1,3 @@
 generators:
-  - mod: ../../../dist/src/index.js
+  - mod: ../../../dist/index.js
     config: ~
