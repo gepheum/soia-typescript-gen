@@ -2,9 +2,8 @@
  * @fileoverview Returns a TypeScript expression transforming a value from a
  * `copyable` type into a `frozen` or `maybe-mutable` type.
  */
-
-import type { ResolvedType } from "soiac";
 import { TypeSpeller } from "./type_speller.js";
+import type { ResolvedType } from "soiac";
 
 export interface TransformExpressionArg {
   type: ResolvedType;

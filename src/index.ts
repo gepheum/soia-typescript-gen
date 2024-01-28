@@ -1,3 +1,17 @@
+import { makeTransformExpression } from "./expression_maker.js";
+import {
+  EnumInfo,
+  EnumValueField,
+  IndexableField,
+  RecordInfo,
+  StructField,
+  StructInfo,
+  createRecordInfo,
+  structFieldNameToProperty,
+} from "./record_info.js";
+import { TsType } from "./ts_type.js";
+import { TypeSpeller } from "./type_speller.js";
+import * as paths from "path";
 import type {
   CodeGenerator,
   Constant,
@@ -11,20 +25,6 @@ import type {
   Value,
 } from "soiac";
 import { convertCase, unquoteAndUnescape } from "soiac";
-import { makeTransformExpression } from "./expression_maker.js";
-import {
-  createRecordInfo,
-  EnumInfo,
-  EnumValueField,
-  IndexableField,
-  RecordInfo,
-  StructField,
-  structFieldNameToProperty,
-  StructInfo,
-} from "./record_info.js";
-import { TsType } from "./ts_type.js";
-import { TypeSpeller } from "./type_speller.js";
-import * as paths from "path";
 import { z } from "zod";
 
 type Config = unknown;

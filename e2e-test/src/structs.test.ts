@@ -1,5 +1,3 @@
-import { expect } from "buckwheat";
-import { describe, it } from "mocha";
 import {
   FullName,
   Item,
@@ -7,8 +5,10 @@ import {
   Point,
   Triangle,
 } from "../soiagen/src/structs.soia.js";
-import { MutableForm, StructDescriptor, StructField } from "soia";
 import { SerializerTester } from "./serializer_tester.js";
+import { expect } from "buckwheat";
+import { describe, it } from "mocha";
+import { MutableForm, StructDescriptor, StructField } from "soia";
 
 describe("simple struct", () => {
   it("reserialize", () => {

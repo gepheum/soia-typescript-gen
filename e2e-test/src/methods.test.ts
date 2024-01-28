@@ -1,11 +1,11 @@
-import { expect, is } from "buckwheat";
-import { describe, it } from "mocha";
+import { JsonValue } from "../soiagen/src/enums.soia.js";
 import {
   MY_PROCEDURE,
   WITH_EXPLICIT_NUMBER,
 } from "../soiagen/src/methods.soia.js";
 import { Point } from "../soiagen/src/structs.soia.js";
-import { JsonValue } from "../soiagen/src/enums.soia.js";
+import { expect, is } from "buckwheat";
+import { describe, it } from "mocha";
 import * as soia from "soia";
 
 describe("procedures", () => {

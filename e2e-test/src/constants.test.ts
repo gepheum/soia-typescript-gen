@@ -1,6 +1,6 @@
+import { ONE_CONSTANT } from "../soiagen/src/constants.soia.js";
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
-import { ONE_CONSTANT } from "../soiagen/src/constants.soia.js";
 
 describe("module-level constants", () => {
   it("work", () => {

@@ -1,13 +1,13 @@
-import { expect } from "buckwheat";
-import { describe, it } from "mocha";
 import {
   EnumWithRecursiveDefault,
   JsonValue,
   Weekday,
 } from "../soiagen/src/enums.soia.js";
-import { EnumField } from "soia";
-import { SerializerTester } from "./serializer_tester.js";
 import { Car } from "../soiagen/src/vehicles/car.soia.js";
+import { SerializerTester } from "./serializer_tester.js";
+import { expect } from "buckwheat";
+import { describe, it } from "mocha";
+import { EnumField } from "soia";
 
 describe("simple enum", () => {
   const monday = Weekday.MONDAY;
