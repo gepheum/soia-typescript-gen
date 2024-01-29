@@ -2,13 +2,20 @@
   "name": "soia-typescript-gen",
   "version": "1.0.2",
   "description": "",
+  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gepheum/soia-typescript-gen.git"
+  },
+  "license": "ISC",
+  "author": "Tyler Fibonacci <gepheum@gmail.com>",
   "type": "module",
-  "module": "./dist/index.js",
   "exports": {
     ".": {
       "import": "./dist/index.js"
     }
   },
+  "module": "./dist/index.js",
   "files": [
     "dist",
     "src"
@@ -21,13 +28,6 @@
     "soiagen": "npm run build && soiac -r ./e2e-test",
     "test": "npm run soiagen && npm run build:e2e-test && mocha"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/gepheum/soia-typescript-gen.git"
-  },
-  "author": "Tyler Fibonacci <gepheum@gmail.com>",
-  "keywords": [],
-  "license": "ISC",
   "dependencies": {
     "soiac": "^1.0.5"
   },
