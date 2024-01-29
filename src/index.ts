@@ -919,7 +919,7 @@ class TsModuleCodeGenerator {
         return text;
       case "int64":
       case "uint64":
-        return `bigint("${text}")`;
+        return `BigInt("${text}")`;
       case "timestamp":
         return `$.Timestamp.parse(${text})`;
       case "string":
