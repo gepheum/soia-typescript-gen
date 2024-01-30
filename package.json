@@ -28,9 +28,6 @@
     "soiagen": "npm run build && soiac -r ./e2e-test",
     "test": "npm run soiagen && npm run build:e2e-test && mocha"
   },
-  "dependencies": {
-    "soiac": "^1.0.5"
-  },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/mocha": "^10.0.6",
@@ -39,6 +36,7 @@
     "mocha": "^10.2.0",
     "prettier": "^3.2.4",
     "soia": "^1.0.13",
+    "soiac": "^1.0.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }

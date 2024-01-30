@@ -1,3 +1,4 @@
 generators:
   - mod: ../../../dist/index.js
-    config: ~
+    config:
+      importPathExtension: ".js"

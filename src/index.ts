@@ -27,19 +27,31 @@ import type {
 import { convertCase, unquoteAndUnescape } from "soiac";
 import { z } from "zod";
 
-type Config = unknown;
+const Config = z.object({
+  importPathExtension: z.union([
+    z.literal(""),
+    z.literal(".js"),
+    z.literal(".ts"),
+  ]),
+});
+
+type Config = z.infer<typeof Config>;
 
 class TypescriptCodeGenerator implements CodeGenerator<Config> {
   readonly id = "typescript";
-  readonly configType = z.undefined();
+  readonly configType = Config;
   readonly version = "1.0.0";
 
   generateCode(input: CodeGenerator.Input<Config>): CodeGenerator.Output {
+    const { recordMap, config } = input;
     const outputFiles: CodeGenerator.OutputFile[] = [];
     for (const module of input.modules) {
       const tsPath = this.modulePathToTsPath(module.path);
-      const tsCode = //
-        new TsModuleCodeGenerator(module, input.recordMap).generate();
+      const tsCode = new TsModuleCodeGenerator(
+        module,
+        recordMap,
+        config,
+      ).generate();
       outputFiles.push({
         path: tsPath,
         code: tsCode,
@@ -57,7 +69,8 @@ class TypescriptCodeGenerator implements CodeGenerator<Config> {
 class TsModuleCodeGenerator {
   constructor(
     private readonly inModule: Module,
-    recordMap: ReadonlyMap<RecordKey, RecordLocation>,
+    private recordMap: ReadonlyMap<RecordKey, RecordLocation>,
+    private readonly config: Config,
   ) {
     this.typeSpeller = new TypeSpeller(recordMap, this.inModule);
   }
@@ -116,7 +129,8 @@ class TsModuleCodeGenerator {
     const thisPath = paths.dirname(this.inModule.path);
     for (const entry of Object.entries(this.inModule.pathToImportedNames)) {
       const [path, importedNames] = entry;
-      let tsPath = `${paths.relative(thisPath, path)}.js`;
+      const { importPathExtension } = this.config;
+      let tsPath = `${paths.relative(thisPath, path)}${importPathExtension}`;
       if (!tsPath.startsWith(".")) {
         tsPath = `./${tsPath}`;
       }
