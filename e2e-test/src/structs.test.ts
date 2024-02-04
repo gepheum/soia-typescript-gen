@@ -4,7 +4,7 @@ import {
   Items,
   Point,
   Triangle,
-} from "../soiagen/src/structs.soia.js";
+} from "../soiagen/structs.soia.js";
 import { SerializerTester } from "./serializer_tester.js";
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
@@ -127,9 +127,7 @@ describe("simple struct", () => {
 
 describe("struct reflection", () => {
   it("get module path", () => {
-    expect(FullName.SERIALIZER.typeDescriptor.modulePath).toBe(
-      "src/structs.soia",
-    );
+    expect(FullName.SERIALIZER.typeDescriptor.modulePath).toBe("structs.soia");
   });
 
   it("get record name", () => {

@@ -2,8 +2,8 @@ import {
   EnumWithRecursiveDefault,
   JsonValue,
   Weekday,
-} from "../soiagen/src/enums.soia.js";
-import { Car } from "../soiagen/src/vehicles/car.soia.js";
+} from "../soiagen/enums.soia.js";
+import { Car } from "../soiagen/vehicles/car.soia.js";
 import { SerializerTester } from "./serializer_tester.js";
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
@@ -227,9 +227,7 @@ describe("enum with recursive default", () => {
 
 describe("enum reflection", () => {
   it("get module path", () => {
-    expect(Car.SERIALIZER.typeDescriptor.modulePath).toBe(
-      "src/vehicles/car.soia",
-    );
+    expect(Car.SERIALIZER.typeDescriptor.modulePath).toBe("vehicles/car.soia");
   });
 
   it("get record name", () => {
