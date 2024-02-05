@@ -478,7 +478,7 @@ class RecordInfoCreator {
         const enumType = this.typeSpeller.getTsType(type, "frozen", true);
         return {
           keyType: TsType.simple(`${enumType}.Kind`),
-          extractKey: (e: string) => `${e}.kind`,
+          extractKey: (e: string) => e,
         };
       }
     }
