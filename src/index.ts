@@ -126,8 +126,8 @@ class TsModuleCodeGenerator {
   }
 
   private resolveClientModulePath(): string {
-    const {config, inModule} = this;
-    let {clientModulePath} = config;
+    const { config, inModule } = this;
+    let { clientModulePath } = config;
     if (clientModulePath === undefined) {
       return "soia";
     }
