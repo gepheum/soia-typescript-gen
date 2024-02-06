@@ -77,11 +77,10 @@ class TsModuleCodeGenerator {
   }
 
   generate(): string {
-    const clientModulePath = this.config.clientModulePath ?? "soia";
     this.push(`
       // GENERATED CODE, DO NOT EDIT
 
-      import * as $ from "${clientModulePath}";
+      import * as $ from "${this.resolveClientModulePath()}";
       \n`);
 
     this.importOtherModules();
@@ -124,6 +123,21 @@ class TsModuleCodeGenerator {
     }
 
     return this.joinLinesAndFixFormatting();
+  }
+
+  private resolveClientModulePath(): string {
+    const {config, inModule} = this;
+    let {clientModulePath} = config;
+    if (clientModulePath === undefined) {
+      return "soia";
+    }
+    if (clientModulePath.startsWith("../")) {
+      // The path to the client module is relative.
+      const depth = inModule.path.split("/").length - 1;
+      const prefix = "../".repeat(depth);
+      return `${prefix}${clientModulePath}`;
+    }
+    return clientModulePath;
   }
 
   private importOtherModules(): void {
