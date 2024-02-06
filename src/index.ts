@@ -33,6 +33,7 @@ const Config = z.object({
     z.literal(".js"),
     z.literal(".ts"),
   ]),
+  clientModulePath: z.optional(z.string()),
 });
 
 type Config = z.infer<typeof Config>;
@@ -76,11 +77,11 @@ class TsModuleCodeGenerator {
   }
 
   generate(): string {
-    // TODO: fix path.
+    const clientModulePath = this.config.clientModulePath ?? "soia";
     this.push(`
       // GENERATED CODE, DO NOT EDIT
 
-      import * as $ from "soia";
+      import * as $ from "${clientModulePath}";
       \n`);
 
     this.importOtherModules();
