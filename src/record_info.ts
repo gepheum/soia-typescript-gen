@@ -48,10 +48,9 @@ export interface EnumInfo {
   readonly nestedRecords: readonly RecordKey[];
   readonly removedNumbers: readonly number[];
 
-  readonly enumKind: "all-constant" | "all-value" | "mixed";
+  readonly enumKind: "all-constant" | "mixed";
   readonly constantFields: readonly EnumConstantField[];
   readonly valueFields: readonly EnumValueField[];
-  readonly zeroField: EnumField;
   readonly constantKindType: TsType;
   readonly valueKindType: TsType;
   /**
@@ -62,11 +61,6 @@ export interface EnumInfo {
   readonly valueForType: TsType;
   readonly copyableType: TsType;
   readonly copyableForType: TsType;
-  /**
-   * If the zero field is a constant field, this is a reference to the constant.
-   * Otherwise, this is the default value of the zero field.
-   */
-  readonly enumDefaultValue: DefaultValue;
 }
 
 export interface StructField {
@@ -266,7 +260,6 @@ class RecordInfoCreator {
     const { record } = this.record;
     const constantFields: EnumConstantField[] = [];
     const valueFields: EnumValueField[] = [];
-    let zeroField: EnumField | undefined;
     const typesInConstantKindUnion: TsType[] = [];
     const typesInValueKindUnion: TsType[] = [];
     const typesInValueTypeUnion: TsType[] = [];
@@ -276,19 +269,29 @@ class RecordInfoCreator {
 
     typesInCopyableUnion.push(TsType.simple(className.type));
 
+    const registerConstantField = (f: EnumConstantField) => {
+      constantFields.push(f);
+      const nameLiteral = TsType.literal(f.name);
+      typesInConstantKindUnion.push(nameLiteral);
+      typesInCopyableUnion.push(nameLiteral);
+    };
+
+    // Register the special UNKNOWN field.
+    registerConstantField({
+      isConstant: true,
+      name: "?",
+      quotedName: '"?"',
+      property: "UNKNOWN",
+      number: 0,
+    });
     for (const field of record.fields) {
       const { type } = field;
-      let enumField: EnumField;
       if (type === undefined) {
         // A constant field.
-        enumField = this.createEnumConstantField(field);
-        constantFields.push(enumField);
-        const nameLiteral = TsType.literal(enumField.name);
-        typesInConstantKindUnion.push(nameLiteral);
-        typesInCopyableUnion.push(nameLiteral);
+        registerConstantField(this.createEnumConstantField(field));
       } else {
         // A value field.
-        enumField = this.createEnumValueField(field);
+        const enumField = this.createEnumValueField(field);
         const { name } = enumField;
         const nameLiteral = TsType.literal(name);
         const { frozen, copyable } = enumField.tsTypes;
@@ -304,27 +307,13 @@ class RecordInfoCreator {
         nameToValueType.set(name, frozen);
         nameToCopyableType.set(name, copyable);
       }
-      if (enumField.number === 0) {
-        zeroField = enumField;
-      }
     }
 
-    const enumKind = constantFields.length
-      ? valueFields.length
-        ? "mixed"
-        : "all-constant"
-      : "all-value";
+    const enumKind = valueFields.length ? "mixed" : "all-constant";
 
     if (enumKind !== "all-constant") {
       typesInValueTypeUnion.push(TsType.UNDEFINED);
     }
-
-    const enumDefaultValue = zeroField!.isConstant
-      ? {
-          expression: `${className.value}.${zeroField!.property}`,
-          availableAtClassInit: true,
-        }
-      : zeroField!.defaultValue;
 
     return {
       recordType: "enum",
@@ -334,14 +323,12 @@ class RecordInfoCreator {
       enumKind: enumKind,
       constantFields: constantFields,
       valueFields: valueFields,
-      zeroField: zeroField!,
       constantKindType: TsType.union(typesInConstantKindUnion),
       valueKindType: TsType.union(typesInValueKindUnion),
       valueType: TsType.union(typesInValueTypeUnion),
       valueForType: TsType.conditional("C", nameToValueType),
       copyableType: TsType.union(typesInCopyableUnion),
       copyableForType: TsType.conditional("C", nameToCopyableType),
-      enumDefaultValue: enumDefaultValue,
     };
   }
 
@@ -402,7 +389,9 @@ class RecordInfoCreator {
     switch (type.kind) {
       case "record": {
         const className = this.typeSpeller.getClassName(type.key);
-        return `${className.value}.DEFAULT`;
+        return type.recordType === "struct"
+          ? `${className.value}.DEFAULT`
+          : `${className.value}.UNKNOWN`;
       }
       case "array":
         return "$.Internal.EMPTY_ARRAY";
@@ -493,7 +482,6 @@ const STRUCT_COMMON_GENERATED_PROPERTIES: ReadonlySet<string> = new Set([
 
 // Only care about properties in UPPER_CASE format.
 const ENUM_COMMON_GENERATED_PROPERTIES: ReadonlySet<string> = new Set([
-  "DEFAULT",
   "SERIALIZER",
 ]);
 

@@ -1,7 +1,6 @@
 import { makeTransformExpression } from "./expression_maker.js";
 import {
   EnumInfo,
-  EnumValueField,
   IndexableField,
   RecordInfo,
   StructField,
@@ -273,7 +272,6 @@ class TsModuleCodeGenerator {
 
       declare toMutable: () => this;\n\n`);
 
-    // TODO: comment
     this.push("declare readonly [$._COPYABLE]: ");
     this.push(`${className.type}.Copyable | undefined;\n}\n\n`);
   }
@@ -372,7 +370,7 @@ class TsModuleCodeGenerator {
       const frozenType = field.tsTypes.frozen;
       this.push(`
         get ${property}(): ${frozenType} {
-          return this._${property} || ${frozenType}.DEFAULT;
+          return this._${property} || ${field.defaultValue.expression};
         }\n\n`);
     }
 
@@ -392,7 +390,6 @@ class TsModuleCodeGenerator {
     // TypeScript compiler from allowing the user to pass in a Mutable where a
     // Frozen is expected. The compiler will allow is if the Frozen class and
     // the Mutable class have the same attributes.
-    // TODO: I may no longer need FROZEN...
     this.push(`
       declare toFrozen: () => this;
       declare toMutable: () => ${className.type}.Mutable;
@@ -401,7 +398,6 @@ class TsModuleCodeGenerator {
 
       declare private FROZEN: undefined;\n`);
 
-    // TODO: comment
     this.push("declare readonly [$._COPYABLE]: ");
     this.push(`${className.type}.Copyable | undefined;\n\n`);
 
@@ -429,23 +425,12 @@ class TsModuleCodeGenerator {
     enumInfo: EnumInfo,
     typeSpeller: TypeSpeller,
   ): void {
-    const {
-      className,
-      enumKind,
-      constantFields,
-      valueFields,
-      zeroField,
-      enumDefaultValue,
-    } = enumInfo;
+    const { className, enumKind, constantFields, valueFields } = enumInfo;
 
     // Define the enum constants.
     for (const field of constantFields) {
       this.push(`static readonly ${field.property} = `);
-      this.push(`new ${className.value}(${field.quotedName}`);
-      if (enumKind !== "all-constant") {
-        this.push(", undefined");
-      }
-      this.push(");\n");
+      this.push(`new ${className.value}(${field.quotedName});\n`);
     }
     this.pushEol();
 
@@ -496,86 +481,33 @@ class TsModuleCodeGenerator {
           return this.create(copyable.kind, copyable.value);
         }\n`);
     }
-    if (enumKind !== "all-value") {
-      this.push("switch (copyable) {\n");
-      for (const field of constantFields) {
-        this.push(`
+    this.push("switch (copyable) {\n");
+    for (const field of constantFields) {
+      this.push(`
           case ${field.quotedName}: {
             return ${className.value}.${field.property};
           }\n`);
-      }
-      this.push("}\n"); // switch
     }
+    this.push("}\n"); // switch
     this.push(`
         throw new TypeError();
       }\n\n`); // fromCopyable
 
-    // Define DEFAULT.
-    if (zeroField.isConstant) {
-      this.push(`static readonly DEFAULT = this.${zeroField.property};\n\n`);
-    } else if (enumDefaultValue.availableAtClassInit) {
-      const { quotedName } = zeroField as EnumValueField;
-      const { expression } = enumDefaultValue;
-      const rvalue = `new this(${quotedName}, ${expression})`;
-      this.push(`static readonly DEFAULT = ${rvalue};\n\n`);
-    } else {
-      this.push(`
-        private static readonly $DEFAULT: unique symbol = Symbol();
-      
-        static readonly DEFAULT = new this(`);
-      this.push((zeroField as EnumValueField).quotedName);
-      this.push(", this.$DEFAULT);\n\n");
-    }
-
     // Define SERIALIZER.
     this.push("static readonly SERIALIZER = ");
-    this.push("$._newEnumSerializer(this.DEFAULT);\n\n");
+    this.push("$._newEnumSerializer(this.UNKNOWN);\n\n");
 
     // Define the constructor.
     this.push(`
       private constructor(
-        kind: ${className.type}.Kind,\n`);
-    const valuePublicType = TsType.simple(`${className.type}.Value`);
-    const valuePrivateType = enumDefaultValue.availableAtClassInit
-      ? valuePublicType
-      : TsType.union([
-          TsType.simple(`${className.type}.Value`),
-          TsType.simple(`typeof ${className.type}.$DEFAULT`),
-        ]);
-    if (enumKind !== "all-constant") {
-      this.push(`value: ${valuePrivateType},\n`);
-    }
-    this.push(`
+        readonly kind: ${className.type}.Kind,
+        readonly value?: ${className.type}.Value,
       ) {
         super();
-        this.kind = kind;\n`);
-    if (enumKind !== "all-constant") {
-      this.push("this.");
-      this.push(enumDefaultValue.availableAtClassInit ? "value " : "$value ");
-      this.push("= value;\n");
-    }
-    this.push(`
+        this.kind = kind;
+        this.value = value;
         Object.freeze(this);
-      }\n\n`); // fromCopyable
-
-    // Declare the case and value properties.
-    this.push(`readonly kind: ${className.type}.Kind;\n`);
-
-    if (enumKind !== "all-constant") {
-      if (enumDefaultValue.availableAtClassInit) {
-        this.push(`
-          readonly value: ${valuePublicType};\n\n`);
-      } else {
-        this.push(`
-          private readonly $value: ${valuePrivateType};
-
-          get value(): ${valuePublicType} {
-            return this.$value === ${className.value}.$DEFAULT
-              ? ${enumDefaultValue.expression}
-              : this.$value;
-          }\n\n`);
-      }
-    }
+      }\n\n`);
 
     // Define the `as` method if the enum has value fields.
     if (enumKind !== "all-constant") {
@@ -618,7 +550,6 @@ class TsModuleCodeGenerator {
     const lvalue = `this.${field.property}`;
     this.push(`get ${field.mutableGetterName}(): ${mutable} {\n`);
     if (type.kind === "array") {
-      // TODO: change
       const fieldOrEmptyExpr = isNullable ? `${lvalue} || []` : lvalue;
       const asArrayExpr = `$._toMutableArray(${fieldOrEmptyExpr})`;
       this.push(`return ${lvalue} = ${asArrayExpr};\n`);
@@ -735,18 +666,16 @@ class TsModuleCodeGenerator {
     // Declare the Copyable type.
     this.push(`export type Copyable = ${copyableType};\n\n`);
 
-    if (enumInfo.enumKind !== "all-constant") {
-      // Declare the CopyableFor generic type.
-      this.push("export type CopyableFor<C extends ValueKind> = ");
-      this.pushNoTrimStart(`${enumInfo.copyableForType};\n\n`);
+    // Declare the CopyableFor generic type.
+    this.push("export type CopyableFor<C extends ValueKind> = ");
+    this.pushNoTrimStart(`${enumInfo.copyableForType};\n\n`);
 
-      // Declare the Value type.
-      this.push(`export type Value = ${enumInfo.valueType};\n\n`);
+    // Declare the Value type.
+    this.push(`export type Value = ${enumInfo.valueType};\n\n`);
 
-      // Declare the ValueFor generic type.
-      this.push("export type ValueFor<C extends ValueKind> = ");
-      this.pushNoTrimStart(`${enumInfo.valueForType};\n\n`);
-    }
+    // Declare the ValueFor generic type.
+    this.push("export type ValueFor<C extends ValueKind> = ");
+    this.pushNoTrimStart(`${enumInfo.valueForType};\n\n`);
 
     // Declare the Switcher type.
     this.push("export interface Switcher<T> {\n");
@@ -845,7 +774,7 @@ class TsModuleCodeGenerator {
     for (const field of valueFields) {
       const fieldSerializer = this.getSerializerExpr(field.type);
       const tuple = [field.quotedName, field.number, fieldSerializer];
-      this.push(`[${tuple.join(", ")}],`);
+      this.push(`[${tuple.join(", ")}],\n`);
     }
     this.push(`\n],\n[${enumInfo.removedNumbers.join(", ")}],\n);\n\n`);
   }

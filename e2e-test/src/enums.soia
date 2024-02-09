@@ -9,19 +9,20 @@ enum Weekday {
 }
 
 enum JsonValue {
-  NULL;
-  boolean: bool;
-  number: float64;
-  string: string;
-  array: [JsonValue];
+  NULL = 1;
+  boolean: bool = 100;
+  number: float64 = 20;
+  string: string = 30;
+  array: [JsonValue] = 40;
   struct Pair {
-    name: string;
-    value: JsonValue;
+    name: string = 0;
+    value: JsonValue = 1;
   }
-  object: [Pair];
+  object: [Pair|name] = 50;
 }
 
-enum EnumWithRecursiveDefault {
-  struct S { f: EnumWithRecursiveDefault; }
-  f: S;
+enum EmptyEnum {}
+
+enum EnumWithNameConflict {
+  SERIALIZER;
 }

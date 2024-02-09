@@ -1,8 +1,4 @@
-import {
-  EnumWithRecursiveDefault,
-  JsonValue,
-  Weekday,
-} from "../soiagen/enums.soia.js";
+import { JsonValue, Weekday } from "../soiagen/enums.soia.js";
 import { Car } from "../soiagen/vehicles/car.soia.js";
 import { SerializerTester } from "./serializer_tester.js";
 import { expect } from "buckwheat";
@@ -11,23 +7,27 @@ import { EnumField } from "soia";
 
 describe("simple enum", () => {
   const monday = Weekday.MONDAY;
-  it("first field is default", () => {
-    expect(Weekday.DEFAULT).toBe(monday);
-  });
+
   describe("#fromCopyable", () => {
     it("constant name", () => {
       expect(Weekday.fromCopyable("MONDAY")).toBe(monday);
     });
+
     it("constant", () => {
       expect(Weekday.fromCopyable(monday)).toBe(monday);
     });
   });
+
   describe("#kind", () => {
     it("constant", () => {
       expect(monday.kind).toBe("MONDAY");
     });
+    it("#UNKNOWN", () => {
+      expect(Weekday.UNKNOWN.kind).toBe("?");
+    });
   });
-  describe("switch", () => {
+
+  describe("#switch", () => {
     it("works", () => {
       const switchResult = monday.switch({
         MONDAY: () => "Monday",
@@ -37,26 +37,82 @@ describe("simple enum", () => {
         FRIDAY: () => "Friday",
         SATURDAY: () => "Saturday",
         SUNDAY: () => "Sunday",
+        "?": () => "???",
       });
       expect(switchResult).toBe("Monday");
     });
+
+    it("#UNKNOWN", () => {
+      const switchResult = Weekday.UNKNOWN.switch({
+        MONDAY: () => "Monday",
+        TUESDAY: () => "Tuesday",
+        WEDNESDAY: () => "Wednesday",
+        THURSDAY: () => "Thursday",
+        FRIDAY: () => "Friday",
+        SATURDAY: () => "Saturday",
+        SUNDAY: () => "Sunday",
+        "?": () => "???",
+      });
+      expect(switchResult).toBe("???");
+    });
   });
+
+  describe("#switch with fallback", () => {
+    it("works when no fallback", () => {
+      const switchResult = monday.switch({
+        MONDAY: () => "Monday",
+        fallbackTo: () => "N/A",
+      });
+      expect(switchResult).toBe("Monday");
+    });
+
+    it("works when fallback", () => {
+      const switchResult = monday.switch({
+        TUESDAY: () => "Tuesday",
+        fallbackTo: () => "N/A",
+      });
+      expect(switchResult).toBe("N/A");
+    });
+
+    it("#UNKNOWN and no fallback", () => {
+      const switchResult = Weekday.UNKNOWN.switch({
+        "?": () => "???",
+        fallbackTo: () => "N/A",
+      });
+      expect(switchResult).toBe("???");
+    });
+
+    it("#UNKNOWN and fallback", () => {
+      const switchResult = Weekday.UNKNOWN.switch({
+        TUESDAY: () => "Tuesday",
+        fallbackTo: () => "N/A",
+      });
+      expect(switchResult).toBe("N/A");
+    });
+  });
+
   describe("#typeDescriptor", () => {
     it("#kind", () => {
       expect(Weekday.SERIALIZER.typeDescriptor.kind).toBe("enum");
     });
   });
+
   describe("serializer", () => {
     const serializerTester = new SerializerTester(Weekday.SERIALIZER);
-    serializerTester.reserializeAndAssert(monday, {
+    serializerTester.reserializeAndAssert(Weekday.UNKNOWN, {
       denseJson: 0,
-      readableJson: "MONDAY",
+      readableJson: "?",
       binaryFormBase16: "00",
     });
-    serializerTester.reserializeAndAssert(Weekday.TUESDAY, {
+    serializerTester.reserializeAndAssert(monday, {
       denseJson: 1,
-      readableJson: "TUESDAY",
+      readableJson: "MONDAY",
       binaryFormBase16: "01",
+    });
+    serializerTester.reserializeAndAssert(Weekday.TUESDAY, {
+      denseJson: 2,
+      readableJson: "TUESDAY",
+      binaryFormBase16: "02",
     });
     it("deserializes alternative forms", () => {
       expect(Weekday.SERIALIZER.fromJsonCode('{"kind": "TUESDAY"}')).toBe(
@@ -65,18 +121,26 @@ describe("simple enum", () => {
       expect(
         Weekday.SERIALIZER.fromJsonCode('{"kind": "TUESDAY", "value": {}}'),
       ).toBe(Weekday.TUESDAY);
-      expect(Weekday.SERIALIZER.fromJsonCode("[1]")).toBe(Weekday.TUESDAY);
-      expect(Weekday.SERIALIZER.fromJsonCode("[1,[]]")).toBe(Weekday.TUESDAY);
+      expect(Weekday.SERIALIZER.fromJsonCode("[2]")).toBe(Weekday.TUESDAY);
+      expect(Weekday.SERIALIZER.fromJsonCode("[2,[]]")).toBe(Weekday.TUESDAY);
     });
   });
+
   describe("#toString", () => {
     expect(Weekday.SATURDAY.toString()).toBe('"SATURDAY"');
   });
+
   {
     const _: Weekday.Kind = "MONDAY";
   }
   {
+    const _: Weekday.Kind = "?";
+  }
+  {
     const _: Weekday.ConstantKind = "MONDAY";
+  }
+  {
+    const _: Weekday.ConstantKind = "?";
   }
 });
 
@@ -85,6 +149,7 @@ describe("recursive enum", () => {
     it("constant name", () => {
       expect(JsonValue.fromCopyable("NULL")).toBe(JsonValue.NULL);
     });
+
     it("constant", () => {
       expect(JsonValue.fromCopyable(JsonValue.NULL)).toBe(JsonValue.NULL);
     });
@@ -116,12 +181,12 @@ describe("recursive enum", () => {
 
   const serializerTester = new SerializerTester(JsonValue.SERIALIZER);
   serializerTester.reserializeAndAssert(JsonValue.NULL, {
-    denseJson: 0,
+    denseJson: 1,
     readableJson: "NULL",
-    binaryFormBase16: "00",
+    binaryFormBase16: "01",
   });
   serializerTester.reserializeAndAssert(complexValue, {
-    denseJson: [4, [0, [1, true], 0, [5, [["foo", [3, "bar"]]]]]],
+    denseJson: [40, [1, [100, true], 1, [50, [["foo", [30, "bar"]]]]]],
     readableJson: {
       kind: "array",
       value: [
@@ -144,9 +209,8 @@ describe("recursive enum", () => {
           ],
         },
       ],
-    }, // Here, this 03 is for length, and it's 0d in other...
-    binaryFormBase16: "fef90400fb0100f805f7f8f303666f6ffdf303626172",
-    // fef90400fb0100f805f7f8f30d666f6fefbfbdefbfbd03626172fdf303626172
+    },
+    binaryFormBase16: "f828f90401f8640101f832f7f8f303666f6ff81ef303626172",
   });
 
   it("#kind", () => {
@@ -214,17 +278,6 @@ describe("recursive enum", () => {
   }
 });
 
-describe("enum with recursive default", () => {
-  const Enum = EnumWithRecursiveDefault;
-  const serializerTester = new SerializerTester(Enum.SERIALIZER);
-  serializerTester.reserializeAndAssert(Enum.DEFAULT, {
-    denseJson: [0, []],
-    binaryFormBase16: "faf6",
-    readableJson: { kind: "f", value: {} },
-  });
-  serializerTester.deserializeZeroAndAssert(() => true);
-});
-
 describe("enum reflection", () => {
   it("get module path", () => {
     expect(Car.SERIALIZER.typeDescriptor.modulePath).toBe("vehicles/car.soia");
@@ -252,14 +305,18 @@ describe("enum reflection", () => {
 
     const nullField: EnumField<JsonValue> = typeDescriptor.getField("NULL");
     const arrayField: EnumField<JsonValue> = typeDescriptor.getField("array");
+    const unknownField: EnumField<JsonValue> = typeDescriptor.getField("?");
 
-    expect(nullField).toBe(typeDescriptor.getField(0)!);
-    expect(arrayField).toBe(typeDescriptor.getField(4)!);
+    expect(nullField).toBe(typeDescriptor.getField(1)!);
+    expect(arrayField).toBe(typeDescriptor.getField(40)!);
+    expect(unknownField).toBe(typeDescriptor.getField(0)!);
 
     expect(nullField.name).toBe("NULL");
-    expect(nullField.number).toBe(0);
+    expect(nullField.number).toBe(1);
     expect(arrayField.name).toBe("array");
-    expect(arrayField.number).toBe(4);
+    expect(arrayField.number).toBe(40);
+    expect(unknownField.name).toBe("?");
+    expect(unknownField.number).toBe(0);
 
     const arrayType = arrayField.type!;
     expect(arrayType.kind).toBe("array");

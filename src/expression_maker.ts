@@ -19,8 +19,12 @@ export function makeTransformExpression(arg: TransformExpressionArg): string {
   const { type, inExpr, maybeUndefined, outFlavor, typeSpeller } = arg;
   if (type.kind === "record") {
     const frozenClass = typeSpeller.getClassName(type.key);
+    const defaultExpr =
+      type.recordType === "struct"
+        ? `${frozenClass.value}.DEFAULT`
+        : `${frozenClass.value}.UNKNOWN`;
     const inExprOrDefault = maybeUndefined
-      ? `${inExpr} || ${frozenClass.value}.DEFAULT`
+      ? `${inExpr} || ${defaultExpr}`
       : inExpr;
     const functionName =
       frozenClass.recordType === "enum" ? "fromCopyable" : "create";
