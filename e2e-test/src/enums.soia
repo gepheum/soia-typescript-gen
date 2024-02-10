@@ -24,5 +24,6 @@ enum JsonValue {
 enum EmptyEnum {}
 
 enum EnumWithNameConflict {
+  UNKNOWN;
   SERIALIZER;
 }
