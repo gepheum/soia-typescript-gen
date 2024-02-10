@@ -3,4 +3,4 @@ srcDir: ./src
 generators:
   - mod: ../../../dist/index.js
     config:
-      importPathExtension: ".js"
+      importPathExtension: .js

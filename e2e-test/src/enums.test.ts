@@ -57,35 +57,35 @@ describe("simple enum", () => {
     });
   });
 
-  describe("#switch with fallback", () => {
-    it("works when no fallback", () => {
+  describe("#switch with default", () => {
+    it("works when no default", () => {
       const switchResult = monday.switch({
         MONDAY: () => "Monday",
-        fallbackTo: () => "N/A",
+        "*": () => "N/A",
       });
       expect(switchResult).toBe("Monday");
     });
 
-    it("works when fallback", () => {
+    it("works when default", () => {
       const switchResult = monday.switch({
         TUESDAY: () => "Tuesday",
-        fallbackTo: () => "N/A",
+        "*": () => "N/A",
       });
       expect(switchResult).toBe("N/A");
     });
 
-    it("#UNKNOWN and no fallback", () => {
+    it("#UNKNOWN and no default", () => {
       const switchResult = Weekday.UNKNOWN.switch({
         "?": () => "???",
-        fallbackTo: () => "N/A",
+        "*": () => "N/A",
       });
       expect(switchResult).toBe("???");
     });
 
-    it("#UNKNOWN and fallback", () => {
+    it("#UNKNOWN and default", () => {
       const switchResult = Weekday.UNKNOWN.switch({
         TUESDAY: () => "Tuesday",
-        fallbackTo: () => "N/A",
+        "*": () => "N/A",
       });
       expect(switchResult).toBe("N/A");
     });
@@ -229,7 +229,7 @@ describe("recursive enum", () => {
       number: () => 0,
       object: () => 0,
       string: () => 0,
-      fallbackTo: () => -1,
+      "*": () => -1,
     });
     expect(arrayLength).toBe(4);
   });

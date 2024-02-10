@@ -520,7 +520,7 @@ class TsModuleCodeGenerator {
     // Declare the switch method. It is defined in the super class.
     const switcherType = TsType.union([
       TsType.simple(`${className.type}.Switcher<T>`),
-      TsType.simple(`${className.type}.SwitcherWithFallback<T>`),
+      TsType.simple(`${className.type}.SwitcherWithDefault<T>`),
     ]);
     this.pushNoTrimStart(`
       declare switch: <T>(
@@ -688,8 +688,8 @@ class TsModuleCodeGenerator {
     }
     this.push("}\n\n");
     this.push(`
-      export interface SwitcherWithFallback<T> extends Partial<Switcher<T>> {
-        fallbackTo: () => T;
+      export interface SwitcherWithDefault<T> extends Partial<Switcher<T>> {
+        ["*"]: () => T;
       }\n\n`);
   }
 
