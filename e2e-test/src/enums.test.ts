@@ -1,6 +1,6 @@
+import { SerializerTester } from "../../node_modules/soia/dist/esm/serializer_tester.js";
 import { JsonValue, Weekday } from "../soiagen/enums.soia.js";
 import { Car } from "../soiagen/vehicles/car.soia.js";
-import { SerializerTester } from "./serializer_tester.js";
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
 import { EnumField } from "soia";
@@ -9,6 +9,10 @@ describe("simple enum", () => {
   const monday = Weekday.MONDAY;
 
   describe("#fromCopyable", () => {
+    it("unknown field", () => {
+      expect(Weekday.fromCopyable("?")).toBe(Weekday.UNKNOWN);
+    });
+
     it("constant name", () => {
       expect(Weekday.fromCopyable("MONDAY")).toBe(monday);
     });
@@ -95,6 +99,108 @@ describe("simple enum", () => {
     it("#kind", () => {
       expect(Weekday.SERIALIZER.typeDescriptor.kind).toBe("enum");
     });
+
+    it("#asJson()", () => {
+      expect(JsonValue.SERIALIZER.typeDescriptor.asJson()).toMatch({
+        type: {
+          kind: "record",
+          name: "JsonValue",
+          module: "enums.soia",
+        },
+        records: [
+          {
+            kind: "enum",
+            name: "JsonValue",
+            module: "enums.soia",
+            fields: [
+              {
+                name: "?",
+                number: 0,
+              },
+              {
+                name: "NULL",
+                number: 1,
+              },
+              {
+                name: "boolean",
+                number: 100,
+                type: {
+                  kind: "primitive",
+                  primitive: "bool",
+                },
+              },
+              {
+                name: "number",
+                number: 20,
+                type: {
+                  kind: "primitive",
+                  primitive: "float64",
+                },
+              },
+              {
+                name: "string",
+                number: 30,
+                type: {
+                  kind: "primitive",
+                  primitive: "string",
+                },
+              },
+              {
+                name: "array",
+                number: 40,
+                type: {
+                  kind: "array",
+                  item: {
+                    kind: "record",
+                    name: "JsonValue",
+                    module: "enums.soia",
+                  },
+                },
+              },
+              {
+                name: "object",
+                number: 50,
+                type: {
+                  kind: "array",
+                  item: {
+                    kind: "record",
+                    name: "JsonValue.Pair",
+                    module: "enums.soia",
+                  },
+                },
+              },
+            ],
+          },
+          {
+            kind: "struct",
+            name: "JsonValue.Pair",
+            module: "enums.soia",
+            fields: [
+              {
+                name: "name",
+                type: {
+                  kind: "primitive",
+                  primitive: "string",
+                },
+                number: 0,
+              },
+              {
+                name: "value",
+                type: {
+                  kind: "record",
+                  name: "JsonValue",
+                  module: "enums.soia",
+                },
+                number: 1,
+              },
+            ],
+          },
+        ],
+      });
+      new SerializerTester(
+        JsonValue.SERIALIZER,
+      ).reserializeTypeAdapterAndAssertNoLoss();
+    });
   });
 
   describe("serializer", () => {
@@ -102,17 +208,17 @@ describe("simple enum", () => {
     serializerTester.reserializeAndAssert(Weekday.UNKNOWN, {
       denseJson: 0,
       readableJson: "?",
-      binaryFormBase16: "00",
+      bytesAsBase16: "00",
     });
     serializerTester.reserializeAndAssert(monday, {
       denseJson: 1,
       readableJson: "MONDAY",
-      binaryFormBase16: "01",
+      bytesAsBase16: "01",
     });
     serializerTester.reserializeAndAssert(Weekday.TUESDAY, {
       denseJson: 2,
       readableJson: "TUESDAY",
-      binaryFormBase16: "02",
+      bytesAsBase16: "02",
     });
     it("deserializes alternative forms", () => {
       expect(Weekday.SERIALIZER.fromJsonCode('{"kind": "TUESDAY"}')).toBe(
@@ -183,7 +289,7 @@ describe("recursive enum", () => {
   serializerTester.reserializeAndAssert(JsonValue.NULL, {
     denseJson: 1,
     readableJson: "NULL",
-    binaryFormBase16: "01",
+    bytesAsBase16: "01",
   });
   serializerTester.reserializeAndAssert(complexValue, {
     denseJson: [40, [1, [100, true], 1, [50, [["foo", [30, "bar"]]]]]],
@@ -210,7 +316,7 @@ describe("recursive enum", () => {
         },
       ],
     },
-    binaryFormBase16: "f828f90401f8640101f832f7f8f303666f6ff81ef303626172",
+    bytesAsBase16: "f828f90401f8640101f832f7f8f303666f6ff81ef303626172",
   });
 
   it("#kind", () => {

@@ -4,4 +4,5 @@ struct Car {
   model: string;
   purchase_time: timestamp;
   owner: User;
+  second_owner: User?;
 }

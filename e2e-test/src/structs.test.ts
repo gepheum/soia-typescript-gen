@@ -1,3 +1,4 @@
+import { SerializerTester } from "../../node_modules/soia/dist/esm/serializer_tester.js";
 import {
   FullName,
   Item,
@@ -5,7 +6,6 @@ import {
   Point,
   Triangle,
 } from "../soiagen/structs.soia.js";
-import { SerializerTester } from "./serializer_tester.js";
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
 import { MutableForm, StructDescriptor, StructField } from "soia";
@@ -25,18 +25,18 @@ describe("simple struct", () => {
           x: 10,
           y: 11,
         },
-        binaryFormBase16: "f80a0b",
+        bytesAsBase16: "f80a0b",
       },
     );
     serializerTester.reserializeAndAssert(Point.DEFAULT, {
       denseJson: [],
       readableJson: {},
-      binaryFormBase16: "f6",
+      bytesAsBase16: "f6",
     });
     serializerTester.reserializeAndAssert(Point.DEFAULT.toMutable(), {
       denseJson: [],
       readableJson: {},
-      binaryFormBase16: "f6",
+      bytesAsBase16: "f6",
     });
     serializerTester.deserializeZeroAndAssert((p) => p.x === 0 && p.y === 0);
   });
@@ -230,6 +230,53 @@ describe("struct reflection", () => {
     );
     expect(FullName.SERIALIZER.toJson(copy)).toMatch(["", 0, "Doe"]);
   });
+
+  it("TypeDescriptor#asJson()", () => {
+    expect(FullName.SERIALIZER.typeDescriptor.asJson()).toMatch({
+      type: {
+        kind: "record",
+        name: "FullName",
+        module: "structs.soia",
+      },
+      records: [
+        {
+          kind: "struct",
+          name: "FullName",
+          module: "structs.soia",
+          fields: [
+            {
+              name: "first_name",
+              type: {
+                kind: "primitive",
+                primitive: "string",
+              },
+              number: 0,
+            },
+            {
+              name: "last_name",
+              type: {
+                kind: "primitive",
+                primitive: "string",
+              },
+              number: 2,
+            },
+            {
+              name: "suffix",
+              type: {
+                kind: "primitive",
+                primitive: "string",
+              },
+              number: 3,
+            },
+          ],
+          removed: [1],
+        },
+      ],
+    });
+  });
+  new SerializerTester(
+    FullName.SERIALIZER,
+  ).reserializeTypeAdapterAndAssertNoLoss();
 });
 
 describe("struct with indexed arrays", () => {

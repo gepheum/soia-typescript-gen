@@ -559,7 +559,7 @@ class TsModuleCodeGenerator {
       this.push(`const v = ${lvalue};\n`);
       const instanceofExpr = `v instanceof ${className.value}.Mutable`;
       const assignment = isNullable
-        ? `${lvalue} = (v || ${className.value}.DEFAULT).toMutable())`
+        ? `${lvalue} = (v || ${className.value}.DEFAULT).toMutable()`
         : `${lvalue} = v.toMutable()`;
       this.push(`return ${instanceofExpr} ? v : (${assignment});\n`);
     } else {
