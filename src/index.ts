@@ -593,7 +593,11 @@ class TsModuleCodeGenerator {
       });
       this.push(`target.${field.property} = ${rvalue};\n`);
     }
-    this.push("}\n\n"); // function
+    this.push(`
+        if ("^" in copyable) {
+          target["^"] = copyable["^"];
+        }
+      }\n\n`); // function
   }
 
   private declareNamespaceForRecord(

@@ -1,0 +1,22 @@
+struct FooBefore {
+  bars: [BarAfter];
+  n: int32;
+}
+
+struct FooAfter {
+  bars: [BarAfter];
+  n: int32;
+  bit: bool;
+}
+
+struct BarBefore {
+  x: float32;
+  removed;
+}
+
+struct BarAfter {
+  x: float64;
+  removed;
+  removed;
+  s: string;
+}
