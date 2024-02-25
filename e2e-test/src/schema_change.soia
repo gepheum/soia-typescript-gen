@@ -1,12 +1,26 @@
+enum EnumBefore {
+  A;
+  removed;
+}
+
+enum EnumAfter {
+  A;
+  removed;
+  B;
+  c: string;
+}
+
 struct FooBefore {
-  bars: [BarAfter];
+  bars: [BarBefore];
   n: int32;
+  enums: [EnumBefore];
 }
 
 struct FooAfter {
   bars: [BarAfter];
   n: int32;
   bit: bool;
+  enums: [EnumAfter];
 }
 
 struct BarBefore {

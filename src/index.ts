@@ -472,8 +472,15 @@ class TsModuleCodeGenerator {
       static fromCopyable(
         copyable: ${className.type}.Copyable,
       ): ${className.type} {
-        if (copyable instanceof ${className.value}) {
+        if (copyable instanceof this) {
           return copyable;
+        }
+        if (copyable as unknown instanceof $._UnrecognizedEnum) {
+          return new this(
+            "?",
+            undefined,
+            copyable as unknown as $._UnrecognizedEnum,
+          );
         }\n`);
     if (enumKind !== "all-constant") {
       this.push(`
@@ -502,10 +509,12 @@ class TsModuleCodeGenerator {
       private constructor(
         readonly kind: ${className.type}.Kind,
         readonly value?: ${className.type}.Value,
+        unrecognized?: $._UnrecognizedEnum,
       ) {
         super();
-        this.kind = kind;
-        this.value = value;
+        if (unrecognized) {
+          (this as Record<string, unknown>)["^"] = unrecognized;
+        }
         Object.freeze(this);
       }\n\n`);
 
