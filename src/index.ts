@@ -298,13 +298,13 @@ class TsModuleCodeGenerator {
       if (fields.length <= 0) {
         // We can greatly simplify the implementation of the function if there
         // is no field in the record.
-        this.push(`return ${className.value}.DEFAULT;\n`);
+        this.push("return this.DEFAULT;\n");
       } else {
         this.push(`
-          if (copyable instanceof ${className.value}) {
+          if (copyable instanceof this) {
             return copyable;
           }
-          return new ${className.value}(copyable);\n`);
+          return new this(copyable);\n`);
       }
       this.push("}\n\n");
     }
@@ -463,7 +463,7 @@ class TsModuleCodeGenerator {
               throw new TypeError();
             }
           }
-          return new ${className.value}(kind, v);
+          return new this(kind, v);
         }\n\n`);
     }
 

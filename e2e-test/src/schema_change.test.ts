@@ -1,5 +1,6 @@
 import {
   BarAfter,
+  EnumAfter,
   FooAfter,
   FooBefore,
 } from "../soiagen/schema_change.soia.js";
@@ -23,6 +24,12 @@ describe("unrecognized fields", () => {
       }),
     ],
     n: 100,
+    enums: [
+      EnumAfter.UNKNOWN,
+      EnumAfter.A,
+      EnumAfter.B,
+      EnumAfter.create("c", "CcC"),
+    ],
     bit: true,
   });
 

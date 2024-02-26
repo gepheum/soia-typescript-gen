@@ -4,4 +4,3 @@ generators:
   - mod: ../../../dist/index.js
     config:
       importPathExtension: .js
-      clientModulePath: ../../../client/dist/cjs/soia.js

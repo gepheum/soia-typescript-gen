@@ -19,8 +19,8 @@ struct FooBefore {
 struct FooAfter {
   bars: [BarAfter];
   n: int32;
-  bit: bool;
   enums: [EnumAfter];
+  bit: bool;
 }
 
 struct BarBefore {
