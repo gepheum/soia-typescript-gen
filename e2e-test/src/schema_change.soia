@@ -34,3 +34,25 @@ struct BarAfter {
   removed;
   s: string;
 }
+
+struct RemovalBefore {
+  a: string;
+  b: string;
+  enum E {
+    C;
+    D;
+    e: string;
+  }
+  es: [E];
+}
+
+struct RemovalAfter {
+  removed;
+  b: string;
+  enum E {
+    C;
+    removed;
+    removed;
+  }
+  es: [E];
+}
