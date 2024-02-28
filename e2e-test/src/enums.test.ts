@@ -131,7 +131,7 @@ describe("simple enum", () => {
               },
               {
                 name: "number",
-                number: 20,
+                number: 6,
                 type: {
                   kind: "primitive",
                   primitive: "float64",
@@ -139,7 +139,7 @@ describe("simple enum", () => {
               },
               {
                 name: "string",
-                number: 30,
+                number: 3,
                 type: {
                   kind: "primitive",
                   primitive: "string",
@@ -147,7 +147,7 @@ describe("simple enum", () => {
               },
               {
                 name: "array",
-                number: 40,
+                number: 4,
                 type: {
                   kind: "array",
                   item: {
@@ -159,7 +159,7 @@ describe("simple enum", () => {
               },
               {
                 name: "object",
-                number: 50,
+                number: 5,
                 type: {
                   kind: "array",
                   item: {
@@ -292,7 +292,7 @@ describe("recursive enum", () => {
     bytesAsBase16: "01",
   });
   serializerTester.reserializeAndAssert(complexValue, {
-    denseJson: [40, [1, [100, true], 1, [50, [["foo", [30, "bar"]]]]]],
+    denseJson: [4, [1, [100, true], 1, [5, [["foo", [3, "bar"]]]]]],
     readableJson: {
       kind: "array",
       value: [
@@ -316,7 +316,7 @@ describe("recursive enum", () => {
         },
       ],
     },
-    bytesAsBase16: "f828f90401f8640101f832f7f8f303666f6ff81ef303626172",
+    bytesAsBase16: "fdf90401f8640101fef7f8f303666f6ffcf303626172",
   });
 
   it("#kind", () => {
@@ -414,13 +414,13 @@ describe("enum reflection", () => {
     const unknownField: EnumField<JsonValue> = typeDescriptor.getField("?");
 
     expect(nullField).toBe(typeDescriptor.getField(1)!);
-    expect(arrayField).toBe(typeDescriptor.getField(40)!);
+    expect(arrayField).toBe(typeDescriptor.getField(4)!);
     expect(unknownField).toBe(typeDescriptor.getField(0)!);
 
     expect(nullField.name).toBe("NULL");
     expect(nullField.number).toBe(1);
     expect(arrayField.name).toBe("array");
-    expect(arrayField.number).toBe(40);
+    expect(arrayField.number).toBe(4);
     expect(unknownField.name).toBe("?");
     expect(unknownField.number).toBe(0);
 

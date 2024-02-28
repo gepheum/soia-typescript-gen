@@ -11,14 +11,14 @@ enum Weekday {
 enum JsonValue {
   NULL = 1;
   boolean: bool = 100;
-  number: float64 = 20;
-  string: string = 30;
-  array: [JsonValue] = 40;
+  number: float64 = 6;
+  string: string = 3;
+  array: [JsonValue] = 4;
   struct Pair {
     name: string = 0;
     value: JsonValue = 1;
   }
-  object: [Pair|name] = 50;
+  object: [Pair|name] = 5;
 }
 
 enum EmptyEnum {}
