@@ -2,13 +2,13 @@ import { ClassName, getClassName } from "./class_speller.js";
 import { TsType } from "./ts_type.js";
 import type { Module, RecordKey, RecordLocation, ResolvedType } from "soiac";
 
-export type TypeFlavor = "copyable" | "frozen" | "maybe-mutable" | "mutable";
+export type TypeFlavor = "initializer" | "frozen" | "maybe-mutable" | "mutable";
 
 /**
  * Transforms a type found in a `.soia` file into a TypeScript type.
  *
  * The flavors are:
- *   · copyable
+ *   · initializer
  *       The value can be passed by parameter to the `create` method of a frozen
  *       class or the constructor of a mutable class.
  *   · frozen:
@@ -39,8 +39,8 @@ export class TypeSpeller {
         const record = recordLocation.record;
         const classRef = getClassName(recordLocation, this.origin).type;
         if (record.recordType === "struct") {
-          if (flavor === "copyable") {
-            return TsType.simple(`${classRef}.Copyable`);
+          if (flavor === "initializer") {
+            return TsType.simple(`${classRef}.Initializer`);
           } else if (flavor === "frozen" || allRecordsFrozen) {
             return TsType.simple(classRef);
           } else if (flavor === "maybe-mutable") {
@@ -55,8 +55,8 @@ export class TypeSpeller {
           }
         }
         // An enum.
-        if (flavor === "copyable") {
-          return TsType.simple(`${classRef}.Copyable`);
+        if (flavor === "initializer") {
+          return TsType.simple(`${classRef}.Initializer`);
         } else if (flavor === "frozen" || flavor === "maybe-mutable") {
           return TsType.simple(classRef);
         } else if (flavor === "mutable") {
@@ -70,7 +70,7 @@ export class TypeSpeller {
       case "array": {
         if (
           flavor === "frozen" ||
-          flavor === "copyable" ||
+          flavor === "initializer" ||
           flavor === "maybe-mutable"
         ) {
           const itemType = this.getTsType(type.item, flavor, allRecordsFrozen);
@@ -130,7 +130,7 @@ export class TypeSpeller {
 }
 
 export const TYPE_FLAVORS: ReadonlySet<TypeFlavor> = new Set([
-  "copyable",
+  "initializer",
   "frozen",
   "maybe-mutable",
   "mutable",

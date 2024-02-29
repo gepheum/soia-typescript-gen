@@ -8,17 +8,17 @@ import { EnumField } from "soia";
 describe("simple enum", () => {
   const monday = Weekday.MONDAY;
 
-  describe("#fromCopyable", () => {
+  describe("#from", () => {
     it("unknown field", () => {
-      expect(Weekday.fromCopyable("?")).toBe(Weekday.UNKNOWN);
+      expect(Weekday.from("?")).toBe(Weekday.UNKNOWN);
     });
 
     it("constant name", () => {
-      expect(Weekday.fromCopyable("MONDAY")).toBe(monday);
+      expect(Weekday.from("MONDAY")).toBe(monday);
     });
 
     it("constant", () => {
-      expect(Weekday.fromCopyable(monday)).toBe(monday);
+      expect(Weekday.from(monday)).toBe(monday);
     });
   });
 
@@ -251,17 +251,17 @@ describe("simple enum", () => {
 });
 
 describe("recursive enum", () => {
-  describe("#fromCopyable", () => {
+  describe("#from", () => {
     it("constant name", () => {
-      expect(JsonValue.fromCopyable("NULL")).toBe(JsonValue.NULL);
+      expect(JsonValue.from("NULL")).toBe(JsonValue.NULL);
     });
 
     it("constant", () => {
-      expect(JsonValue.fromCopyable(JsonValue.NULL)).toBe(JsonValue.NULL);
+      expect(JsonValue.from(JsonValue.NULL)).toBe(JsonValue.NULL);
     });
   });
 
-  const complexValue = JsonValue.fromCopyable({
+  const complexValue = JsonValue.from({
     kind: "array",
     value: [
       "NULL",

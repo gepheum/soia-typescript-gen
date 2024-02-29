@@ -76,9 +76,18 @@ class TsModuleCodeGenerator {
   }
 
   generate(): string {
+    // http://patorjk.com/software/taag/#f=Doom&t=Do%20not%20edit
     this.push(`
-      // GENERATED CODE, DO NOT EDIT
+      //  ______                        _               _  _  _
+      //  |  _  \\                      | |             | |(_)| |
+      //  | | | |  ___    _ __    ___  | |_    ___   __| | _ | |_
+      //  | | | | / _ \\  | '_ \\  / _ \\ | __|  / _ \\ / _\` || || __|
+      //  | |/ / | (_) | | | | || (_) || |_  |  __/| (_| || || |_ 
+      //  |___/   \\___/  |_| |_| \\___/  \\__|  \\___| \\__,_||_| \\__|
+      //
 
+      // To install the Soia client library:
+      //   npm i soia
       import * as $ from "${this.resolveClientModulePath()}";
       \n`);
 
@@ -219,22 +228,22 @@ class TsModuleCodeGenerator {
     } = struct;
 
     // Define the constructor.
-    const paramName = fields.length ? "copyable" : "_";
+    const paramName = fields.length ? "initializer" : "_";
     this.push(`// Exported as '${className.type}.Builder'\n`);
     this.push(`
       class ${className.value}_Mutable extends $._MutableBase {
         constructor(
-          ${paramName}: ${className.type}.Copyable = ${className.value}.DEFAULT,
+          ${paramName}: ${className.type}.Initializer = ${className.value}.DEFAULT,
         ) {
           super();\n`);
     if (fieldsWithDefaultAtInit.length) {
       const castThis = "this as Record<string, unknown>";
-      this.push(`init${className.value}(${castThis}, copyable);\n`);
+      this.push(`init${className.value}(${castThis}, initializer);\n`);
     }
     // The init function does not set fields whose default value cannot be
     // obtained at class init. We do it in this loop.
     for (const field of fieldsWithNoDefaultAtInit) {
-      const inExpr = `copyable.${field.property}`;
+      const inExpr = `initializer.${field.property}`;
       const rvalue = makeTransformExpression({
         type: field.type,
         inExpr: inExpr,
@@ -272,8 +281,8 @@ class TsModuleCodeGenerator {
 
       declare toMutable: () => this;\n\n`);
 
-    this.push("declare readonly [$._COPYABLE]: ");
-    this.push(`${className.type}.Copyable | undefined;\n}\n\n`);
+    this.push("declare readonly [$._INITIALIZER]: ");
+    this.push(`${className.type}.Initializer | undefined;\n}\n\n`);
   }
 
   private definePropertiesOfFrozenClassForStruct(
@@ -290,10 +299,10 @@ class TsModuleCodeGenerator {
 
     // Define create.
     {
-      const paramName = fields.length <= 0 ? "_" : "copyable";
+      const paramName = fields.length <= 0 ? "_" : "initializer";
       this.push(`
         static create<Accept extends "partial" | "whole" = "partial">(
-          ${paramName}: $.WholeOrPartial<${className.type}.Copyable, Accept>,
+          ${paramName}: $.WholeOrPartial<${className.type}.Initializer, Accept>,
         ): ${className.type} {\n`);
       if (fields.length <= 0) {
         // We can greatly simplify the implementation of the function if there
@@ -301,27 +310,27 @@ class TsModuleCodeGenerator {
         this.push("return this.DEFAULT;\n");
       } else {
         this.push(`
-          if (copyable instanceof this) {
-            return copyable;
+          if (initializer instanceof this) {
+            return initializer;
           }
-          return new this(copyable);\n`);
+          return new this(initializer);\n`);
       }
       this.push("}\n\n");
     }
 
     // Define the constructor.
-    const paramName = fields.length ? "copyable" : "_";
+    const paramName = fields.length ? "initializer" : "_";
     this.push(`
-      private constructor(${paramName}: ${className.type}.Copyable) {
+      private constructor(${paramName}: ${className.type}.Initializer) {
         super();\n`);
     if (fieldsWithDefaultAtInit.length) {
       const castThis = "this as Record<string, unknown>";
-      this.push(`init${className.value}(${castThis}, copyable);\n`);
+      this.push(`init${className.value}(${castThis}, initializer);\n`);
     }
     // The init function does not set fields whose default value cannot be
     // obtained at class init. We do it in this loop.
     for (const field of fieldsWithNoDefaultAtInit) {
-      const inExpr = `copyable.${field.property}`;
+      const inExpr = `initializer.${field.property}`;
       const rvalue = makeTransformExpression({
         type: field.type,
         inExpr: inExpr,
@@ -398,8 +407,8 @@ class TsModuleCodeGenerator {
 
       declare private FROZEN: undefined;\n`);
 
-    this.push("declare readonly [$._COPYABLE]: ");
-    this.push(`${className.type}.Copyable | undefined;\n\n`);
+    this.push("declare readonly [$._INITIALIZER]: ");
+    this.push(`${className.type}.Initializer | undefined;\n\n`);
 
     // Define SERIALIZER. It will be initialized later.
     this.push("static readonly SERIALIZER = ");
@@ -439,12 +448,12 @@ class TsModuleCodeGenerator {
       this.push(`
         static create<Kind extends ${className.type}.ValueKind>(
           kind: Kind,
-          value: ${className.type}.CopyableFor<Kind>,
+          value: ${className.type}.InitializerFor<Kind>,
         ): ${className.type} {
           let v: ${className.type}.Value;
           switch (kind) {\n`);
       for (const field of valueFields) {
-        const inExpr = `value as ${className.type}.CopyableFor<${field.quotedName}>`;
+        const inExpr = `value as ${className.type}.InitializerFor<${field.quotedName}>`;
         const rvalue = makeTransformExpression({
           type: field.type,
           inExpr: inExpr,
@@ -467,28 +476,28 @@ class TsModuleCodeGenerator {
         }\n\n`);
     }
 
-    // Define the fromCopyable function.
+    // Define the `from` function.
     this.push(`
-      static fromCopyable(
-        copyable: ${className.type}.Copyable,
+      static from(
+        initializer: ${className.type}.Initializer,
       ): ${className.type} {
-        if (copyable instanceof this) {
-          return copyable;
+        if (initializer instanceof this) {
+          return initializer;
         }
-        if (copyable as unknown instanceof $._UnrecognizedEnum) {
+        if (initializer as unknown instanceof $._UnrecognizedEnum) {
           return new this(
             "?",
             undefined,
-            copyable as unknown as $._UnrecognizedEnum,
+            initializer as unknown as $._UnrecognizedEnum,
           );
         }\n`);
     if (enumKind !== "all-constant") {
       this.push(`
-        if (copyable instanceof Object) {
-          return this.create(copyable.kind, copyable.value);
+        if (initializer instanceof Object) {
+          return this.create(initializer.kind, initializer.value);
         }\n`);
     }
-    this.push("switch (copyable) {\n");
+    this.push("switch (initializer) {\n");
     for (const field of constantFields) {
       this.push(`
           case ${field.quotedName}: {
@@ -498,7 +507,7 @@ class TsModuleCodeGenerator {
     this.push("}\n"); // switch
     this.push(`
         throw new TypeError();
-      }\n\n`); // fromCopyable
+      }\n\n`); // from
 
     // Define SERIALIZER.
     this.push("static readonly SERIALIZER = ");
@@ -589,10 +598,10 @@ class TsModuleCodeGenerator {
     this.push(`
       function init${className.value}(
         target: Record<string, unknown>,
-        copyable: ${className.type}.Copyable,
+        initializer: ${className.type}.Initializer,
       ): void {\n`);
     for (const field of fieldsWithDefaultAtInit) {
-      const inExpr = `copyable.${field.property}`;
+      const inExpr = `initializer.${field.property}`;
       const rvalue = makeTransformExpression({
         type: field.type,
         inExpr: inExpr,
@@ -603,8 +612,8 @@ class TsModuleCodeGenerator {
       this.push(`target.${field.property} = ${rvalue};\n`);
     }
     this.push(`
-        if ("^" in copyable) {
-          target["^"] = copyable["^"];
+        if ("^" in initializer) {
+          target["^"] = initializer["^"];
         }
       }\n\n`); // function
   }
@@ -637,18 +646,18 @@ class TsModuleCodeGenerator {
   private declareStructSpecificTypes(struct: StructInfo): void {
     const { className, fields } = struct;
 
-    // Declare the Copyable interface.
+    // Declare the Initializer interface.
     if (fields.length) {
-      this.push("export interface Copyable {\n");
+      this.push("export interface Initializer {\n");
       for (const field of fields) {
-        const type = field.tsTypes.copyable;
+        const type = field.tsTypes.initializer;
         this.push(`readonly ${field.property}?: ${type};\n`);
       }
       this.push("}\n\n");
     } else {
       // The only value of type `Record<string | number | symbol, never>` is the
       // empty object `{}`.
-      this.push("export type Copyable = ");
+      this.push("export type Initializer = ");
       this.push("Record<string | number | symbol, never> | OrMutable;\n\n");
     }
 
@@ -664,7 +673,7 @@ class TsModuleCodeGenerator {
       valueFields,
       constantKindType,
       valueKindType,
-      copyableType,
+      initializerType,
     } = enumInfo;
 
     // Declare the ConstantCase type.
@@ -676,12 +685,12 @@ class TsModuleCodeGenerator {
     // Declare the Case type.
     this.push("export type Kind = ConstantKind | ValueKind;\n\n");
 
-    // Declare the Copyable type.
-    this.push(`export type Copyable = ${copyableType};\n\n`);
+    // Declare the Initializer type.
+    this.push(`export type Initializer = ${initializerType};\n\n`);
 
-    // Declare the CopyableFor generic type.
-    this.push("export type CopyableFor<C extends ValueKind> = ");
-    this.pushNoTrimStart(`${enumInfo.copyableForType};\n\n`);
+    // Declare the InitializerFor generic type.
+    this.push("export type InitializerFor<C extends ValueKind> = ");
+    this.pushNoTrimStart(`${enumInfo.initializerForType};\n\n`);
 
     // Declare the Value type.
     this.push(`export type Value = ${enumInfo.valueType};\n\n`);
@@ -861,7 +870,7 @@ class TsModuleCodeGenerator {
         break;
       }
       case "enum": {
-        this.push(`${className.type}.fromCopyable({\n`);
+        this.push(`${className.type}.from({\n`);
         this.push(`kind: ${value.entries["kind"]!.value.token.text},\n`);
         this.push("value: ");
         this.spellValue(value.entries["value"]!.value);
@@ -879,7 +888,7 @@ class TsModuleCodeGenerator {
     if (type!.kind === "enum") {
       // An enum constant.
       const className = this.typeSpeller.getClassName(type!.key);
-      return `${className.type}.fromCopyable(${value.token.text})`;
+      return `${className.type}.from(${value.token.text})`;
     }
     const { text } = value.token;
     switch (type!.primitive) {
@@ -943,7 +952,6 @@ class TsModuleCodeGenerator {
       }
 
       const firstChar = line[0];
-      const lastChar = line.slice(-1);
       switch (firstChar) {
         case "}":
         case ")":
@@ -966,6 +974,10 @@ class TsModuleCodeGenerator {
       }
       const indent = indentUnit.repeat(contextStack.length);
       result += `${indent}${line.trimEnd()}\n`;
+      if (line.startsWith("//")) {
+        continue;
+      }
+      const lastChar = line.slice(-1);
       switch (lastChar) {
         case "{":
         case "(":

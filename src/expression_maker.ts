@@ -1,6 +1,6 @@
 /**
  * @fileoverview Returns a TypeScript expression transforming a value from a
- * `copyable` type into a `frozen` or `maybe-mutable` type.
+ * `initializer` type into a `frozen` or `maybe-mutable` type.
  */
 import { TypeSpeller } from "./type_speller.js";
 import type { ResolvedType } from "soiac";
@@ -26,8 +26,7 @@ export function makeTransformExpression(arg: TransformExpressionArg): string {
     const inExprOrDefault = maybeUndefined
       ? `${inExpr} || ${defaultExpr}`
       : inExpr;
-    const functionName =
-      frozenClass.recordType === "enum" ? "fromCopyable" : "create";
+    const functionName = frozenClass.recordType === "enum" ? "from" : "create";
     return `${frozenClass.value}.${functionName}(${inExprOrDefault})`;
   } else if (type.kind === "array") {
     const transformItemExpr = makeTransformExpression({

@@ -59,8 +59,8 @@ export interface EnumInfo {
    */
   readonly valueType: TsType;
   readonly valueForType: TsType;
-  readonly copyableType: TsType;
-  readonly copyableForType: TsType;
+  readonly initializerType: TsType;
+  readonly initializerForType: TsType;
 }
 
 export interface StructField {
@@ -264,16 +264,16 @@ class RecordInfoCreator {
     const typesInValueKindUnion: TsType[] = [];
     const typesInValueTypeUnion: TsType[] = [];
     const nameToValueType = new Map<string, TsType>();
-    const typesInCopyableUnion: TsType[] = [];
-    const nameToCopyableType = new Map<string, TsType>();
+    const typesInInitializerUnion: TsType[] = [];
+    const nameToInitializerType = new Map<string, TsType>();
 
-    typesInCopyableUnion.push(TsType.simple(className.type));
+    typesInInitializerUnion.push(TsType.simple(className.type));
 
     const registerConstantField = (f: EnumConstantField) => {
       constantFields.push(f);
       const nameLiteral = TsType.literal(f.name);
       typesInConstantKindUnion.push(nameLiteral);
-      typesInCopyableUnion.push(nameLiteral);
+      typesInInitializerUnion.push(nameLiteral);
     };
 
     // Register the special UNKNOWN field.
@@ -294,18 +294,18 @@ class RecordInfoCreator {
         const enumField = this.createEnumValueField(field);
         const { name } = enumField;
         const nameLiteral = TsType.literal(name);
-        const { frozen, copyable } = enumField.tsTypes;
+        const { frozen, initializer } = enumField.tsTypes;
         valueFields.push(enumField);
         typesInValueKindUnion.push(nameLiteral);
         typesInValueTypeUnion.push(frozen);
-        typesInCopyableUnion.push(
+        typesInInitializerUnion.push(
           TsType.inlineInterface({
             kind: nameLiteral,
-            value: copyable,
+            value: initializer,
           }),
         );
         nameToValueType.set(name, frozen);
-        nameToCopyableType.set(name, copyable);
+        nameToInitializerType.set(name, initializer);
       }
     }
 
@@ -327,8 +327,8 @@ class RecordInfoCreator {
       valueKindType: TsType.union(typesInValueKindUnion),
       valueType: TsType.union(typesInValueTypeUnion),
       valueForType: TsType.conditional("C", nameToValueType),
-      copyableType: TsType.union(typesInCopyableUnion),
-      copyableForType: TsType.conditional("C", nameToCopyableType),
+      initializerType: TsType.union(typesInInitializerUnion),
+      initializerForType: TsType.conditional("C", nameToInitializerType),
     };
   }
 

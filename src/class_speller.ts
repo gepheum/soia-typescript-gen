@@ -125,7 +125,7 @@ const BUILTIN_TYPE_NAMES: ReadonlySet<string> = new Set([
 
 /** Generated types nested within a struct namespace. */
 const STRUCT_NESTED_TYPE_NAMES: ReadonlySet<string> = new Set([
-  "Copyable",
+  "Initializer",
   "Mutable",
   "OrMutable",
 ]);
@@ -133,8 +133,8 @@ const STRUCT_NESTED_TYPE_NAMES: ReadonlySet<string> = new Set([
 /** Generated types nested within an enum namespace. */
 const ENUM_NESTED_TYPE_NAMES: ReadonlySet<string> = new Set([
   "ConstantKind",
-  "Copyable",
-  "CopyableFor",
+  "Initializer",
+  "InitializerFor",
   "Kind",
   "Value",
   "ValueFor",
