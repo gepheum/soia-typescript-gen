@@ -48,26 +48,6 @@ export class TsType {
     return new TsType([`{ ${entries.map(mapFn).join("; ")} }`], multiline);
   }
 
-  /**
-   * A conditional type.
-   * @see https://www.typescriptlang.org/docs/handbook/2/conditional-types.html
-   */
-  static conditional(
-    typeVar: string,
-    stringToType: ReadonlyMap<string, TsType>,
-  ): TsType {
-    if (stringToType.size <= 0) {
-      return TsType.NEVER;
-    }
-    const lines: string[] = [];
-    stringToType.forEach((t, s) => {
-      const thenType = t.multiline ? `(${t}\n)` : t.toString();
-      lines.push(`${typeVar} extends "${s}" ? ${thenType} :\n`);
-    });
-    lines.push("never");
-    return new TsType([lines.join("")], true);
-  }
-
   static union(types: readonly TsType[]): TsType {
     const typesInUnion = new Set<string>();
     for (const arg of types) {

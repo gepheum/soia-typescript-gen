@@ -434,7 +434,14 @@ class TsModuleCodeGenerator {
     enumInfo: EnumInfo,
     typeSpeller: TypeSpeller,
   ): void {
-    const { className, enumKind, constantFields, valueFields } = enumInfo;
+    const {
+      className,
+      constantFields,
+      enumKind,
+      initializerType,
+      valueFields,
+      valueOnlyInitializerType,
+    } = enumInfo;
 
     // Define the enum constants.
     for (const field of constantFields) {
@@ -443,107 +450,45 @@ class TsModuleCodeGenerator {
     }
     this.pushEol();
 
-    // Define the `create` function if the enum has value fields.
+    // Declare the `create` function. It is defined in the superclass.
+    this.push("declare static create: (initializer: ");
+    this.push(`${className.type}.Initializer) => ${className.type};\n\n`);
+
+    // Define the `_createValue` function if the enum has value fields.
     if (enumKind !== "all-constant") {
       this.push(`
-        static create<Kind extends ${className.type}.ValueKind>(
-          kind: Kind,
-          value: ${className.type}.InitializerFor<Kind>,
-        ): ${className.type} {
-          let v: ${className.type}.Value;
+        protected static _createValue(
+          initializer: ${valueOnlyInitializerType},
+        ): ${className.type}.Value {
+          const {kind, value} = initializer;
           switch (kind) {\n`);
       for (const field of valueFields) {
-        const inExpr = `value as ${className.type}.InitializerFor<${field.quotedName}>`;
-        const rvalue = makeTransformExpression({
+        const returnValue = makeTransformExpression({
           type: field.type,
-          inExpr: inExpr,
+          inExpr: "value",
           maybeUndefined: false,
           outFlavor: "frozen",
           typeSpeller: typeSpeller,
         });
         this.push(`
           case ${field.quotedName}: {
-            v = ${rvalue};
-            break;
+            return ${returnValue};
           }\n`);
       }
-      this.push(`
-            default: {
-              throw new TypeError();
-            }
-          }
-          return new this(kind, v);
-        }\n\n`);
+      this.push("}\n}\n\n");
     }
 
-    // Define the `from` function.
-    this.push(`
-      static from(
-        initializer: ${className.type}.Initializer,
-      ): ${className.type} {
-        if (initializer instanceof this) {
-          return initializer;
-        }
-        if (initializer as unknown instanceof $._UnrecognizedEnum) {
-          return new this(
-            "?",
-            undefined,
-            initializer as unknown as $._UnrecognizedEnum,
-          );
-        }\n`);
+    // Declare the `kind`, `value` and `union` properties.
+    this.push(`declare readonly kind: ${className.type}.Kind;\n`);
     if (enumKind !== "all-constant") {
-      this.push(`
-        if (initializer instanceof Object) {
-          return this.create(initializer.kind, initializer.value);
-        }\n`);
+      this.push(`declare readonly value: ${className.type}.Value;\n`);
+      this.push(`declare readonly union: ${className.type}.UnionView;\n`);
     }
-    this.push("switch (initializer) {\n");
-    for (const field of constantFields) {
-      this.push(`
-          case ${field.quotedName}: {
-            return ${className.value}.${field.property};
-          }\n`);
-    }
-    this.push("}\n"); // switch
-    this.push(`
-        throw new TypeError();
-      }\n\n`); // from
+    this.pushEol();
 
     // Define SERIALIZER.
     this.push("static readonly SERIALIZER = ");
     this.push("$._newEnumSerializer(this.UNKNOWN);\n\n");
-
-    // Define the constructor.
-    this.push(`
-      private constructor(
-        readonly kind: ${className.type}.Kind,
-        readonly value?: ${className.type}.Value,
-        unrecognized?: $._UnrecognizedEnum,
-      ) {
-        super();
-        if (unrecognized) {
-          (this as Record<string, unknown>)["^"] = unrecognized;
-        }
-        Object.freeze(this);
-      }\n\n`);
-
-    // Define the `as` method if the enum has value fields.
-    if (enumKind !== "all-constant") {
-      this.push(`
-        declare as: <Kind extends ${className.type}.ValueKind>(
-          kind: Kind,
-        ) => ${className.type}.ValueFor<Kind> | undefined;\n\n`);
-    }
-
-    // Declare the switch method. It is defined in the super class.
-    const switcherType = TsType.union([
-      TsType.simple(`${className.type}.Switcher<T>`),
-      TsType.simple(`${className.type}.SwitcherWithDefault<T>`),
-    ]);
-    this.pushNoTrimStart(`
-      declare switch: <T>(
-        switcher: ${switcherType}
-      ) => T;\n\n`);
   }
 
   private maybeDefineMutableGetter(
@@ -668,51 +613,16 @@ class TsModuleCodeGenerator {
   }
 
   private declareEnumSpecificTypes(enumInfo: EnumInfo): void {
-    const {
-      constantFields,
-      valueFields,
-      constantKindType,
-      valueKindType,
-      initializerType,
-    } = enumInfo;
-
-    // Declare the ConstantCase type.
-    this.push(`export type ConstantKind = ${constantKindType};\n\n`);
-
-    // Declare the CaseWithValue type.
-    this.push(`export type ValueKind = ${valueKindType};\n\n`);
-
-    // Declare the Case type.
-    this.push("export type Kind = ConstantKind | ValueKind;\n\n");
-
-    // Declare the Initializer type.
+    const { enumKind, initializerType, kindType, unionViewType, valueType } =
+      enumInfo;
+    this.push(`export type Kind = ${kindType};\n\n`);
+    if (enumKind !== "all-constant") {
+      this.push(`export type Value = ${enumInfo.valueType};\n\n`);
+    }
     this.push(`export type Initializer = ${initializerType};\n\n`);
-
-    // Declare the InitializerFor generic type.
-    this.push("export type InitializerFor<C extends ValueKind> = ");
-    this.pushNoTrimStart(`${enumInfo.initializerForType};\n\n`);
-
-    // Declare the Value type.
-    this.push(`export type Value = ${enumInfo.valueType};\n\n`);
-
-    // Declare the ValueFor generic type.
-    this.push("export type ValueFor<C extends ValueKind> = ");
-    this.pushNoTrimStart(`${enumInfo.valueForType};\n\n`);
-
-    // Declare the Switcher type.
-    this.push("export interface Switcher<T> {\n");
-    for (const field of constantFields) {
-      this.push(`${field.quotedName}: () => T;\n`);
+    if (enumKind !== "all-constant") {
+      this.push(`export type UnionView = ${unionViewType};\n\n`);
     }
-    for (const field of valueFields) {
-      const { frozen } = field.tsTypes;
-      this.push(`${field.quotedName}: (v: ${frozen}) => T;\n`);
-    }
-    this.push("}\n\n");
-    this.push(`
-      export interface SwitcherWithDefault<T> extends Partial<Switcher<T>> {
-        ["*"]: () => T;
-      }\n\n`);
   }
 
   private defineMethod(method: Method): void {
@@ -857,27 +767,26 @@ class TsModuleCodeGenerator {
 
   private spellObjectValue(value: ObjectValue): void {
     const className = this.typeSpeller.getClassName(value.type!);
+    this.push(`${className.type}.create({\n`);
     switch (className.recordType) {
       case "struct": {
-        this.push(`${className.type}.create({\n`);
         for (const entry of Object.values(value.entries)) {
           const property = structFieldNameToProperty(entry.name.text);
           this.push(`${property}: `);
           this.spellValue(entry.value);
           this.push(",\n");
         }
-        this.push("})");
         break;
       }
       case "enum": {
-        this.push(`${className.type}.from({\n`);
         this.push(`kind: ${value.entries["kind"]!.value.token.text},\n`);
         this.push("value: ");
         this.spellValue(value.entries["value"]!.value);
-        this.push(",\n})");
+        this.push(",\n");
         break;
       }
     }
+    this.push("})");
   }
 
   private getLiteralValueExpr(value: LiteralValue): string {
@@ -888,7 +797,7 @@ class TsModuleCodeGenerator {
     if (type!.kind === "enum") {
       // An enum constant.
       const className = this.typeSpeller.getClassName(type!.key);
-      return `${className.type}.from(${value.token.text})`;
+      return `${className.type}.create(${value.token.text})`;
     }
     const { text } = value.token;
     switch (type!.primitive) {

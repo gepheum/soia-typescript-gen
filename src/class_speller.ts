@@ -132,13 +132,8 @@ const STRUCT_NESTED_TYPE_NAMES: ReadonlySet<string> = new Set([
 
 /** Generated types nested within an enum namespace. */
 const ENUM_NESTED_TYPE_NAMES: ReadonlySet<string> = new Set([
-  "ConstantKind",
   "Initializer",
-  "InitializerFor",
   "Kind",
   "Value",
-  "ValueFor",
-  "ValueKind",
-  "Switcher",
-  "SwitcherWithFallback",
+  "UnionView",
 ]);

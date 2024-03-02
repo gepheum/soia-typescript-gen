@@ -8,17 +8,17 @@ import { EnumField } from "soia";
 describe("simple enum", () => {
   const monday = Weekday.MONDAY;
 
-  describe("#from", () => {
+  describe("#create", () => {
     it("unknown field", () => {
-      expect(Weekday.from("?")).toBe(Weekday.UNKNOWN);
+      expect(Weekday.create("?")).toBe(Weekday.UNKNOWN);
     });
 
     it("constant name", () => {
-      expect(Weekday.from("MONDAY")).toBe(monday);
+      expect(Weekday.create("MONDAY")).toBe(monday);
     });
 
     it("constant", () => {
-      expect(Weekday.from(monday)).toBe(monday);
+      expect(Weekday.create(monday)).toBe(monday);
     });
   });
 
@@ -28,70 +28,6 @@ describe("simple enum", () => {
     });
     it("#UNKNOWN", () => {
       expect(Weekday.UNKNOWN.kind).toBe("?");
-    });
-  });
-
-  describe("#switch", () => {
-    it("works", () => {
-      const switchResult = monday.switch({
-        MONDAY: () => "Monday",
-        TUESDAY: () => "Tuesday",
-        WEDNESDAY: () => "Wednesday",
-        THURSDAY: () => "Thursday",
-        FRIDAY: () => "Friday",
-        SATURDAY: () => "Saturday",
-        SUNDAY: () => "Sunday",
-        "?": () => "???",
-      });
-      expect(switchResult).toBe("Monday");
-    });
-
-    it("#UNKNOWN", () => {
-      const switchResult = Weekday.UNKNOWN.switch({
-        MONDAY: () => "Monday",
-        TUESDAY: () => "Tuesday",
-        WEDNESDAY: () => "Wednesday",
-        THURSDAY: () => "Thursday",
-        FRIDAY: () => "Friday",
-        SATURDAY: () => "Saturday",
-        SUNDAY: () => "Sunday",
-        "?": () => "???",
-      });
-      expect(switchResult).toBe("???");
-    });
-  });
-
-  describe("#switch with default", () => {
-    it("works when no default", () => {
-      const switchResult = monday.switch({
-        MONDAY: () => "Monday",
-        "*": () => "N/A",
-      });
-      expect(switchResult).toBe("Monday");
-    });
-
-    it("works when default", () => {
-      const switchResult = monday.switch({
-        TUESDAY: () => "Tuesday",
-        "*": () => "N/A",
-      });
-      expect(switchResult).toBe("N/A");
-    });
-
-    it("#UNKNOWN and no default", () => {
-      const switchResult = Weekday.UNKNOWN.switch({
-        "?": () => "???",
-        "*": () => "N/A",
-      });
-      expect(switchResult).toBe("???");
-    });
-
-    it("#UNKNOWN and default", () => {
-      const switchResult = Weekday.UNKNOWN.switch({
-        TUESDAY: () => "Tuesday",
-        "*": () => "N/A",
-      });
-      expect(switchResult).toBe("N/A");
     });
   });
 
@@ -242,26 +178,20 @@ describe("simple enum", () => {
   {
     const _: Weekday.Kind = "?";
   }
-  {
-    const _: Weekday.ConstantKind = "MONDAY";
-  }
-  {
-    const _: Weekday.ConstantKind = "?";
-  }
 });
 
 describe("recursive enum", () => {
   describe("#from", () => {
     it("constant name", () => {
-      expect(JsonValue.from("NULL")).toBe(JsonValue.NULL);
+      expect(JsonValue.create("NULL")).toBe(JsonValue.NULL);
     });
 
     it("constant", () => {
-      expect(JsonValue.from(JsonValue.NULL)).toBe(JsonValue.NULL);
+      expect(JsonValue.create(JsonValue.NULL)).toBe(JsonValue.NULL);
     });
   });
 
-  const complexValue = JsonValue.from({
+  const complexValue = JsonValue.create({
     kind: "array",
     value: [
       "NULL",
@@ -327,16 +257,21 @@ describe("recursive enum", () => {
     expect(Array.isArray(complexValue.value)).toBe(true);
   });
 
+  it("#union", () => {
+    expect(complexValue.union).toBe(complexValue as JsonValue.UnionView);
+  });
+
   it("switch", () => {
-    const arrayLength = complexValue.switch({
-      NULL: () => 0,
-      array: (v: readonly JsonValue[]) => v.length,
-      boolean: () => 0,
-      number: () => 0,
-      object: () => 0,
-      string: () => 0,
-      "*": () => -1,
-    });
+    const arrayLength = (() => {
+      switch (complexValue.union.kind) {
+        case "?":
+          return -1;
+        case "array":
+          return complexValue.union.value.length;
+        default:
+          return 0;
+      }
+    })();
     expect(arrayLength).toBe(4);
   });
 
@@ -370,12 +305,6 @@ describe("recursive enum", () => {
     );
   });
 
-  {
-    const _: JsonValue.ConstantKind = "NULL";
-  }
-  {
-    const _: JsonValue.ValueKind = "array";
-  }
   {
     const _: JsonValue.Kind = "NULL";
   }

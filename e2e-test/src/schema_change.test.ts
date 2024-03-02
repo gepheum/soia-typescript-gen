@@ -31,7 +31,7 @@ describe("schema change", () => {
         EnumAfter.UNKNOWN,
         EnumAfter.A,
         EnumAfter.B,
-        EnumAfter.create("c", "CcC"),
+        EnumAfter.create({ kind: "c", value: "CcC" }),
       ],
       bit: true,
     });
@@ -64,7 +64,7 @@ describe("schema change", () => {
       es: [
         RemovalBefore.E.C,
         RemovalBefore.E.D,
-        RemovalBefore.E.create("e", "EE"),
+        RemovalBefore.E.create({ kind: "e", value: "EE" }),
       ],
     });
 

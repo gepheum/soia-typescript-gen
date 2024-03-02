@@ -26,8 +26,7 @@ export function makeTransformExpression(arg: TransformExpressionArg): string {
     const inExprOrDefault = maybeUndefined
       ? `${inExpr} || ${defaultExpr}`
       : inExpr;
-    const functionName = frozenClass.recordType === "enum" ? "from" : "create";
-    return `${frozenClass.value}.${functionName}(${inExprOrDefault})`;
+    return `${frozenClass.value}.create(${inExprOrDefault})`;
   } else if (type.kind === "array") {
     const transformItemExpr = makeTransformExpression({
       type: type.item,

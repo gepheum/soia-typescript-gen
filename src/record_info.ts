@@ -51,16 +51,12 @@ export interface EnumInfo {
   readonly enumKind: "all-constant" | "mixed";
   readonly constantFields: readonly EnumConstantField[];
   readonly valueFields: readonly EnumValueField[];
-  readonly constantKindType: TsType;
-  readonly valueKindType: TsType;
-  /**
-   * Union of the frozen type of all the value fields, or `never` if there is no
-   * frozen field.
-   */
+  readonly kindType: TsType;
+  /** Union of `undefined` and the frozen type of all the value fields */
   readonly valueType: TsType;
-  readonly valueForType: TsType;
   readonly initializerType: TsType;
-  readonly initializerForType: TsType;
+  readonly valueOnlyInitializerType: TsType;
+  readonly unionViewType: TsType;
 }
 
 export interface StructField {
@@ -260,20 +256,25 @@ class RecordInfoCreator {
     const { record } = this.record;
     const constantFields: EnumConstantField[] = [];
     const valueFields: EnumValueField[] = [];
-    const typesInConstantKindUnion: TsType[] = [];
-    const typesInValueKindUnion: TsType[] = [];
-    const typesInValueTypeUnion: TsType[] = [];
-    const nameToValueType = new Map<string, TsType>();
+    const typesInKindTypeUnion: TsType[] = [];
+    const typesInValueTypeUnion: TsType[] = [TsType.UNDEFINED];
     const typesInInitializerUnion: TsType[] = [];
-    const nameToInitializerType = new Map<string, TsType>();
+    const typesInValueOnlyInitializerUnion: TsType[] = [];
+    const typesInUnionView: TsType[] = [];
 
     typesInInitializerUnion.push(TsType.simple(className.type));
 
     const registerConstantField = (f: EnumConstantField) => {
       constantFields.push(f);
       const nameLiteral = TsType.literal(f.name);
-      typesInConstantKindUnion.push(nameLiteral);
+      typesInKindTypeUnion.push(nameLiteral);
       typesInInitializerUnion.push(nameLiteral);
+      typesInUnionView.push(
+        TsType.inlineInterface({
+          kind: nameLiteral,
+          value: TsType.UNDEFINED,
+        }),
+      );
     };
 
     // Register the special UNKNOWN field.
@@ -296,24 +297,24 @@ class RecordInfoCreator {
         const nameLiteral = TsType.literal(name);
         const { frozen, initializer } = enumField.tsTypes;
         valueFields.push(enumField);
-        typesInValueKindUnion.push(nameLiteral);
         typesInValueTypeUnion.push(frozen);
+        typesInKindTypeUnion.push(nameLiteral);
         typesInInitializerUnion.push(
           TsType.inlineInterface({
             kind: nameLiteral,
             value: initializer,
           }),
         );
-        nameToValueType.set(name, frozen);
-        nameToInitializerType.set(name, initializer);
+        const valueInitializer = TsType.inlineInterface({
+          kind: nameLiteral,
+          value: initializer,
+        });
+        typesInValueOnlyInitializerUnion.push(valueInitializer);
+        typesInUnionView.push(valueInitializer);
       }
     }
 
     const enumKind = valueFields.length ? "mixed" : "all-constant";
-
-    if (enumKind !== "all-constant") {
-      typesInValueTypeUnion.push(TsType.UNDEFINED);
-    }
 
     return {
       recordType: "enum",
@@ -323,12 +324,11 @@ class RecordInfoCreator {
       enumKind: enumKind,
       constantFields: constantFields,
       valueFields: valueFields,
-      constantKindType: TsType.union(typesInConstantKindUnion),
-      valueKindType: TsType.union(typesInValueKindUnion),
+      kindType: TsType.union(typesInKindTypeUnion),
       valueType: TsType.union(typesInValueTypeUnion),
-      valueForType: TsType.conditional("C", nameToValueType),
       initializerType: TsType.union(typesInInitializerUnion),
-      initializerForType: TsType.conditional("C", nameToInitializerType),
+      valueOnlyInitializerType: TsType.union(typesInValueOnlyInitializerUnion),
+      unionViewType: TsType.union(typesInUnionView),
     };
   }
 
