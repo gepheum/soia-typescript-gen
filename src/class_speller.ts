@@ -113,14 +113,12 @@ export function getClassName(
 }
 
 const BUILTIN_TYPE_NAMES: ReadonlySet<string> = new Set([
-  // Subset of the standard built-in Javascript types used in the generated
-  // code. We can't use those as names for generated types.
+  // Subset of the standard built-in Typescript types and Javascript class names
+  // used in the generated code, either in the ".d.ts" file or the ".js" file.
+  // We can't use those as names for generated types at the top-level.
   "Array",
   "BigInt",
-  "Object",
-  "Partial",
   "ReadonlyArray",
-  "Record",
 ]);
 
 /** Generated types nested within a struct namespace. */

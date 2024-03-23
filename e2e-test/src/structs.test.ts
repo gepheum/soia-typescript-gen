@@ -1,5 +1,7 @@
 import { SerializerTester } from "../../node_modules/soia/dist/esm/serializer_tester.js";
 import {
+  CarOwner,
+  Floats,
   FullName,
   Item,
   Items,
@@ -8,9 +10,10 @@ import {
 } from "../soiagen/structs.soia.js";
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
+import { ByteString, Timestamp } from "soia";
 import { MutableForm, StructDescriptor, StructField } from "soia";
 
-describe("simple struct", () => {
+describe("structs", () => {
   it("reserialize", () => {
     const serializer = Point.SERIALIZER;
     const serializerTester = new SerializerTester(serializer);
@@ -100,28 +103,107 @@ describe("simple struct", () => {
     expect(point.toMutable()).toBe(point);
   });
 
-  it("mutableArray() getter", () => {
+  describe("mutableArray() getter", () => {
     const p0 = Point.create({ x: 10 });
     const p1 = Point.create({ x: 11 });
-    const mutable = new Triangle.Mutable();
-    {
-      const mutablePoints = mutable.mutablePoints;
+    const points = Object.freeze([p0, p1]);
+    it("#0", () => {
+      const mutableTriangle = new Triangle.Mutable();
+      mutableTriangle.mutablePoints.push(p0);
+      expect(mutableTriangle.points).toMatch([p0]);
+    });
+    it("#1", () => {
+      const mutableTriangle = new Triangle.Mutable();
+      mutableTriangle.points = points;
+      const mutablePoints = mutableTriangle.mutablePoints;
+      // Would throw an error if a copy wasn't made.
       mutablePoints.push(p0);
-      mutablePoints.push(p1);
-      expect(mutable.mutablePoints).toBe(mutablePoints);
-      expect(mutable.points).toMatch([p0, p1]);
-      expect(mutable.toFrozen().points).toMatch([p0, p1]);
-    }
-    // Now let's assign a new value to the `points` field.
-    {
-      const points = [p0, p1];
-      mutable.points = points;
-      const mutablePoints = mutable.mutablePoints;
-      // Verify that a copy was made.
-      points.push(p0);
-      expect(mutablePoints).toMatch([p0, p1]);
-      expect(mutable.mutablePoints).toBe(mutablePoints);
-    }
+      it("#1.0", () => {
+        expect(mutableTriangle.points).toBe(mutablePoints);
+      });
+      it("#1.1", () => {
+        expect(mutableTriangle.mutablePoints).toBe(mutablePoints);
+      });
+    });
+    it("#2", () => {
+      const mutableTriangle = new Triangle.Mutable();
+      mutableTriangle.points = points;
+      const mutablePointsBefore = mutableTriangle.mutablePoints;
+      mutableTriangle.points = points;
+      const mutablePointsAfter = [p0, p1];
+      mutablePointsAfter.push(p0);
+      it("#2.0", () => {
+        expect(mutableTriangle.points).toMatch([p0, p1, p0]);
+      });
+      it("#2.1", () => {
+        expect(mutablePointsBefore).toMatch([p0, p1]);
+      });
+    });
+  });
+
+  it("mutable struct getter", () => {
+    const mutable = new CarOwner.Mutable();
+    mutable.mutableOwner.firstName = "John";
+    mutable.mutableOwner.lastName = "Doe";
+    mutable.mutableCar.mutableOwner.userId = BigInt(123);
+    mutable.mutableCar.purchaseTime = Timestamp.parse("2024-03-11T08:00:00Z");
+    let carOwner: CarOwner = mutable.toFrozen();
+    expect(carOwner).toMatch({
+      car: {
+        purchaseTime: {
+          unixMillis: 1710144000000,
+        },
+        owner: {
+          userId: BigInt("123"),
+        },
+      },
+      owner: {
+        firstName: "John",
+        lastName: "Doe",
+      },
+    });
+    mutable.owner = FullName.create({ firstName: "Jane", lastName: "Jackson" });
+    mutable.mutableOwner.lastName = "Johnson";
+    carOwner = mutable.toFrozen();
+    expect(carOwner).toMatch({
+      car: {
+        purchaseTime: {
+          unixMillis: 1710144000000,
+        },
+        owner: {
+          userId: BigInt("123"),
+        },
+      },
+      owner: {
+        firstName: "Jane",
+        lastName: "Johnson",
+      },
+    });
+  });
+
+  describe("floats", () => {
+    const serializerTester = new SerializerTester(Floats.SERIALIZER);
+    serializerTester.reserializeAndAssert(Floats.create({ x: 0 / 0 }), {
+      denseJson: ["NaN"],
+      readableJson: {
+        x: "NaN",
+      },
+      bytesAsBase16: "f7f00000c07f",
+    });
+    serializerTester.reserializeAndAssert(Floats.create({ y: 1 / 0 }), {
+      denseJson: [0, "Infinity"],
+      readableJson: {
+        y: "Infinity",
+      },
+      bytesAsBase16: "f800f1000000000000f07f",
+    });
+    serializerTester.reserializeAndAssert(Floats.create({ y: -1 / 0 }), {
+      denseJson: [0, "-Infinity"],
+      readableJson: {
+        y: "-Infinity",
+      },
+      bytesAsBase16: "f800f1000000000000f0ff",
+    });
   });
 });
 
@@ -280,7 +362,7 @@ describe("struct reflection", () => {
 });
 
 describe("struct with indexed arrays", () => {
-  it("works", () => {
+  describe("works", () => {
     const item0 = Item.create({
       bool: false,
       int32: 10,
@@ -288,6 +370,8 @@ describe("struct with indexed arrays", () => {
       string: "s10",
       user: { id: "id10" },
       weekday: "MONDAY",
+      timestamp: Timestamp.fromUnixMillis(123),
+      bytes: ByteString.fromBase16("AA88"),
     });
     const item1 = Item.create({
       bool: true,
@@ -296,14 +380,18 @@ describe("struct with indexed arrays", () => {
       string: "s11",
       user: { id: "id11" },
       weekday: "TUESDAY",
+      timestamp: Timestamp.fromUnixMillis(234),
+      bytes: ByteString.fromBase16("AA99"),
     });
     const item2 = Item.create({
       bool: true,
       int32: 12,
-      int64: BigInt(12),
+      int64: BigInt(120000000000),
       string: "s12",
       user: { id: "id12" },
       weekday: "WEDNESDAY",
+      timestamp: Timestamp.fromUnixMillis(345),
+      bytes: ByteString.fromBase16("BB00"),
     });
     const array = [item0, item1, item2];
     const items = Items.create({
@@ -313,23 +401,61 @@ describe("struct with indexed arrays", () => {
       arrayWithStringKey: array,
       arrayWithWrapperKey: array,
       arrayWithEnumKey: array,
+      arrayWithBytesKey: array,
+      arrayWithTimestampKey: array,
     });
 
-    expect(items.arrayWithBoolKeyMap.get(false)).toBe(item0);
-    expect(items.arrayWithBoolKeyMap.get(true)).toBe(item2);
-    expect(items.arrayWithEnumKeyMap.get("TUESDAY")).toBe(item1);
-    expect(items.arrayWithInt32KeyMap.get(10)).toBe(item0);
-    expect(items.arrayWithInt64KeyMap.get("12")).toBe(item2);
-    expect(items.arrayWithStringKeyMap.get("s12")).toBe(item2);
-    expect(items.arrayWithWrapperKeyMap.get("id12")).toBe(item2);
+    it("#0", () => {
+      expect(items.searchArrayWithBoolKey(false)).toBe(item0);
+    });
+    it("#1", () => {
+      expect(items.searchArrayWithBoolKey(true)).toBe(item2);
+    });
+    it("#2", () => {
+      expect(items.searchArrayWithEnumKey("TUESDAY")).toBe(item1);
+    });
+    it("#3", () => {
+      expect(items.searchArrayWithInt32Key(10)).toBe(item0);
+    });
+    it("#4", () => {
+      expect(items.searchArrayWithInt64Key(BigInt("120000000000"))).toBe(item2);
+    });
+    it("#5", () => {
+      expect(items.searchArrayWithStringKey("s12")).toBe(item2);
+    });
+    it("#6", () => {
+      expect(items.searchArrayWithWrapperKey("id12")).toBe(item2);
+    });
+    it("#7", () => {
+      expect(items.searchArrayWithBytesKey(ByteString.fromBase16("BB00"))).toBe(
+        item2,
+      );
+    });
+    it("#8", () => {
+      expect(
+        items.searchArrayWithTimestampKey(Timestamp.fromUnixMillis(345)),
+      ).toBe(item2);
+    });
+    it("#9", () => {
+      expect(items.searchArrayWithStringKey(" ")).toBe(undefined);
+    });
+    it("10", () => {
+      expect(Items.create({}).searchArrayWithStringKey(" ")).toBe(undefined);
+    });
 
     const mutableItems = items.toMutable();
-    expect(mutableItems.arrayWithEnumKey).toMatch(array);
+    it("11", () => {
+      expect(mutableItems.arrayWithEnumKey).toMatch(array);
+    });
     Items.SERIALIZER.toJson(items);
     Items.SERIALIZER.toJson(items.toMutable());
-    expect(mutableItems.toString()).toBe(items.toString());
-    expect(mutableItems.toString()).toMatch(
-      Items.SERIALIZER.toJsonCode(items, "readable"),
-    );
+    it("#12", () => {
+      expect(mutableItems.toString()).toBe(items.toString());
+    });
+    it("#13", () => {
+      expect(mutableItems.toString()).toMatch(
+        Items.SERIALIZER.toJsonCode(items, "readable"),
+      );
+    });
   });
 });

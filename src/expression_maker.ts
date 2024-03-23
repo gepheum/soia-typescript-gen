@@ -1,22 +1,21 @@
 /**
  * @fileoverview Returns a TypeScript expression transforming a value from a
- * `initializer` type into a `frozen` or `maybe-mutable` type.
+ * `initializer` type into a `frozen` type.
  */
 import { TypeSpeller } from "./type_speller.js";
 import type { ResolvedType } from "soiac";
 
-export interface TransformExpressionArg {
+export interface ToFrozenExpressionArg {
   type: ResolvedType;
   // Input TypeScript expression, e.g. "foo.bar".
   inExpr: string;
   // True if the input expression may be "undefined".
   maybeUndefined: boolean;
-  outFlavor: "frozen" | "maybe-mutable";
   typeSpeller: TypeSpeller;
 }
 
-export function makeTransformExpression(arg: TransformExpressionArg): string {
-  const { type, inExpr, maybeUndefined, outFlavor, typeSpeller } = arg;
+export function toFrozenExpression(arg: ToFrozenExpressionArg): string {
+  const { type, inExpr, maybeUndefined, typeSpeller } = arg;
   if (type.kind === "record") {
     const frozenClass = typeSpeller.getClassName(type.key);
     const defaultExpr =
@@ -24,38 +23,38 @@ export function makeTransformExpression(arg: TransformExpressionArg): string {
         ? `${frozenClass.value}.DEFAULT`
         : `${frozenClass.value}.UNKNOWN`;
     const inExprOrDefault = maybeUndefined
-      ? `${inExpr} || ${defaultExpr}`
+      ? `${inExpr} ?? ${defaultExpr}`
       : inExpr;
     return `${frozenClass.value}.create(${inExprOrDefault})`;
   } else if (type.kind === "array") {
-    const transformItemExpr = makeTransformExpression({
+    const transformItemExpr = toFrozenExpression({
       type: type.item,
       inExpr: "e",
       maybeUndefined: false,
-      outFlavor: outFlavor,
       typeSpeller: typeSpeller,
     });
     const inExprOrEmpty = maybeUndefined ? `${inExpr} || []` : inExpr;
     if (transformItemExpr === "e") {
-      const id = "$._identity";
-      return outFlavor === "frozen"
-        ? `$._toFrozenArray(\n${inExprOrEmpty},\n ${id})`
-        : `$._toFrozenOrMutableArray(\n${inExprOrEmpty},\n ${id})`;
+      return `$._toFrozenArray(\n${inExprOrEmpty})`;
     } else {
-      const lambdaExpr = `(e) => ${transformItemExpr}`;
-      const funName =
-        outFlavor === "frozen"
-          ? "$._toFrozenArray"
-          : "$._toFrozenOrMutableArray";
-      return `${funName}(\n${inExprOrEmpty},\n${lambdaExpr},\n)`;
+      let mapFnExpr: string;
+      if (type.item.kind === "record") {
+        // Instead of creating a lambda, we can just get the `create` static
+        // function.
+        const frozenClass = typeSpeller.getClassName(type.item.key);
+        mapFnExpr = `${frozenClass.value}.create`;
+      } else {
+        mapFnExpr = `(e) => ${transformItemExpr}`;
+      }
+      const funName = "$._toFrozenArray";
+      return `${funName}(\n${inExprOrEmpty},\n${mapFnExpr},\n)`;
     }
   } else if (type.kind === "nullable") {
     const valueType = type.value;
-    const valueExpr = makeTransformExpression({
+    const valueExpr = toFrozenExpression({
       type: valueType,
       inExpr: inExpr,
       maybeUndefined: false,
-      outFlavor: outFlavor,
       typeSpeller: typeSpeller,
     });
     if (valueExpr === inExpr) {
@@ -105,7 +104,7 @@ export function makeTransformExpression(arg: TransformExpressionArg): string {
     const _: never = primitive;
     throw TypeError();
   }
-  return `${inExpr} || ${defaultValue}`;
+  return `${inExpr} ?? ${defaultValue}`;
 }
 
 // Returns true if values of the given type can ever be falsy.

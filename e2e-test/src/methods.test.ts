@@ -5,9 +5,9 @@ import { expect, is } from "buckwheat";
 import { describe, it } from "mocha";
 import * as soia from "soia";
 
-describe("procedures", () => {
-  it("works", () => {
-    {
+describe("methods", () => {
+  describe("works", () => {
+    it("#0", () => {
       const _: soia.Method<Point, JsonValue> = MY_PROCEDURE;
       expect(MY_PROCEDURE).toMatch({
         name: "MyProcedure",
@@ -15,8 +15,8 @@ describe("procedures", () => {
         requestSerializer: is(Point.SERIALIZER),
         responseSerializer: is(JsonValue.SERIALIZER),
       });
-    }
-    {
+    });
+    it("#1", () => {
       const _: soia.Method<
         ReadonlyArray<Point>,
         JsonValue | null
@@ -25,6 +25,6 @@ describe("procedures", () => {
         name: "WithExplicitNumber",
         number: 3,
       });
-    }
+    });
   });
 });

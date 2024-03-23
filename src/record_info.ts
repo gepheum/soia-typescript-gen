@@ -28,18 +28,12 @@ export interface StructInfo {
   readonly fields: readonly StructField[];
 
   /**
-   * Subset of the fields for which we can obtain a default value at the time
-   * the frozen class is initialized.
+   * Subset of the fields which must should have a mutable getter generated in
+   * the Mutable class.
    */
-  readonly fieldsWithDefaultAtInit: readonly StructField[];
-  /**
-   * Subset of the fields for which we can NOT obtain a default value at the
-   * time the frozen class is initialized. Reason: the type of the field is a
-   * class which was initialized yet.
-   */
-  readonly fieldsWithNoDefaultAtInit: readonly StructField[];
-  /** Subset of the fields with array type and a key for indexing. */
-  readonly indexableFields: readonly IndexableField[];
+  readonly fieldsWithMutableGetter: readonly StructField[];
+  /** Subset of the fields which are indexable. */
+  readonly indexableFields: readonly StructField[];
 }
 
 export interface EnumInfo {
@@ -48,7 +42,8 @@ export interface EnumInfo {
   readonly nestedRecords: readonly RecordKey[];
   readonly removedNumbers: readonly number[];
 
-  readonly enumKind: "all-constant" | "mixed";
+  /** True if all the fields of the enum are constant fields. */
+  readonly onlyConstants: boolean;
   readonly constantFields: readonly EnumConstantField[];
   readonly valueFields: readonly EnumValueField[];
   readonly kindType: TsType;
@@ -60,31 +55,48 @@ export interface EnumInfo {
 }
 
 export interface StructField {
-  // Name of the generated property for this field, in lowerCamel format.
-  // Note that it might be a typescript keyword, because TypeScript allows
-  // property names to be keywords.
+  /**
+   * Name of the generated property for this field, in lowerCamel format.
+   * Note that it might be a typescript keyword, because TypeScript allows
+   * property names to be keywords.
+   */
   readonly property: string;
-  // Name of the field as it appears in the `.soia` file, in lower_case format.
-  // You probably meant to use `property`.
+  /**
+   * Name of the field as it appears in the `.soia` file, in lower_case format.
+   * You probably meant to use `property`.
+   */
   readonly originalName: string;
-  // Name of the mutableX() generated method in the Mutable class.
+  /** True if a mutable getter should be generated in the Mutable class. */
+  readonly hasMutableGetter: boolean;
+  /** Name of the mutableX() generated method in the Mutable class. */
   readonly mutableGetterName: string;
+  /** Name of the search method generated in the frozen class. */
+  readonly searchMethodName: string;
   readonly number: number;
-  // Schema field type, e.g. `int32`.
+  /** Schema field type, e.g. `int32`. */
   readonly type: ResolvedType;
-  // True if the field type depends on the struct where the field is defined.
+  /**
+   * True if the field type depends on the struct where the field is defined.
+   */
   readonly isRecursive: boolean;
-  // Matching TypeScript type for each type flavor.
+  /** Matching TypeScript type for each type flavor. */
   readonly tsTypes: Readonly<Record<TypeFlavor, TsType>>;
-  readonly defaultValue: DefaultValue;
+  /** Set if the field has keyed array type. */
+  readonly indexable?: Indexable;
 }
 
-export interface IndexableField {
-  field: StructField;
-  keyType: TsType;
+export interface Indexable {
+  readonly keyType: TsType;
   /** The key expression. References the value as `v`. */
   keyExpression: string;
+  /**
+   * Transforms the key into a hashable value, meaning a value which can be
+   * stored in a Set. References the key as `k`.
+   */
+  hashableExpression: string;
   frozenValueType: TsType;
+  /** Name of the only parameter of the search method. */
+  readonly searchMethodParamName: string;
 }
 
 export type EnumField = EnumConstantField | EnumValueField;
@@ -123,15 +135,6 @@ export interface EnumValueField {
   readonly isRecursive: boolean;
   // Matching TypeScript type for each type flavor.
   readonly tsTypes: Readonly<Record<TypeFlavor, TsType>>;
-  readonly defaultValue: DefaultValue;
-}
-
-export interface DefaultValue {
-  readonly expression: string;
-  // Whether the expression is legal when the class is being initialized.
-  // False if the expression calls the property of a class which has not yet
-  // been initialized.
-  readonly availableAtClassInit: boolean;
 }
 
 export function createRecordInfo(
@@ -170,41 +173,9 @@ class RecordInfoCreator {
     const { record } = this.record;
 
     const fields: StructField[] = [];
-    const indexableFields: IndexableField[] = [];
     for (const field of record.fields) {
       const structField = this.createStructField(field);
       fields.push(structField);
-      const { type } = structField;
-      let keyType: ActualKeyType | undefined;
-      if (
-        type.kind === "array" &&
-        type.key &&
-        (keyType = this.getActualKeyType(type.key.keyType))
-      ) {
-        const { key } = type;
-        const frozenValueType = this.typeSpeller.getTsType(
-          type.item,
-          "frozen",
-          false,
-        );
-        const propertiesChain = key.fieldNames
-          .map((n) => {
-            const desiredName = convertCase(
-              n.text,
-              "lower_underscore",
-              "lowerCamel",
-            );
-            return getStructFieldProperty(desiredName);
-          })
-          .join(".");
-        const keyExpression = keyType!.extractKey(`v.${propertiesChain}`);
-        indexableFields.push({
-          field: structField,
-          keyType: keyType.keyType,
-          keyExpression: keyExpression,
-          frozenValueType: frozenValueType,
-        });
-      }
     }
 
     // Sort fields by number.
@@ -216,17 +187,13 @@ class RecordInfoCreator {
       nestedRecords: record.nestedRecords.map((r) => r.key),
       removedNumbers: record.removedNumbers.slice(),
       fields: fields,
-      fieldsWithDefaultAtInit: fields.filter(
-        (f) => f.defaultValue.availableAtClassInit,
-      ),
-      fieldsWithNoDefaultAtInit: fields.filter(
-        (f) => !f.defaultValue.availableAtClassInit,
-      ),
-      indexableFields: indexableFields,
+      fieldsWithMutableGetter: fields.filter((f) => f.hasMutableGetter),
+      indexableFields: fields.filter((f) => f.indexable),
     };
   }
 
   private createStructField(field: Field): StructField {
+    const { typeSpeller } = this;
     const { type } = field;
     if (!type) {
       throw TypeError();
@@ -239,15 +206,70 @@ class RecordInfoCreator {
     );
     const property = getStructFieldProperty(desiredName);
     const mutableGetterName = `mutable${capitalize(desiredName)}`;
+    const searchMethodName = `search${capitalize(desiredName)}`;
+    const tsTypes = this.getTsTypes(field);
+    // If the Soia type of the field is recursice, the type of the corresponding
+    // field in the Mutable class is frozen.
+    const hasMutableGetter =
+      !field.isRecursive &&
+      !tsTypes.mutable.isNever &&
+      type.kind !== "nullable";
+    let indexable: Indexable | undefined;
+    if (type.kind === "array" && type.key) {
+      // The field is indexable.
+      const { key } = type;
+      let keyType = typeSpeller.getTsType(key.keyType, "frozen");
+      if (key.keyType.kind === "record") {
+        // The actual key type is the Kind type of the enum..
+        keyType = TsType.simple(`${keyType}.Kind`);
+      }
+      const frozenValueType = typeSpeller.getTsType(type.item, "frozen");
+      const propertiesChain = key.fieldNames
+        .map((n) => {
+          const desiredName = convertCase(
+            n.text,
+            "lower_underscore",
+            "lowerCamel",
+          );
+          return getStructFieldProperty(desiredName);
+        })
+        .join(".");
+      const keyExpression = `v.${propertiesChain}`;
+      const hashableExpression = this.getHashableExpression(key.keyType);
+      let searchMethodParamName = key.fieldNames
+        .map((token, i) =>
+          convertCase(
+            token.text,
+            "lower_underscore",
+            i == 0 ? "lowerCamel" : "UpperCamel",
+          ),
+        )
+        .join("");
+      if (
+        TYPESCRIPT_KEYWORDS.has(searchMethodParamName) ||
+        searchMethodParamName === "this"
+      ) {
+        searchMethodParamName = `${searchMethodParamName}_`;
+      }
+      indexable = {
+        keyType: keyType,
+        keyExpression: keyExpression,
+        hashableExpression: hashableExpression,
+        frozenValueType: frozenValueType,
+        searchMethodParamName: searchMethodParamName,
+      };
+    }
     return {
       property: property,
       originalName: originalName,
+      hasMutableGetter: hasMutableGetter,
       mutableGetterName: mutableGetterName,
+      searchMethodName: searchMethodName,
       number: field.number,
       type: type,
       isRecursive: field.isRecursive,
-      tsTypes: this.getTsTypes(field),
-      defaultValue: this.getDefaultValue(type),
+      tsTypes: tsTypes,
+      indexable: indexable,
     };
   }
 
@@ -314,14 +336,12 @@ class RecordInfoCreator {
       }
     }
 
-    const enumKind = valueFields.length ? "mixed" : "all-constant";
-
     return {
       recordType: "enum",
       className: className,
       nestedRecords: record.nestedRecords.map((r) => r.key),
       removedNumbers: record.removedNumbers.slice(),
-      enumKind: enumKind,
+      onlyConstants: !valueFields.length,
       constantFields: constantFields,
       valueFields: valueFields,
       kindType: TsType.union(typesInKindTypeUnion),
@@ -360,7 +380,6 @@ class RecordInfoCreator {
       type: type,
       isRecursive: field.isRecursive,
       tsTypes: this.getTsTypes(field),
-      defaultValue: this.getDefaultValue(type),
     };
   }
 
@@ -378,71 +397,12 @@ class RecordInfoCreator {
     return tsTypes;
   }
 
-  private getDefaultValue(type: ResolvedType): DefaultValue {
-    return {
-      expression: this.getDefaultValueExpression(type),
-      availableAtClassInit: this.canGetDefaultValueAtClassInit(type),
-    };
-  }
-
-  private getDefaultValueExpression(type: ResolvedType): string {
-    switch (type.kind) {
-      case "record": {
-        const className = this.typeSpeller.getClassName(type.key);
-        return type.recordType === "struct"
-          ? `${className.value}.DEFAULT`
-          : `${className.value}.UNKNOWN`;
-      }
-      case "array":
-        return "$.Internal.EMPTY_ARRAY";
-      case "nullable":
-        return "null";
-      case "primitive": {
-        const { primitive } = type;
-        switch (primitive) {
-          case "bool":
-            return "false";
-          case "int32":
-          case "int64":
-          case "uint64":
-          case "float32":
-          case "float64":
-            return "0";
-          case "timestamp":
-            return "$.Timestamp.UNIX_EPOCH";
-          case "string":
-            return '""';
-          case "bytes":
-            return "$.ByteString.EMPTY";
-        }
-      }
-    }
-  }
-
-  private canGetDefaultValueAtClassInit(type: ResolvedType): boolean {
-    if (type.kind !== "record") {
-      // The problem only exists if the field has record type.
-      return true;
-    }
-    const module = this.typeSpeller.recordMap.get(type.key)!;
-    if (module.modulePath !== this.record.modulePath) {
-      // The type is defined in another module: we're fine because there can't
-      // be a cyclic dependency between modules.
-      return true;
-    }
-    return this.alreadyInitialized.has(type.key);
-  }
-
   /**
-   * Returns information about the `K` in a `ReadonlyMap<K, Item>` obtained when
-   * indexing an array. It is not always the type of the key field specified in
-   * the `.soia` file. For example, if the key field specified in the `.soia`
-   * file has type `int64`, we want the actual key type to be `string` because
-   * `bigint` is not indexable.
+   * Returns an expression for transforming the key of an indexable array into a
+   * hashable value, meaning a value which can be stored in a Set.
+   * References the key as `k`.
    */
-  getActualKeyType(
-    type: PrimitiveType | ResolvedRecordRef,
-  ): ActualKeyType | undefined {
+  getHashableExpression(type: PrimitiveType | ResolvedRecordRef): string {
     switch (type.kind) {
       case "primitive":
         switch (type.primitive) {
@@ -451,24 +411,18 @@ class RecordInfoCreator {
           case "float32":
           case "float64":
           case "string":
-            return {
-              keyType: this.typeSpeller.getTsType(type, "frozen", true),
-              extractKey: (e: string) => e,
-            };
+            return "k";
           case "int64":
           case "uint64":
-            return {
-              keyType: TsType.STRING,
-              extractKey: (e: string) => `${e}.toString()`,
-            };
+            // BigInt is not hashable.
+            return "k.toString()";
+          case "timestamp":
+            return "k.unixMillis";
+          case "bytes":
+            return "k.toBase16()";
         }
-        return undefined;
       case "record": {
-        const enumType = this.typeSpeller.getTsType(type, "frozen", true);
-        return {
-          keyType: TsType.simple(`${enumType}.Kind`),
-          extractKey: (e: string) => e,
-        };
+        return "k";
       }
     }
   }
@@ -501,7 +455,7 @@ export function structFieldNameToProperty(fieldName: string): string {
 // common generated property.
 function getStructFieldProperty(desiredName: string): string {
   return /^mutable[0-9A-Z]/.test(desiredName) ||
-    desiredName.endsWith("Map") ||
+    /^search[0-9A-Z]/.test(desiredName) ||
     STRUCT_COMMON_GENERATED_PROPERTIES.has(desiredName)
     ? `${desiredName}_`
     : desiredName;
@@ -517,19 +471,68 @@ function getEnumFieldProperty(desiredName: string): string {
     : desiredName;
 }
 
-/**
- * Information about the `K` in a `ReadonlyMap<K, Item>` obtained when
- * indexing an array. It is not always the type of the key field specified in
- * the `.soia` file. For example, if the key field specified in the `.soia` file
- * has type `int64`, we want the actual key type to be `string` because `bigint`
- * is not indexable.
- */
-interface ActualKeyType {
-  keyType: TsType;
-  /**
-   * Expects a field path expression, for example `e.id`, and returns a key
-   * expression of type K, for example `e.id` if the type of `id` is string, or
-   * `e.id.toString()` if the type of `id` is int64.
-   */
-  extractKey: (e: string) => string;
-}
+const TYPESCRIPT_KEYWORDS = new Set([
+  "break",
+  "case",
+  "catch",
+  "class",
+  "const",
+  "continue",
+  "debugger",
+  "default",
+  "delete",
+  "do",
+  "else",
+  "enum",
+  "export",
+  "extends",
+  "false",
+  "finally",
+  "for",
+  "function",
+  "if",
+  "import",
+  "in",
+  "instanceof",
+  "new",
+  "null",
+  "return",
+  "super",
+  "switch",
+  "this",
+  "throw",
+  "true",
+  "try",
+  "typeof",
+  "var",
+  "void",
+  "while",
+  "with",
+  "as",
+  "implements",
+  "interface",
+  "let",
+  "package",
+  "private",
+  "protected",
+  "public",
+  "static",
+  "yield",
+  "any",
+  "boolean",
+  "constructor",
+  "declare",
+  "get",
+  "module",
+  "require",
+  "number",
+  "set",
+  "string",
+  "symbol",
+  "type",
+  "from",
+  "of",
+  "namespace",
+  "async",
+  "await",
+]);

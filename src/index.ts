@@ -1,27 +1,21 @@
-import { makeTransformExpression } from "./expression_maker.js";
+import { toFrozenExpression } from "./expression_maker.js";
 import {
   EnumInfo,
-  IndexableField,
   RecordInfo,
   StructField,
   StructInfo,
   createRecordInfo,
-  structFieldNameToProperty,
 } from "./record_info.js";
-import { TsType } from "./ts_type.js";
 import { TypeSpeller } from "./type_speller.js";
 import * as paths from "path";
 import type {
   CodeGenerator,
   Constant,
-  LiteralValue,
   Method,
   Module,
-  ObjectValue,
   RecordKey,
   RecordLocation,
   ResolvedType,
-  Value,
 } from "soiac";
 import { convertCase, unquoteAndUnescape } from "soiac";
 import { z } from "zod";
@@ -46,15 +40,23 @@ class TypescriptCodeGenerator implements CodeGenerator<Config> {
     const { recordMap, config } = input;
     const outputFiles: CodeGenerator.OutputFile[] = [];
     for (const module of input.modules) {
-      const tsPath = this.modulePathToTsPath(module.path);
-      const tsCode = new TsModuleCodeGenerator(
-        module,
-        recordMap,
-        config,
-      ).generate();
       outputFiles.push({
-        path: tsPath,
-        code: tsCode,
+        path: `${module.path}.js`,
+        code: new TsModuleCodeGenerator(
+          module,
+          recordMap,
+          config,
+          ".js",
+        ).generate(),
+      });
+      outputFiles.push({
+        path: `${module.path}.d.ts`,
+        code: new TsModuleCodeGenerator(
+          module,
+          recordMap,
+          config,
+          ".d.ts",
+        ).generate(),
       });
     }
     return { files: outputFiles };
@@ -69,8 +71,9 @@ class TypescriptCodeGenerator implements CodeGenerator<Config> {
 class TsModuleCodeGenerator {
   constructor(
     private readonly inModule: Module,
-    private recordMap: ReadonlyMap<RecordKey, RecordLocation>,
+    recordMap: ReadonlyMap<RecordKey, RecordLocation>,
     private readonly config: Config,
+    private readonly fileType: ".js" | ".d.ts",
   ) {
     this.typeSpeller = new TypeSpeller(recordMap, this.inModule);
   }
@@ -91,10 +94,10 @@ class TsModuleCodeGenerator {
       import * as $ from "${this.resolveClientModulePath()}";
       \n`);
 
-    this.importOtherModules();
+    this.writeImports();
 
     for (const recordLocation of this.inModule.records) {
-      this.defineClassesAndNamespaceForRecord(recordLocation);
+      this.writeClassesForRecord(recordLocation);
     }
 
     if (this.inModule.methods.length) {
@@ -103,20 +106,27 @@ class TsModuleCodeGenerator {
         // Methods
         ${TsModuleCodeGenerator.SEPARATOR}\n\n`);
       for (const method of this.inModule.methods) {
-        this.defineMethod(method);
+        this.writeMethod(method);
       }
     }
 
-    // Once we have defined all the classes, we can initialize the serializers.
-    if (this.inModule.records.length) {
-      this.push(`
-        ${TsModuleCodeGenerator.SEPARATOR}
-        // Initialize the serializers
-        ${TsModuleCodeGenerator.SEPARATOR}\n\n
+    // Once we have created the classes for the records, we can initialize them.
+    if (this.fileType === ".js") {
+      if (this.inModule.records.length) {
+        this.push(`
+          ${TsModuleCodeGenerator.SEPARATOR}
+          // Initialize the serializers
+          ${TsModuleCodeGenerator.SEPARATOR}\n\n
 
-        const _MODULE_PATH = "${this.inModule.path}";\n\n`);
-      for (const recordLocation of this.inModule.records) {
-        this.initializeSerializer(recordLocation);
+          $._initModuleClasses(
+            "${this.inModule.path}",
+            [\n`);
+        for (const recordLocation of this.inModule.records) {
+          this.writeRecordSpec(recordLocation);
+        }
+        this.push(`
+            ]
+          );\n\n`);
       }
     }
 
@@ -126,7 +136,7 @@ class TsModuleCodeGenerator {
         // Constants
         ${TsModuleCodeGenerator.SEPARATOR}\n\n`);
       for (const constant of this.inModule.constants) {
-        this.defineConstant(constant);
+        this.writeConstant(constant);
       }
     }
 
@@ -148,7 +158,7 @@ class TsModuleCodeGenerator {
     return clientModulePath;
   }
 
-  private importOtherModules(): void {
+  private writeImports(): void {
     const thisPath = paths.dirname(this.inModule.path);
     for (const entry of Object.entries(this.inModule.pathToImportedNames)) {
       const [path, importedNames] = entry;
@@ -169,8 +179,8 @@ class TsModuleCodeGenerator {
     this.pushEol();
   }
 
-  private defineClassesAndNamespaceForRecord(record: RecordLocation): void {
-    const { typeSpeller } = this;
+  private writeClassesForRecord(record: RecordLocation): void {
+    const { fileType, typeSpeller } = this;
     const recordInfo = createRecordInfo(record, typeSpeller, this.seenRecords);
     const { className, recordType } = recordInfo;
 
@@ -180,393 +190,224 @@ class TsModuleCodeGenerator {
       ${TsModuleCodeGenerator.SEPARATOR}\n\n`);
 
     if (recordType === "struct") {
-      // The mutable class must be defined before the frozen class.
-      this.defineMutableClassForStruct(recordInfo, typeSpeller);
-    }
-
-    this.push(
-      className.isNested ? `// Exported as '${className.type}'\n` : "export ",
-    );
-    const superClass =
-      recordType === "struct" ? "$._FrozenBase" : "$._EnumBase";
-    this.push(`class ${className.value} extends ${superClass} {\n`);
-
-    if (recordType === "struct") {
-      this.definePropertiesOfFrozenClassForStruct(recordInfo, typeSpeller);
+      this.writeFrozenClassForStruct(recordInfo);
+      if (fileType === ".js") {
+        this.defineInitFunctionForStruct(recordInfo);
+      } else {
+        this.declareMutableClassForStruct(recordInfo);
+      }
     } else {
-      this.definePropertiesOfClassForEnum(recordInfo, typeSpeller);
+      this.writeClassForEnum(recordInfo);
     }
 
-    // Export the constructor of every nested class as a property of this class.
-    for (const nestedRecord of record.record.nestedRecords) {
-      const nestedClassName = typeSpeller.getClassName(nestedRecord.key);
-      this.push(`static readonly ${nestedClassName.name} = `);
-      this.push(`${nestedClassName.value};\n`);
+    if (this.fileType === ".d.ts") {
+      this.declareNamespaceForRecord(recordInfo);
     }
-
-    this.push("}\n\n"); // class
-
-    if (recordType === "struct") {
-      this.defineInitFunctionForStruct(recordInfo, typeSpeller);
-    }
-
-    this.declareNamespaceForRecord(recordInfo, typeSpeller);
 
     // Register that we have defined this record.
     this.seenRecords.add(record.record.key);
   }
 
-  private defineMutableClassForStruct(
-    struct: StructInfo,
-    typeSpeller: TypeSpeller,
-  ): void {
-    const {
-      className,
-      fields,
-      fieldsWithDefaultAtInit,
-      fieldsWithNoDefaultAtInit,
-    } = struct;
+  private writeFrozenClassForStruct(struct: StructInfo): void {
+    const { fileType, typeSpeller } = this;
+    const { className } = struct;
+    this.push(
+      className.isNested ? `// Exported as '${className.type}'\n` : "export ",
+    );
+    if (fileType === ".d.ts") {
+      this.push("declare ");
+    }
+    this.push(`class ${className.value} extends $._FrozenBase {\n`);
 
-    // Define the constructor.
-    const paramName = fields.length ? "initializer" : "_";
-    this.push(`// Exported as '${className.type}.Builder'\n`);
+    if (fileType === ".d.ts") {
+      this.declarePropertiesOfFrozenClass(struct);
+    }
+
+    this.push("}\n\n"); // class
+  }
+
+  private declarePropertiesOfFrozenClass(struct: StructInfo): void {
+    const { className, fields, indexableFields } = struct;
     this.push(`
-      class ${className.value}_Mutable extends $._MutableBase {
-        constructor(
-          ${paramName}: ${className.type}.Initializer = ${className.value}.DEFAULT,
-        ) {
-          super();\n`);
-    if (fieldsWithDefaultAtInit.length) {
-      const castThis = "this as Record<string, unknown>";
-      this.push(`init${className.value}(${castThis}, initializer);\n`);
+      static create<Accept extends "partial" | "whole" = "partial">(
+        initializer: $.WholeOrPartial<${className.type}.Initializer, Accept>,
+      ): ${className.type};\n\n`);
+    this.push("private constructor();\n\n");
+    for (const field of fields) {
+      this.push(`readonly ${field.property}: ${field.tsTypes.frozen};\n`);
     }
-    // The init function does not set fields whose default value cannot be
-    // obtained at class init. We do it in this loop.
-    for (const field of fieldsWithNoDefaultAtInit) {
-      const inExpr = `initializer.${field.property}`;
-      const rvalue = makeTransformExpression({
-        type: field.type,
-        inExpr: inExpr,
-        maybeUndefined: true,
-        outFlavor: "frozen",
-        typeSpeller: typeSpeller,
-      });
-      this.push(`this.${field.property} = ${rvalue};\n`);
+    this.pushEol();
+    if (indexableFields.length) {
+      for (const indexableField of indexableFields) {
+        const { searchMethodName } = indexableField;
+        const { keyType, frozenValueType, searchMethodParamName } =
+          indexableField.indexable!;
+        this.push(`${searchMethodName}(`);
+        this.push(`${searchMethodParamName}: ${keyType}`);
+        this.push(`): ${frozenValueType} | undefined;\n`);
+      }
+      this.pushEol();
     }
-    this.push("Object.seal(this);\n}\n\n");
+    this.push(`
+      toFrozen(): this;
+      toMutable(): ${className.type}.Mutable;
+
+      static readonly DEFAULT: ${className.type};
+      static readonly SERIALIZER: $.Serializer<${className.type}>;
+
+      static readonly Mutable: typeof ${className.value}_Mutable;\n`);
+    this.declareNestedClasses(struct.nestedRecords);
+    this.pushEol();
+    this.push("readonly [$._INITIALIZER]: ");
+    this.push(`${className.type}.Initializer | undefined;\n`);
+    this.push("private readonly FROZEN: undefined;\n");
+  }
+
+  private declareNestedClasses(nestedKeys: readonly RecordKey[]): void {
+    const { typeSpeller } = this;
+    // Export the constructor of every nested class as a property of this class.
+    for (const nestedKey of nestedKeys) {
+      const nestedClassName = typeSpeller.getClassName(nestedKey);
+      this.push(`static readonly ${nestedClassName.name}: `);
+      this.push(`typeof ${nestedClassName.value};\n`);
+    }
+  }
+
+  private declareMutableClassForStruct(struct: StructInfo): void {
+    const { fileType } = this;
+    const { className, fields, fieldsWithMutableGetter } = struct;
+    this.push(`// Exported as '${className.type}.Mutable'\n`);
+    if (fileType === ".d.ts") {
+      this.push("declare ");
+    }
+    this.push(`class ${className.value}_Mutable {\n`);
+    this.push(`
+      constructor(initializer?: ${className.type}.Initializer);\n\n`);
 
     // Declare the fields.
-    for (const field of fieldsWithDefaultAtInit) {
-      const type = field.tsTypes["maybe-mutable"];
-      // We need the exclamation mark because these fields are initialized in
-      // the init* function called from the constructor.
-      this.push(`${field.property}!: ${type};\n`);
-    }
-    for (const field of fieldsWithNoDefaultAtInit) {
+    for (const field of fields) {
       const type = field.tsTypes["maybe-mutable"];
       this.push(`${field.property}: ${type};\n`);
     }
     this.pushEol();
 
-    // Define the mutable getters.
-    for (const field of fields) {
-      this.maybeDefineMutableGetter(field, typeSpeller);
-    }
-
-    // Define the toFrozen() and toMutable() methods.
-    this.push(`
-      toFrozen(): ${className.type} {
-        return ${className.value}.${fields.length ? "create(this)" : "DEFAULT"};
+    // Declare the mutable getters.
+    if (fieldsWithMutableGetter.length) {
+      for (const field of fieldsWithMutableGetter) {
+        this.declareMutableGetter(field);
       }
-
-      declare toMutable: () => this;\n\n`);
-
-    this.push("declare readonly [$._INITIALIZER]: ");
-    this.push(`${className.type}.Initializer | undefined;\n}\n\n`);
-  }
-
-  private definePropertiesOfFrozenClassForStruct(
-    struct: StructInfo,
-    typeSpeller: TypeSpeller,
-  ): void {
-    const {
-      className,
-      fields,
-      fieldsWithDefaultAtInit,
-      fieldsWithNoDefaultAtInit,
-      indexableFields,
-    } = struct;
-
-    // Define create.
-    {
-      const paramName = fields.length <= 0 ? "_" : "initializer";
-      this.push(`
-        static create<Accept extends "partial" | "whole" = "partial">(
-          ${paramName}: $.WholeOrPartial<${className.type}.Initializer, Accept>,
-        ): ${className.type} {\n`);
-      if (fields.length <= 0) {
-        // We can greatly simplify the implementation of the function if there
-        // is no field in the record.
-        this.push("return this.DEFAULT;\n");
-      } else {
-        this.push(`
-          if (initializer instanceof this) {
-            return initializer;
-          }
-          return new this(initializer);\n`);
-      }
-      this.push("}\n\n");
+      this.pushEol();
     }
 
-    // Define the constructor.
-    const paramName = fields.length ? "initializer" : "_";
     this.push(`
-      private constructor(${paramName}: ${className.type}.Initializer) {
-        super();\n`);
-    if (fieldsWithDefaultAtInit.length) {
-      const castThis = "this as Record<string, unknown>";
-      this.push(`init${className.value}(${castThis}, initializer);\n`);
-    }
-    // The init function does not set fields whose default value cannot be
-    // obtained at class init. We do it in this loop.
-    for (const field of fieldsWithNoDefaultAtInit) {
-      const inExpr = `initializer.${field.property}`;
-      const rvalue = makeTransformExpression({
-        type: field.type,
-        inExpr: inExpr,
-        maybeUndefined: false,
-        outFlavor: "frozen",
-        typeSpeller: typeSpeller,
-      });
-      this.push(`
-        if (${inExpr}) {
-          this._${field.property} = ${rvalue};
-        }\n`);
-    }
-    this.push(`
-        Object.freeze(this);
-      }\n\n`);
-
-    // Declare the fields.
-    for (const field of fieldsWithDefaultAtInit) {
-      const frozenType = field.tsTypes.frozen;
-      this.push(`readonly ${field.property}!: ${frozenType};\n`);
-    }
-    for (const field of fieldsWithNoDefaultAtInit) {
-      // When the default value is not available at class initialization, we
-      // use a private property with a $ prefix, and the corresponding public
-      // getter returns the default value if the private property is
-      // undefined.
-      const frozenType = field.tsTypes.frozen;
-      const privateType = TsType.union([frozenType, TsType.UNDEFINED]);
-      this.push(`private readonly _${field.property}: ${privateType};\n`);
-    }
-    if (indexableFields.length) {
-      this.push("private __maps: {\n");
-      for (const indexableField of indexableFields) {
-        const { field, keyType, frozenValueType } = indexableField;
-        const mapType = TsType.generic("Map", keyType, frozenValueType);
-        this.push(`${field.property}?: ${mapType};\n`);
-      }
-      this.push("} = {};\n");
-    }
+      toFrozen(): ${className.type};
+      toMutable(): this;\n`);
     this.pushEol();
-
-    // Define a getter for each field whose default value is not available at
-    // class initialization.
-    for (const field of fieldsWithNoDefaultAtInit) {
-      const { property } = field;
-      const frozenType = field.tsTypes.frozen;
-      this.push(`
-        get ${property}(): ${frozenType} {
-          return this._${property} || ${field.defaultValue.expression};
-        }\n\n`);
-    }
-
-    // Define a getter for each indexable field.
-    // It performs lazy initialization of the Map.
-    for (const indexableField of indexableFields) {
-      this.defineMapGetter(indexableField);
-    }
-
-    // Define DEFAULT.
-    this.push(`static readonly DEFAULT = new ${className.value}({});\n\n`);
-
-    // Declare toMutable() and toFrozen().
-    // They are both defined in the base class.
-    // Expose the Mutable class.
-    // Declare a fake property FROZEN which only exists to prevent the
-    // TypeScript compiler from allowing the user to pass in a Mutable where a
-    // Frozen is expected. The compiler will allow is if the Frozen class and
-    // the Mutable class have the same attributes.
-    this.push(`
-      declare toFrozen: () => this;
-      declare toMutable: () => ${className.type}.Mutable;
-
-      static readonly Mutable = ${className.value}_Mutable;
-
-      declare private FROZEN: undefined;\n`);
-
-    this.push("declare readonly [$._INITIALIZER]: ");
-    this.push(`${className.type}.Initializer | undefined;\n\n`);
-
-    // Define SERIALIZER. It will be initialized later.
-    this.push("static readonly SERIALIZER = ");
-    this.push("$._newStructSerializer(this.DEFAULT);\n\n");
+    this.push("readonly [$._INITIALIZER]: ");
+    this.push(`${className.type}.Initializer | undefined;\n`);
+    this.push("}\n\n"); // class
   }
 
-  private defineMapGetter(indexableField: IndexableField) {
-    const { field, keyType, frozenValueType, keyExpression } = indexableField;
-    const { property } = field;
-    const returnType = TsType.generic("ReadonlyMap", keyType, frozenValueType);
-    const lambda = `(v) => [${keyExpression}, v]`;
-    this.push(`
-      get ${property}Map(): ${returnType} {
-        return this.__maps.${property} || (
-          this.__maps.${property} = new Map(
-            this.${property}.map(${lambda})
-          )
-        );
-      }\n\n`);
+  private writeClassForEnum(enumInfo: EnumInfo): void {
+    const { fileType, typeSpeller } = this;
+    const { className } = enumInfo;
+    this.push(
+      className.isNested ? `// Exported as '${className.type}'\n` : "export ",
+    );
+    if (fileType === ".d.ts") {
+      this.push("declare ");
+    }
+    this.push(`class ${className.value} extends $._EnumBase {\n`);
+    if (fileType === ".d.ts") {
+      this.declarePropertiesOfClassForEnum(enumInfo);
+    }
+    this.push("}\n\n"); // class
+
+    if (fileType === ".js") {
+      this.defineCreateValueFunctionForEnum(enumInfo);
+    }
   }
 
-  private definePropertiesOfClassForEnum(
-    enumInfo: EnumInfo,
-    typeSpeller: TypeSpeller,
-  ): void {
-    const {
-      className,
-      constantFields,
-      enumKind,
-      initializerType,
-      valueFields,
-      valueOnlyInitializerType,
-    } = enumInfo;
+  private declarePropertiesOfClassForEnum(enumInfo: EnumInfo): void {
+    const { className, constantFields, onlyConstants } = enumInfo;
 
-    // Define the enum constants.
+    // Declare the enum constants.
     for (const field of constantFields) {
-      this.push(`static readonly ${field.property} = `);
-      this.push(`new ${className.value}(${field.quotedName});\n`);
+      this.push(`static readonly ${field.property}:  ${className.type};\n`);
     }
     this.pushEol();
 
-    // Declare the `create` function. It is defined in the superclass.
-    this.push("declare static create: (initializer: ");
-    this.push(`${className.type}.Initializer) => ${className.type};\n\n`);
-
-    // Define the `_createValue` function if the enum has value fields.
-    if (enumKind !== "all-constant") {
-      this.push(`
-        protected static _createValue(
-          initializer: ${valueOnlyInitializerType},
-        ): ${className.type}.Value {
-          const {kind, value} = initializer;
-          switch (kind) {\n`);
-      for (const field of valueFields) {
-        const returnValue = makeTransformExpression({
-          type: field.type,
-          inExpr: "value",
-          maybeUndefined: false,
-          outFlavor: "frozen",
-          typeSpeller: typeSpeller,
-        });
-        this.push(`
-          case ${field.quotedName}: {
-            return ${returnValue};
-          }\n`);
-      }
-      this.push("}\n}\n\n");
-    }
+    // Declare the `create` function.
+    this.push("static create(initializer: ");
+    this.push(`${className.type}.Initializer): ${className.type};\n\n`);
 
     // Declare the `kind`, `value` and `union` properties.
-    this.push(`declare readonly kind: ${className.type}.Kind;\n`);
-    if (enumKind !== "all-constant") {
+    this.push(`readonly kind: ${className.type}.Kind;\n`);
+    if (!onlyConstants) {
       this.push(`declare readonly value: ${className.type}.Value;\n`);
       this.push(`declare readonly union: ${className.type}.UnionView;\n`);
     }
     this.pushEol();
 
-    // Define SERIALIZER.
-    this.push("static readonly SERIALIZER = ");
-    this.push("$._newEnumSerializer(this.UNKNOWN);\n\n");
+    this.push(`static readonly SERIALIZER: $.Serializer<${className.type}>;\n`);
+    this.declareNestedClasses(enumInfo.nestedRecords);
   }
 
-  private maybeDefineMutableGetter(
-    field: StructField,
-    typeSpeller: TypeSpeller,
-  ): void {
-    if (field.isRecursive) {
-      // Only use frozen types for recursive fields.
-      return;
-    }
-    const { mutable } = field.tsTypes;
-    if (mutable.isNever) {
-      // There is no mutable type for the schema type.
-      return;
-    }
-    let type = field.type;
-    let isNullable = false;
-    if (type.kind === "nullable") {
-      isNullable = true;
-      type = type.value;
-    }
-    const lvalue = `this.${field.property}`;
-    this.push(`get ${field.mutableGetterName}(): ${mutable} {\n`);
-    if (type.kind === "array") {
-      const fieldOrEmptyExpr = isNullable ? `${lvalue} || []` : lvalue;
-      const asArrayExpr = `$._toMutableArray(${fieldOrEmptyExpr})`;
-      this.push(`return ${lvalue} = ${asArrayExpr};\n`);
-    } else if (type.kind === "record") {
-      // A struct.
-      const className = typeSpeller.getClassName(type.key);
-      this.push(`const v = ${lvalue};\n`);
-      const instanceofExpr = `v instanceof ${className.value}.Mutable`;
-      const assignment = isNullable
-        ? `${lvalue} = (v || ${className.value}.DEFAULT).toMutable()`
-        : `${lvalue} = v.toMutable()`;
-      this.push(`return ${instanceofExpr} ? v : (${assignment});\n`);
-    } else {
-      throw TypeError("Cannot happen");
-    }
-    this.push("}\n\n");
-  }
-
-  private defineInitFunctionForStruct(
-    record: StructInfo,
-    typeSpeller: TypeSpeller,
-  ): void {
-    const { className, fieldsWithDefaultAtInit } = record;
-    if (!fieldsWithDefaultAtInit.length) {
-      // This function would be a no-op.
+  private defineCreateValueFunctionForEnum(enumInfo: EnumInfo): void {
+    const { typeSpeller } = this;
+    const { className, onlyConstants, valueFields } = enumInfo;
+    if (onlyConstants) {
       return;
     }
     this.push(`
-      function init${className.value}(
-        target: Record<string, unknown>,
-        initializer: ${className.type}.Initializer,
-      ): void {\n`);
-    for (const field of fieldsWithDefaultAtInit) {
+        function createValueOf${className.value}(initializer) {
+          const { kind, value } = initializer;
+          switch (kind) {\n`);
+    for (const field of valueFields) {
+      const returnValue = toFrozenExpression({
+        type: field.type,
+        inExpr: "value",
+        maybeUndefined: false,
+        typeSpeller: typeSpeller,
+      });
+      this.push(`
+          case ${field.quotedName}: {
+            return ${returnValue};
+          }\n`);
+    }
+    this.push("}\n}\n\n");
+  }
+
+  private declareMutableGetter(field: StructField): void {
+    const { mutable } = field.tsTypes;
+    let type = field.type;
+    if (type.kind === "nullable") {
+      type = type.value;
+    }
+    const lvalue = `this.${field.property}`;
+    this.push(`get ${field.mutableGetterName}(): ${mutable};\n`);
+  }
+
+  private defineInitFunctionForStruct(record: StructInfo): void {
+    const { typeSpeller } = this;
+    const { className, fields } = record;
+    this.push(`
+      function init${className.value}(target, initializer) {\n`);
+    for (const field of fields) {
       const inExpr = `initializer.${field.property}`;
-      const rvalue = makeTransformExpression({
+      const rvalue = toFrozenExpression({
         type: field.type,
         inExpr: inExpr,
         maybeUndefined: true,
-        outFlavor: "frozen",
         typeSpeller: typeSpeller,
       });
       this.push(`target.${field.property} = ${rvalue};\n`);
     }
-    this.push(`
-        if ("^" in initializer) {
-          target["^"] = initializer["^"];
-        }
-      }\n\n`); // function
+    this.push("}\n\n"); // function
   }
 
-  private declareNamespaceForRecord(
-    record: RecordInfo,
-    typeSpeller: TypeSpeller,
-  ): void {
+  private declareNamespaceForRecord(record: RecordInfo): void {
+    const { typeSpeller } = this;
     const { className } = record;
 
     this.push(`export declare namespace ${className.type} {\n`);
@@ -602,8 +443,9 @@ class TsModuleCodeGenerator {
     } else {
       // The only value of type `Record<string | number | symbol, never>` is the
       // empty object `{}`.
-      this.push("export type Initializer = ");
-      this.push("Record<string | number | symbol, never> | OrMutable;\n\n");
+      this.push(
+        "export type Initializer = {[_: string]: never} | OrMutable;\n\n",
+      );
     }
 
     // Declare the Mutable and OrMutable types.
@@ -613,208 +455,198 @@ class TsModuleCodeGenerator {
   }
 
   private declareEnumSpecificTypes(enumInfo: EnumInfo): void {
-    const { enumKind, initializerType, kindType, unionViewType, valueType } =
+    const { initializerType, kindType, onlyConstants, unionViewType } =
       enumInfo;
     this.push(`export type Kind = ${kindType};\n\n`);
-    if (enumKind !== "all-constant") {
+    if (!onlyConstants) {
       this.push(`export type Value = ${enumInfo.valueType};\n\n`);
     }
     this.push(`export type Initializer = ${initializerType};\n\n`);
-    if (enumKind !== "all-constant") {
+    if (!onlyConstants) {
       this.push(`export type UnionView = ${unionViewType};\n\n`);
     }
   }
 
-  private defineMethod(method: Method): void {
-    const { typeSpeller } = this;
+  private writeMethod(method: Method): void {
+    const { fileType, typeSpeller } = this;
     const { number, requestType, responseType } = method;
     const name = method.name.text;
     const varName = convertCase(name, "UpperCamel", "UPPER_UNDERSCORE");
-    const reqTsType = typeSpeller.getTsType(requestType!, "frozen", false);
-    const respTsType = typeSpeller.getTsType(responseType!, "frozen", false);
-    const reqSerializer = this.getSerializerExpr(requestType!);
-    const respSerializer = this.getSerializerExpr(responseType!);
-    this.push(`
-        export const ${varName}: $.Method<${reqTsType}, ${respTsType}> = {
+    if (fileType === ".d.ts") {
+      const reqTsType = typeSpeller.getTsType(requestType!, "frozen");
+      const respTsType = typeSpeller.getTsType(responseType!, "frozen");
+      this.push(`
+        export const ${varName}: $.Method<${reqTsType}, ${respTsType}>;\n\n`);
+    } else {
+      const reqSerializer = this.getSerializerExpr(requestType!);
+      const respSerializer = this.getSerializerExpr(responseType!);
+      this.push(`
+        export const ${varName} = {
           name: "${name}",
           number: ${number},
           requestSerializer: ${reqSerializer},
           responseSerializer: ${respSerializer},
       };\n\n`);
+    }
   }
 
-  private initializeSerializer(record: RecordLocation): void {
+  private getSerializerExpr(type: ResolvedType): string {
+    switch (type.kind) {
+      case "record": {
+        const className = this.typeSpeller.getClassName(type.key);
+        return `${className.value}.SERIALIZER`;
+      }
+      case "array": {
+        const item = this.getSerializerExpr(type.item);
+        return `$.arraySerializer(${item})`;
+      }
+      case "nullable": {
+        const other = this.getSerializerExpr(type.value);
+        return `$.nullableSerializer(${other})`;
+      }
+      case "primitive": {
+        return `$.primitiveSerializer("${type.primitive}")`;
+      }
+    }
+    throw TypeError();
+  }
+
+  private writeRecordSpec(record: RecordLocation): void {
     const { typeSpeller } = this;
     const recordInfo = createRecordInfo(record, typeSpeller, this.seenRecords);
 
     if (recordInfo.recordType === "struct") {
-      this.initializeSerializerForStruct(recordInfo);
+      this.writeStructSpec(recordInfo);
     } else {
-      this.initializeSerializerForEnum(recordInfo);
+      this.writeEnumSpec(recordInfo);
     }
   }
 
-  private initializeSerializerForStruct(struct: StructInfo): void {
-    const { className, fields } = struct;
-    const parentType = className.parentClassValue
-      ? `${className.parentClassValue}.SERIALIZER.typeDescriptor`
-      : "undefined";
-    this.push(
-      `$._initStructSerializer(
-         ${className.value}.SERIALIZER,
-         "${className.recordName}",
-         "${className.recordQualifiedName}",
-         _MODULE_PATH,
-         ${parentType},
-         [\n`,
-    );
+  private writeStructSpec(struct: StructInfo): void {
+    const { className, fields, removedNumbers } = struct;
+    const { parentClassValue } = className;
+    this.push(`
+      {
+         kind: "struct",
+         ctor: ${className.value},
+         initFn: init${className.value},
+         name: "${className.recordName}",\n`);
+    if (parentClassValue) {
+      this.push(`parentCtor: ${parentClassValue},\n`);
+    }
+    this.push("fields: [\n");
     for (const field of fields) {
-      const fieldSerializer = this.getSerializerExpr(field.type);
-      const tuple = [
-        JSON.stringify(field.originalName),
-        JSON.stringify(field.property),
-        field.number,
-        fieldSerializer,
-      ];
-      this.push(`[${tuple.join(", ")}],\n`);
+      this.push(`
+        {
+          name: "${field.originalName}",
+          property: "${field.property}",
+          number: ${field.number},
+          type: ${this.getTypeSpecExpr(field.type)},\n`);
+      if (field.hasMutableGetter) {
+        this.push(`mutableGetter: "${field.mutableGetterName}",\n`);
+      }
+      if (field.indexable) {
+        this.push(`
+          indexable: {
+            searchMethod: "${field.searchMethodName}",
+            keyFn: (v) => ${field.indexable.keyExpression},\n`);
+        const { hashableExpression } = field.indexable;
+        if (hashableExpression !== "k") {
+          this.push(`keyToHashable: (k) => ${hashableExpression},\n`);
+        }
+        this.push("},\n");
+      }
+      this.push("},\n");
     }
-    this.push(`],\n[${struct.removedNumbers.join(", ")}],\n);\n\n`);
+    this.push("],\n");
+    if (removedNumbers.length) {
+      const numbers = struct.removedNumbers.join(", ");
+      this.push(`removedNumbers: [${numbers}],\n`);
+    }
+    this.push("},\n");
   }
 
-  private initializeSerializerForEnum(enumInfo: EnumInfo): void {
-    const { className, constantFields, valueFields } = enumInfo;
-    const parentType = className.parentClassValue
-      ? `${className.parentClassValue}.SERIALIZER.typeDescriptor`
-      : "undefined";
-    this.push(
-      `$._initEnumSerializer(
-         ${className.value}.SERIALIZER,
-         "${className.recordName}",
-         "${className.recordQualifiedName}",
-         _MODULE_PATH,
-         ${parentType},
-         [\n`,
-    );
+  private writeEnumSpec(enumInfo: EnumInfo): void {
+    const {
+      className,
+      constantFields,
+      onlyConstants,
+      removedNumbers,
+      valueFields,
+    } = enumInfo;
+    const { parentClassValue } = className;
+    this.push(`
+      {
+         kind: "enum",
+         ctor: ${className.value},\n`);
+    if (!onlyConstants) {
+      this.push(`createValueFn: createValueOf${className.value},\n`);
+    }
+    this.push(`name: "${className.recordName}",\n`);
+    if (parentClassValue) {
+      this.push(`parentCtor: ${parentClassValue},\n`);
+    }
+    this.push("fields: [\n");
     for (const field of constantFields) {
-      const tuple = [
-        field.quotedName,
-        field.number,
-        `${className.value}.${field.property}`,
-      ];
-      this.push(`[${tuple.join(", ")}],\n`);
+      if (field.name === "?") {
+        // Since it is common to all enums, we don't need to specify it here.
+        continue;
+      }
+      this.push(`
+        {
+          name: "${field.name}",
+          number: ${field.number},
+        },\n`);
     }
     for (const field of valueFields) {
-      const fieldSerializer = this.getSerializerExpr(field.type);
-      const tuple = [field.quotedName, field.number, fieldSerializer];
-      this.push(`[${tuple.join(", ")}],\n`);
+      this.push(`
+        {
+          name: "${field.name}",
+          number: ${field.number},
+          type: ${this.getTypeSpecExpr(field.type)},
+        },\n`);
     }
-    this.push(`\n],\n[${enumInfo.removedNumbers.join(", ")}],\n);\n\n`);
+    this.push("],\n");
+    if (removedNumbers.length) {
+      const numbers = enumInfo.removedNumbers.join(", ");
+      this.push(`removedNumbers: [${numbers}],\n`);
+    }
+    this.push("},\n");
   }
 
-  private getSerializerExpr(type: ResolvedType): string {
-    if (type.kind === "record") {
-      const className = this.typeSpeller.getClassName(type.key);
-      return `${className.value}.SERIALIZER`;
-    } else if (type.kind === "array") {
-      const other = this.getSerializerExpr(type.item);
-      return `$.arraySerializer(${other})`;
-    } else if (type.kind === "nullable") {
-      const other = this.getSerializerExpr(type.value);
-      return `$.nullableSerializer(${other})`;
-    } else if (type.kind === "primitive") {
-      return `$.primitiveSerializer("${type.primitive}")`;
+  private getTypeSpecExpr(type: ResolvedType): string {
+    switch (type.kind) {
+      case "record": {
+        const className = this.typeSpeller.getClassName(type.key);
+        return `{ kind: "record", ctor: ${className.value} }`;
+      }
+      case "array": {
+        const item = this.getTypeSpecExpr(type.item);
+        return `{ kind: "array", item: ${item} }`;
+      }
+      case "nullable": {
+        const other = this.getTypeSpecExpr(type.value);
+        return `{ kind: "nullable", other: ${other} }`;
+      }
+      case "primitive": {
+        return `{ kind: "primitive", primitive: "${type.primitive}" }`;
+      }
     }
-    const _: never = type;
     throw TypeError();
   }
 
-  private defineConstant(constant: Constant): void {
+  private writeConstant(constant: Constant): void {
+    const { fileType, typeSpeller } = this;
     const name = constant.name.text;
-    this.push(`export const ${name} = `);
-    this.spellValue(constant.value);
-    this.push(";\n\n");
-  }
-
-  private spellValue(value: Value): void {
-    switch (value.kind) {
-      case "array": {
-        const { items } = value;
-        if (items.length <= 0) {
-          this.push("$._EMPTY_ARRAY");
-        } else {
-          this.push("$._toFrozenArray(\n");
-          this.push("[\n");
-          for (const item of items) {
-            this.spellValue(item);
-            this.push(",\n");
-          }
-          this.push("],\n");
-          this.push("(e) => e,\n");
-          this.push(")");
-        }
-        break;
-      }
-      case "literal": {
-        this.push(this.getLiteralValueExpr(value));
-        break;
-      }
-      case "object": {
-        this.spellObjectValue(value);
-        break;
-      }
-    }
-  }
-
-  private spellObjectValue(value: ObjectValue): void {
-    const className = this.typeSpeller.getClassName(value.type!);
-    this.push(`${className.type}.create({\n`);
-    switch (className.recordType) {
-      case "struct": {
-        for (const entry of Object.values(value.entries)) {
-          const property = structFieldNameToProperty(entry.name.text);
-          this.push(`${property}: `);
-          this.spellValue(entry.value);
-          this.push(",\n");
-        }
-        break;
-      }
-      case "enum": {
-        this.push(`kind: ${value.entries["kind"]!.value.token.text},\n`);
-        this.push("value: ");
-        this.spellValue(value.entries["value"]!.value);
-        this.push(",\n");
-        break;
-      }
-    }
-    this.push("})");
-  }
-
-  private getLiteralValueExpr(value: LiteralValue): string {
-    const { type } = value;
-    if (type!.kind === "null") {
-      return "null";
-    }
-    if (type!.kind === "enum") {
-      // An enum constant.
-      const className = this.typeSpeller.getClassName(type!.key);
-      return `${className.type}.create(${value.token.text})`;
-    }
-    const { text } = value.token;
-    switch (type!.primitive) {
-      case "bool":
-      case "int32":
-      case "float32":
-      case "float64":
-        return text;
-      case "int64":
-      case "uint64":
-        return `BigInt("${text}")`;
-      case "timestamp":
-        return `$.Timestamp.parse(${text})`;
-      case "string":
-        return JSON.stringify(unquoteAndUnescape(text));
-      case "bytes":
-        return `$.ByteString.fromBase16(${text.toUpperCase()})`;
+    if (fileType === ".d.ts") {
+      const type = typeSpeller.getTsType(constant.type!, "frozen");
+      this.push(`export const ${name}: ${type};\n\n`);
+    } else {
+      this.push(`export const ${name} = `);
+      this.push(this.getSerializerExpr(constant.type!));
+      this.push(".fromJson(");
+      this.push(JSON.stringify(constant.valueAsDenseJson));
+      this.push(");\n\n");
     }
   }
 
@@ -822,10 +654,6 @@ class TsModuleCodeGenerator {
 
   private push(code: string): void {
     this.code += code.trimStart();
-  }
-
-  private pushNoTrimStart(code: string): void {
-    this.code += code;
   }
 
   private pushEol(): void {
@@ -914,10 +742,12 @@ class TsModuleCodeGenerator {
 
     return (
       result
-        // Remove spaces enclosed within round bracket if that's all there is.
+        // Remove spaces enclosed within curly brackets if that's all there is.
         .replace(/\{\s+\}/g, "{}")
-        // Remove spaces enclosed within square bracket if that's all there is.
+        // Remove spaces enclosed within round brackets if that's all there is.
         .replace(/\(\s+\)/g, "()")
+        // Remove spaces enclosed within square brackets if that's all there is.
+        .replace(/\[\s+\]/g, "[]")
         // Remove empty line following an open square bracket.
         .replace(/(\{\n *)\n/g, "$1")
         // Remove empty line preceding a closed square bracket.

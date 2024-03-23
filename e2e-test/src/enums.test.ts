@@ -50,10 +50,6 @@ describe("simple enum", () => {
             module: "enums.soia",
             fields: [
               {
-                name: "?",
-                number: 0,
-              },
-              {
                 name: "NULL",
                 number: 1,
               },
@@ -156,15 +152,23 @@ describe("simple enum", () => {
       readableJson: "TUESDAY",
       bytesAsBase16: "02",
     });
-    it("deserializes alternative forms", () => {
-      expect(Weekday.SERIALIZER.fromJsonCode('{"kind": "TUESDAY"}')).toBe(
-        Weekday.TUESDAY,
-      );
-      expect(
-        Weekday.SERIALIZER.fromJsonCode('{"kind": "TUESDAY", "value": {}}'),
-      ).toBe(Weekday.TUESDAY);
-      expect(Weekday.SERIALIZER.fromJsonCode("[2]")).toBe(Weekday.TUESDAY);
-      expect(Weekday.SERIALIZER.fromJsonCode("[2,[]]")).toBe(Weekday.TUESDAY);
+    describe("deserializes alternative forms", () => {
+      it("#0", () => {
+        expect(Weekday.SERIALIZER.fromJsonCode('{"kind": "TUESDAY"}')).toBe(
+          Weekday.TUESDAY,
+        );
+      });
+      it("#1", () => {
+        expect(
+          Weekday.SERIALIZER.fromJsonCode('{"kind": "TUESDAY", "value": {}}'),
+        ).toBe(Weekday.TUESDAY);
+      });
+      it("#2", () => {
+        expect(Weekday.SERIALIZER.fromJsonCode("[2]")).toBe(Weekday.TUESDAY);
+      });
+      it("#3", () => {
+        expect(Weekday.SERIALIZER.fromJsonCode("[2,[]]")).toBe(Weekday.TUESDAY);
+      });
     });
   });
 
@@ -318,49 +322,91 @@ describe("enum reflection", () => {
     expect(Car.SERIALIZER.typeDescriptor.modulePath).toBe("vehicles/car.soia");
   });
 
-  it("get record name", () => {
-    expect(JsonValue.SERIALIZER.typeDescriptor.name).toBe("JsonValue");
-    expect(JsonValue.SERIALIZER.typeDescriptor.qualifiedName).toBe("JsonValue");
-    expect(JsonValue.Pair.SERIALIZER.typeDescriptor.name).toBe("Pair");
-    expect(JsonValue.Pair.SERIALIZER.typeDescriptor.qualifiedName).toBe(
-      "JsonValue.Pair",
-    );
+  describe("get record name", () => {
+    it("#0", () => {
+      expect(JsonValue.SERIALIZER.typeDescriptor.name).toBe("JsonValue");
+    });
+    it("#1", () => {
+      expect(JsonValue.SERIALIZER.typeDescriptor.qualifiedName).toBe(
+        "JsonValue",
+      );
+    });
+    it("#2", () => {
+      expect(JsonValue.Pair.SERIALIZER.typeDescriptor.name).toBe("Pair");
+    });
+    it("#3", () => {
+      expect(JsonValue.Pair.SERIALIZER.typeDescriptor.qualifiedName).toBe(
+        "JsonValue.Pair",
+      );
+    });
   });
 
-  it("get parent type", () => {
-    expect(JsonValue.Pair.SERIALIZER.typeDescriptor.parentType).toBe(
-      JsonValue.SERIALIZER.typeDescriptor,
-    );
-    expect(JsonValue.SERIALIZER.typeDescriptor.parentType).toBe(undefined);
+  describe("get parent type", () => {
+    it("#0", () => {
+      expect(JsonValue.Pair.SERIALIZER.typeDescriptor.parentType).toBe(
+        JsonValue.SERIALIZER.typeDescriptor,
+      );
+    });
+    it("#1", () => {
+      expect(JsonValue.SERIALIZER.typeDescriptor.parentType).toBe(undefined);
+    });
   });
 
-  it("get field", () => {
+  describe("get field", () => {
     const typeDescriptor = JsonValue.SERIALIZER.typeDescriptor;
-    expect(typeDescriptor.kind).toBe("enum");
+    it("#0", () => {
+      expect(typeDescriptor.kind).toBe("enum");
+    });
 
     const nullField: EnumField<JsonValue> = typeDescriptor.getField("NULL");
     const arrayField: EnumField<JsonValue> = typeDescriptor.getField("array");
     const unknownField: EnumField<JsonValue> = typeDescriptor.getField("?");
 
-    expect(nullField).toBe(typeDescriptor.getField(1)!);
-    expect(arrayField).toBe(typeDescriptor.getField(4)!);
-    expect(unknownField).toBe(typeDescriptor.getField(0)!);
+    it("#1", () => {
+      expect(nullField).toBe(typeDescriptor.getField(1)!);
+    });
+    it("#2", () => {
+      expect(arrayField).toBe(typeDescriptor.getField(4)!);
+    });
+    it("#3", () => {
+      expect(unknownField).toBe(typeDescriptor.getField(0)!);
+    });
 
-    expect(nullField.name).toBe("NULL");
-    expect(nullField.number).toBe(1);
-    expect(arrayField.name).toBe("array");
-    expect(arrayField.number).toBe(4);
-    expect(unknownField.name).toBe("?");
-    expect(unknownField.number).toBe(0);
+    it("#4", () => {
+      expect(nullField.name).toBe("NULL");
+    });
+    it("#5", () => {
+      expect(nullField.number).toBe(1);
+    });
+    it("#6", () => {
+      expect(arrayField.name).toBe("array");
+    });
+    it("#7", () => {
+      expect(arrayField.number).toBe(4);
+    });
+    it("#8", () => {
+      expect(unknownField.name).toBe("?");
+    });
+    it("#9", () => {
+      expect(unknownField.number).toBe(0);
+    });
 
     const arrayType = arrayField.type!;
-    expect(arrayType.kind).toBe("array");
+    it("#10", () => {
+      expect(arrayType.kind).toBe("array");
+    });
     if (arrayType.kind === "array") {
-      expect(arrayType.itemType.kind).toBe("enum");
+      it("#11", () => {
+        expect(arrayType.itemType.kind).toBe("enum");
+      });
     }
 
-    expect(typeDescriptor.getField("foo")).toBe(undefined);
-    expect(typeDescriptor.getField(10)).toBe(undefined);
+    it("#12", () => {
+      expect(typeDescriptor.getField("foo")).toBe(undefined);
+    });
+    it("#13", () => {
+      expect(typeDescriptor.getField(10)).toBe(undefined);
+    });
 
     // Let's make sure that the return type is nullable.
     {

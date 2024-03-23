@@ -46,6 +46,16 @@ describe("schema change", () => {
       expect(reserialized).toMatch(foo);
     });
 
+    it("are kept in JSON format even when made mutable", () => {
+      const fooBefore = FooBefore.SERIALIZER.fromJson(
+        FooAfter.SERIALIZER.toJson(foo.toMutable()),
+      );
+      const reserialized = FooAfter.SERIALIZER.fromJson(
+        FooBefore.SERIALIZER.toJson(fooBefore.toMutable()),
+      );
+      expect(reserialized).toMatch(foo);
+    });
+
     it("are kept in binary format", () => {
       const fooBefore = FooBefore.SERIALIZER.fromBytes(
         FooAfter.SERIALIZER.toBytes(foo).toBuffer(),

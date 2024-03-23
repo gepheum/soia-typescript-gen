@@ -29,9 +29,22 @@ export class TypeSpeller {
 
   getTsType(
     type: ResolvedType,
+    flavor: "initializer" | "frozen" | "mutable",
+    allRecordsFrozen?: undefined,
+  ): TsType;
+
+  getTsType(
+    type: ResolvedType,
     flavor: TypeFlavor,
     // Only matters if mode is "maybe-mutable"
-    allRecordsFrozen: boolean,
+    allRecordsFrozen: boolean | undefined,
+  ): TsType;
+
+  getTsType(
+    type: ResolvedType,
+    flavor: TypeFlavor,
+    // Only matters if mode is "maybe-mutable"
+    allRecordsFrozen: boolean | undefined,
   ): TsType {
     switch (type.kind) {
       case "record": {
