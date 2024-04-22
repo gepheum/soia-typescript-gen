@@ -299,9 +299,7 @@ class TsModuleCodeGenerator {
       this.pushEol();
     }
 
-    this.push(`
-      toFrozen(): ${className.type};
-      toMutable(): this;\n`);
+    this.push(`toFrozen(): ${className.type};\n`);
     this.pushEol();
     this.push("readonly [$._INITIALIZER]: ");
     this.push(`${className.type}.Initializer | undefined;\n`);
@@ -384,7 +382,6 @@ class TsModuleCodeGenerator {
     if (type.kind === "nullable") {
       type = type.value;
     }
-    const lvalue = `this.${field.property}`;
     this.push(`get ${field.mutableGetterName}(): ${mutable};\n`);
   }
 

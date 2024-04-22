@@ -95,14 +95,6 @@ describe("structs", () => {
     expect(point.toFrozen()).toBe(point);
   });
 
-  it("#toMutable() returns this if this is mutable", () => {
-    const point = new Point.Mutable({
-      x: 10,
-      y: 11,
-    });
-    expect(point.toMutable()).toBe(point);
-  });
-
   describe("mutableArray() getter", () => {
     const p0 = Point.create({ x: 10 });
     const p1 = Point.create({ x: 11 });
