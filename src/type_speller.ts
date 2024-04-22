@@ -100,8 +100,8 @@ export class TypeSpeller {
           throw TypeError();
         }
       }
-      case "nullable": {
-        const valueType = this.getTsType(type.value, flavor, allRecordsFrozen);
+      case "optional": {
+        const valueType = this.getTsType(type.other, flavor, allRecordsFrozen);
         if (flavor === "mutable") {
           // The generated mutableX() methods cannot return null.
           return valueType;

@@ -213,7 +213,7 @@ class RecordInfoCreator {
     const hasMutableGetter =
       !field.isRecursive &&
       !tsTypes.mutable.isNever &&
-      type.kind !== "nullable";
+      type.kind !== "optional";
     let indexable: Indexable | undefined;
     if (type.kind === "array" && type.key) {
       // The field is indexable.

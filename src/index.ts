@@ -61,10 +61,6 @@ class TypescriptCodeGenerator implements CodeGenerator<Config> {
     }
     return { files: outputFiles };
   }
-
-  private modulePathToTsPath(modulePath: string): string {
-    return `${modulePath}.ts`;
-  }
 }
 
 // Generates the code for one TypeScript module.
@@ -299,7 +295,9 @@ class TsModuleCodeGenerator {
       this.pushEol();
     }
 
-    this.push(`toFrozen(): ${className.type};\n`);
+    this.push(`
+      toFrozen(): ${className.type};
+      toMutable(): this;\n`);
     this.pushEol();
     this.push("readonly [$._INITIALIZER]: ");
     this.push(`${className.type}.Initializer | undefined;\n`);
@@ -378,10 +376,6 @@ class TsModuleCodeGenerator {
 
   private declareMutableGetter(field: StructField): void {
     const { mutable } = field.tsTypes;
-    let type = field.type;
-    if (type.kind === "nullable") {
-      type = type.value;
-    }
     this.push(`get ${field.mutableGetterName}(): ${mutable};\n`);
   }
 
@@ -497,9 +491,9 @@ class TsModuleCodeGenerator {
         const item = this.getSerializerExpr(type.item);
         return `$.arraySerializer(${item})`;
       }
-      case "nullable": {
-        const other = this.getSerializerExpr(type.value);
-        return `$.nullableSerializer(${other})`;
+      case "optional": {
+        const other = this.getSerializerExpr(type.other);
+        return `$.optionalSerializer(${other})`;
       }
       case "primitive": {
         return `$.primitiveSerializer("${type.primitive}")`;
@@ -621,9 +615,9 @@ class TsModuleCodeGenerator {
         const item = this.getTypeSpecExpr(type.item);
         return `{ kind: "array", item: ${item} }`;
       }
-      case "nullable": {
-        const other = this.getTypeSpecExpr(type.value);
-        return `{ kind: "nullable", other: ${other} }`;
+      case "optional": {
+        const other = this.getTypeSpecExpr(type.other);
+        return `{ kind: "optional", other: ${other} }`;
       }
       case "primitive": {
         return `{ kind: "primitive", primitive: "${type.primitive}" }`;

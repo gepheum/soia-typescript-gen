@@ -46,7 +46,7 @@ describe("Car", () => {
             {
               name: "second_owner",
               type: {
-                kind: "nullable",
+                kind: "optional",
                 other: {
                   kind: "record",
                   name: "User",

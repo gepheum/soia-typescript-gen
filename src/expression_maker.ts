@@ -49,20 +49,20 @@ export function toFrozenExpression(arg: ToFrozenExpressionArg): string {
       const funName = "$._toFrozenArray";
       return `${funName}(\n${inExprOrEmpty},\n${mapFnExpr},\n)`;
     }
-  } else if (type.kind === "nullable") {
-    const valueType = type.value;
-    const valueExpr = toFrozenExpression({
-      type: valueType,
+  } else if (type.kind === "optional") {
+    const otherType = type.other;
+    const otherExpr = toFrozenExpression({
+      type: otherType,
       inExpr: inExpr,
       maybeUndefined: false,
       typeSpeller: typeSpeller,
     });
-    if (valueExpr === inExpr) {
+    if (otherExpr === inExpr) {
       return maybeUndefined ? `${inExpr} ?? null` : inExpr;
     }
-    // The condition for returning valueExpr.
+    // The condition for returning otherExpr.
     let condition: string;
-    if (canBeFalsy(valueType)) {
+    if (canBeFalsy(otherType)) {
       if (maybeUndefined) {
         // This is one way to test that inExpr is not null or undefined.
         // Works because if inExpr was === 0, then we would have already
@@ -76,7 +76,7 @@ export function toFrozenExpression(arg: ToFrozenExpressionArg): string {
       // Also works if maybeUndefined is true.
       condition = inExpr;
     }
-    return `${condition} ? ${valueExpr} : null`;
+    return `${condition} ? ${otherExpr} : null`;
   }
   // A primitive type.
   if (!maybeUndefined) {
@@ -110,7 +110,7 @@ export function toFrozenExpression(arg: ToFrozenExpressionArg): string {
 // Returns true if values of the given type can ever be falsy.
 // See https://developer.mozilla.org/en-US/docs/Glossary/Falsy
 function canBeFalsy(type: ResolvedType): boolean {
-  if (type.kind === "nullable") {
+  if (type.kind === "optional") {
     return true;
   }
   if (type.kind !== "primitive") {
