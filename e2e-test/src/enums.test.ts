@@ -232,7 +232,7 @@ describe("recursive enum", () => {
         },
       ],
     },
-    bytesAsBase16: "fdf90401f8640101fef7f8f303666f6ffcf303626172",
+    bytesAsBase16: "fefa0401f8640101f805f7f8f303666f6ffdf303626172",
   });
 
   it("#kind", () => {
