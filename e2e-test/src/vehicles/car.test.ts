@@ -95,7 +95,7 @@ describe("Car", () => {
         readableJson: {
           model: "Toyota Camry",
           purchase_time: {
-            unixMillis: 5000,
+            unix_millis: 5000,
             formatted: "1970-01-01T00:00:05.000Z",
           },
           owner: {
