@@ -94,7 +94,10 @@ describe("Car", () => {
         denseJson: ["Toyota Camry", 5000, ["123"]],
         readableJson: {
           model: "Toyota Camry",
-          purchase_time: "1970-01-01T00:00:05.000Z",
+          purchase_time: {
+            unixMillis: 5000,
+            formatted: "1970-01-01T00:00:05.000Z",
+          },
           owner: {
             user_id: "123",
           },
