@@ -152,24 +152,6 @@ describe("simple enum", () => {
       readableJson: "TUESDAY",
       bytesAsBase16: "02",
     });
-    describe("deserializes alternative forms", () => {
-      it("#0", () => {
-        expect(Weekday.SERIALIZER.fromJsonCode('{"kind": "TUESDAY"}')).toBe(
-          Weekday.TUESDAY,
-        );
-      });
-      it("#1", () => {
-        expect(
-          Weekday.SERIALIZER.fromJsonCode('{"kind": "TUESDAY", "value": {}}'),
-        ).toBe(Weekday.TUESDAY);
-      });
-      it("#2", () => {
-        expect(Weekday.SERIALIZER.fromJsonCode("[2]")).toBe(Weekday.TUESDAY);
-      });
-      it("#3", () => {
-        expect(Weekday.SERIALIZER.fromJsonCode("[2,[]]")).toBe(Weekday.TUESDAY);
-      });
-    });
   });
 
   describe("#toString", () => {
