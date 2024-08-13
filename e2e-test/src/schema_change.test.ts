@@ -1,3 +1,4 @@
+import { toBase16 } from "../../node_modules/soia/dist/esm/serializer_tester.js";
 import {
   BarAfter,
   EnumAfter,
@@ -5,6 +6,7 @@ import {
   FooBefore,
   RemovalAfter,
   RemovalBefore,
+  Zelda,
 } from "../soiagen/schema_change.soia.js";
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
@@ -64,6 +66,40 @@ describe("schema change", () => {
         FooBefore.SERIALIZER.toBytes(fooBefore).toBuffer(),
       );
       expect(reserialized).toMatch(foo);
+    });
+
+    it("make a struct not default", () => {
+      const structHolder = Zelda.StructHolder.create({
+        s: Zelda.Struct.create({
+          a: 3,
+        }),
+      });
+      const structHolderBefore = Zelda.StructHolderBefore.SERIALIZER.fromBytes(
+        Zelda.StructHolder.SERIALIZER.toBytes(structHolder).toBuffer(),
+      );
+      expect(
+        toBase16(
+          Zelda.StructHolderBefore.SERIALIZER.toBytes(
+            structHolderBefore,
+          ).toBuffer(),
+        ),
+      ).toMatch("f7f703");
+    });
+
+    it("make an enum not default", () => {
+      const enumHolder = Zelda.EnumHolder.create({
+        e: Zelda.Enum.A,
+      });
+      const enumHolderBefore = Zelda.EnumHolderBefore.SERIALIZER.fromBytes(
+        Zelda.EnumHolder.SERIALIZER.toBytes(enumHolder).toBuffer(),
+      );
+      expect(
+        toBase16(
+          Zelda.EnumHolderBefore.SERIALIZER.toBytes(
+            enumHolderBefore,
+          ).toBuffer(),
+        ),
+      ).toMatch("f701");
     });
   });
 

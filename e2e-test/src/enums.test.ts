@@ -208,7 +208,7 @@ describe("recursive enum", () => {
     bytesAsBase16: "01",
   });
   serializerTester.reserializeAndAssert(complexValue, {
-    denseJson: [4, [1, [100, true], 1, [5, [["foo", [3, "bar"]]]]]],
+    denseJson: [4, [1, [100, 1], 1, [5, [["foo", [3, "bar"]]]]]],
     readableJson: {
       kind: "array",
       value: [

@@ -56,3 +56,28 @@ struct RemovalAfter {
   }
   es: [E];
 }
+
+struct Zelda {
+  struct StructBefore {}
+  struct Struct {
+    a: int32;
+  }
+  enum EnumBefore {}
+  enum Enum {
+    A;
+  }
+
+  struct StructHolderBefore {
+    s: StructBefore;
+  }
+  struct StructHolder {
+    s: Struct;
+  }
+
+  struct EnumHolderBefore {
+    e: EnumBefore;
+  }
+  struct EnumHolder {
+    e: Enum;
+  }
+}
