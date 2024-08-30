@@ -17,7 +17,7 @@ import type {
   RecordLocation,
   ResolvedType,
 } from "soiac";
-import { convertCase, unquoteAndUnescape } from "soiac";
+import { convertCase } from "soiac";
 import { z } from "zod";
 
 const Config = z.object({
