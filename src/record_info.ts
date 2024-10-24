@@ -140,12 +140,10 @@ export interface EnumValueField {
 export function createRecordInfo(
   record: RecordLocation,
   typeSpeller: TypeSpeller,
-  alreadyInitialized: ReadonlySet<RecordKey>,
 ): RecordInfo {
   return new RecordInfoCreator(
     record,
     typeSpeller,
-    alreadyInitialized,
   ).create();
 }
 
@@ -153,7 +151,6 @@ class RecordInfoCreator {
   constructor(
     private readonly record: RecordLocation,
     private readonly typeSpeller: TypeSpeller,
-    private readonly alreadyInitialized: ReadonlySet<RecordKey>,
   ) {
     this.className = this.typeSpeller.getClassName(record.record.key);
   }

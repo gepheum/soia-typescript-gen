@@ -177,7 +177,7 @@ class TsModuleCodeGenerator {
 
   private writeClassesForRecord(record: RecordLocation): void {
     const { fileType, typeSpeller } = this;
-    const recordInfo = createRecordInfo(record, typeSpeller, this.seenRecords);
+    const recordInfo = createRecordInfo(record, typeSpeller);
     const { className, recordType } = recordInfo;
 
     this.push(`
@@ -199,9 +199,6 @@ class TsModuleCodeGenerator {
     if (this.fileType === ".d.ts") {
       this.declareNamespaceForRecord(recordInfo);
     }
-
-    // Register that we have defined this record.
-    this.seenRecords.add(record.record.key);
   }
 
   private writeFrozenClassForStruct(struct: StructInfo): void {
@@ -504,7 +501,7 @@ class TsModuleCodeGenerator {
 
   private writeRecordSpec(record: RecordLocation): void {
     const { typeSpeller } = this;
-    const recordInfo = createRecordInfo(record, typeSpeller, this.seenRecords);
+    const recordInfo = createRecordInfo(record, typeSpeller);
 
     if (recordInfo.recordType === "struct") {
       this.writeStructSpec(recordInfo);
@@ -751,7 +748,6 @@ class TsModuleCodeGenerator {
 
   private readonly typeSpeller: TypeSpeller;
   private code = "";
-  private readonly seenRecords = new Set<RecordKey>();
 }
 
 export const GENERATOR = new TypescriptCodeGenerator();
