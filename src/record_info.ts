@@ -141,10 +141,7 @@ export function createRecordInfo(
   record: RecordLocation,
   typeSpeller: TypeSpeller,
 ): RecordInfo {
-  return new RecordInfoCreator(
-    record,
-    typeSpeller,
-  ).create();
+  return new RecordInfoCreator(record, typeSpeller).create();
 }
 
 class RecordInfoCreator {
