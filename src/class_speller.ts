@@ -59,7 +59,7 @@ export function getClassName(
     const reservedNames =
       i === 0
         ? BUILTIN_TYPE_NAMES
-        : recordAncestors.at(-1)!.recordType === "struct"
+        : recordAncestors[i - 1]!.recordType === "struct"
           ? STRUCT_NESTED_TYPE_NAMES
           : ENUM_NESTED_TYPE_NAMES;
 
