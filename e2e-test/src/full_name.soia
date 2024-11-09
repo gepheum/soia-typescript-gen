@@ -1,4 +1,10 @@
+import BigInt from "./structs.soia";
+
 struct FullName {
   first_name: string;
   last_name: string;
+}
+
+struct S {
+  big_int: BigInt;
 }

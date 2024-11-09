@@ -112,10 +112,14 @@ export function getClassName(
   };
 }
 
+export function maybeEscapeTopLevelUpperCaseName(name: string): string {
+  return BUILTIN_TYPE_NAMES.has(name) ? `${name}_` : name;
+}
+
 const BUILTIN_TYPE_NAMES: ReadonlySet<string> = new Set([
   // Subset of the standard built-in Typescript types and Javascript class names
   // used in the generated code, either in the ".d.ts" file or the ".js" file.
-  // We can't use those as names for generated types at the top-level.
+  // We can't use those as names for generated declarations at the top-level.
   "Array",
   "BigInt",
   "ReadonlyArray",

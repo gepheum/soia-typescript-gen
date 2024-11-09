@@ -130,3 +130,5 @@ struct Floats {
 struct Object {}
 struct Infinity {}
 struct NaN {}
+
+struct BigInt {}

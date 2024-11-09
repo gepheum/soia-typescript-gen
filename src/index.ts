@@ -1,3 +1,4 @@
+import { maybeEscapeTopLevelUpperCaseName } from "./class_speller.js";
 import { toFrozenExpression } from "./expression_maker.js";
 import {
   EnumInfo,
@@ -168,7 +169,9 @@ class TsModuleCodeGenerator {
         this.push(`import * as x_${alias} from "${tsPath}";\n`);
       } else {
         const names = //
-          [...importedNames.names].map((n) => `${n} as ${n}`).join(", ");
+          [...importedNames.names]
+            .map(maybeEscapeTopLevelUpperCaseName)
+            .join(", ");
         this.push(`import { ${names} } from "${tsPath}";\n`);
       }
     }
@@ -459,7 +462,7 @@ class TsModuleCodeGenerator {
     const { fileType, typeSpeller } = this;
     const { number, requestType, responseType } = method;
     const name = method.name.text;
-    const varName = convertCase(name, "UpperCamel", "UPPER_UNDERSCORE");
+    const varName = maybeEscapeTopLevelUpperCaseName(name);
     if (fileType === ".d.ts") {
       const reqTsType = typeSpeller.getTsType(requestType!, "frozen");
       const respTsType = typeSpeller.getTsType(responseType!, "frozen");
