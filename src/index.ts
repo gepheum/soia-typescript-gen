@@ -18,7 +18,6 @@ import type {
   RecordLocation,
   ResolvedType,
 } from "soiac";
-import { convertCase } from "soiac";
 import { z } from "zod";
 
 const Config = z.object({
@@ -739,9 +738,9 @@ class TsModuleCodeGenerator {
         .replace(/\(\s+\)/g, "()")
         // Remove spaces enclosed within square brackets if that's all there is.
         .replace(/\[\s+\]/g, "[]")
-        // Remove empty line following an open square bracket.
+        // Remove empty line following an open curly bracket.
         .replace(/(\{\n *)\n/g, "$1")
-        // Remove empty line preceding a closed square bracket.
+        // Remove empty line preceding a closed curly bracket.
         .replace(/\n(\n *\})/g, "$1")
         // Coalesce consecutive empty lines.
         .replace(/\n\n\n+/g, "\n\n")
