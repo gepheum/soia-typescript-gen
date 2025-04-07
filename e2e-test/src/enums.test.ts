@@ -127,6 +127,12 @@ describe("simple enum", () => {
           },
         ],
       });
+      expect(JsonValue.Pair.SERIALIZER.typeDescriptor.asJson()).toMatch({
+        type: {
+          kind: "record",
+          value: "enums.soia:JsonValue.Pair",
+        },
+      });
       new SerializerTester(
         JsonValue.SERIALIZER,
       ).reserializeTypeAdapterAndAssertNoLoss();
