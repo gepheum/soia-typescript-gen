@@ -41,9 +41,11 @@ describe("schema change", () => {
     it("are kept in JSON format", () => {
       const fooBefore = FooBefore.SERIALIZER.fromJson(
         FooAfter.SERIALIZER.toJson(foo),
+        "keep-unrecognized-fields",
       );
       const reserialized = FooAfter.SERIALIZER.fromJson(
         FooBefore.SERIALIZER.toJson(fooBefore),
+        "keep-unrecognized-fields",
       );
       expect(reserialized).toMatch(foo);
     });
@@ -51,9 +53,11 @@ describe("schema change", () => {
     it("are kept in JSON format even when made mutable", () => {
       const fooBefore = FooBefore.SERIALIZER.fromJson(
         FooAfter.SERIALIZER.toJson(foo.toMutable()),
+        "keep-unrecognized-fields",
       );
       const reserialized = FooAfter.SERIALIZER.fromJson(
         FooBefore.SERIALIZER.toJson(fooBefore.toMutable()),
+        "keep-unrecognized-fields",
       );
       expect(reserialized).toMatch(foo);
     });
@@ -61,9 +65,11 @@ describe("schema change", () => {
     it("are kept in binary format", () => {
       const fooBefore = FooBefore.SERIALIZER.fromBytes(
         FooAfter.SERIALIZER.toBytes(foo).toBuffer(),
+        "keep-unrecognized-fields",
       );
       const reserialized = FooAfter.SERIALIZER.fromBytes(
         FooBefore.SERIALIZER.toBytes(fooBefore).toBuffer(),
+        "keep-unrecognized-fields",
       );
       expect(reserialized).toMatch(foo);
     });
@@ -76,6 +82,7 @@ describe("schema change", () => {
       });
       const structHolderBefore = Zelda.StructHolderBefore.SERIALIZER.fromBytes(
         Zelda.StructHolder.SERIALIZER.toBytes(structHolder).toBuffer(),
+        "keep-unrecognized-fields",
       );
       expect(
         toBase16(
@@ -92,6 +99,7 @@ describe("schema change", () => {
       });
       const enumHolderBefore = Zelda.EnumHolderBefore.SERIALIZER.fromBytes(
         Zelda.EnumHolder.SERIALIZER.toBytes(enumHolder).toBuffer(),
+        "keep-unrecognized-fields",
       );
       expect(
         toBase16(
@@ -124,8 +132,10 @@ describe("schema change", () => {
         RemovalAfter.SERIALIZER.toJson(
           RemovalAfter.SERIALIZER.fromJson(
             RemovalBefore.SERIALIZER.toJson(before),
+            "keep-unrecognized-fields",
           ),
         ),
+        "keep-unrecognized-fields",
       );
       expect(reserialized).toMatch(expected);
     });
@@ -135,8 +145,10 @@ describe("schema change", () => {
         RemovalAfter.SERIALIZER.toBytes(
           RemovalAfter.SERIALIZER.fromBytes(
             RemovalBefore.SERIALIZER.toBytes(before).toBuffer(),
+            "keep-unrecognized-fields",
           ),
         ).toBuffer(),
+        "keep-unrecognized-fields",
       );
       expect(reserialized).toMatch(expected);
     });
