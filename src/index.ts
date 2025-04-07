@@ -612,7 +612,12 @@ class TsModuleCodeGenerator {
       }
       case "array": {
         const item = this.getTypeSpecExpr(type.item);
-        return `{ kind: "array", item: ${item} }`;
+        if (type.key) {
+          const keyChain = type.key.fieldNames.map((n) => n.text).join(".");
+          return `{ kind: "array", item: ${item}, keyChain: "${keyChain}" }`;
+        } else {
+          return `{ kind: "array", item: ${item} }`;
+        }
       }
       case "optional": {
         const other = this.getTypeSpecExpr(type.other);

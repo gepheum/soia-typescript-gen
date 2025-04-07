@@ -447,5 +447,88 @@ describe("struct with indexed arrays", () => {
         Items.SERIALIZER.toJsonCode(items, "readable"),
       );
     });
+
+    it("TypeDescriptor#asJson()", () => {
+      expect(Items.SERIALIZER.typeDescriptor.asJson()).toMatch({
+        type: {
+          kind: "record",
+          value: "structs.soia:Items",
+        },
+        records: [
+          {
+            fields: [
+              {
+                name: "array_with_bool_key",
+                type: {
+                  value: {
+                    key_chain: "bool",
+                  },
+                },
+              },
+              {
+                name: "array_with_string_key",
+                type: {
+                  value: {
+                    key_chain: "string",
+                  },
+                },
+              },
+              {
+                name: "array_with_int32_key",
+                type: {
+                  value: {
+                    key_chain: "int32",
+                  },
+                },
+              },
+              {
+                name: "array_with_int64_key",
+                type: {
+                  value: {
+                    key_chain: "int64",
+                  },
+                },
+              },
+              {
+                name: "array_with_wrapper_key",
+                type: {
+                  kind: "array",
+                  value: {
+                    key_chain: "user.id",
+                  },
+                },
+              },
+              {
+                name: "array_with_enum_key",
+                type: {
+                  value: {
+                    key_chain: "weekday.kind",
+                  },
+                },
+              },
+              {
+                name: "array_with_bytes_key",
+                type: {
+                  value: {
+                    key_chain: "bytes",
+                  },
+                },
+              },
+              {
+                name: "array_with_timestamp_key",
+                type: {
+                  value: {
+                    key_chain: "timestamp",
+                  },
+                },
+              },
+            ],
+          },
+          {},
+          {},
+          {},
+        ],
+      });
+    });
   });
 });
