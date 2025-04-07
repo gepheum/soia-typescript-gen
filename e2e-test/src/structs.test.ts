@@ -309,20 +309,18 @@ describe("struct reflection", () => {
     expect(FullName.SERIALIZER.typeDescriptor.asJson()).toMatch({
       type: {
         kind: "record",
-        name: "FullName",
-        module: "structs.soia",
+        value: "structs.soia:FullName",
       },
       records: [
         {
           kind: "struct",
-          name: "FullName",
-          module: "structs.soia",
+          id: "structs.soia:FullName",
           fields: [
             {
               name: "first_name",
               type: {
                 kind: "primitive",
-                primitive: "string",
+                value: "string",
               },
               number: 0,
             },
@@ -330,7 +328,7 @@ describe("struct reflection", () => {
               name: "last_name",
               type: {
                 kind: "primitive",
-                primitive: "string",
+                value: "string",
               },
               number: 2,
             },
@@ -338,12 +336,12 @@ describe("struct reflection", () => {
               name: "suffix",
               type: {
                 kind: "primitive",
-                primitive: "string",
+                value: "string",
               },
               number: 3,
             },
           ],
-          removed: [1],
+          removed_fields: [1],
         },
       ],
     });

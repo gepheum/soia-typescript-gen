@@ -40,14 +40,12 @@ describe("simple enum", () => {
       expect(JsonValue.SERIALIZER.typeDescriptor.asJson()).toMatch({
         type: {
           kind: "record",
-          name: "JsonValue",
-          module: "enums.soia",
+          value: "enums.soia:JsonValue",
         },
         records: [
           {
             kind: "enum",
-            name: "JsonValue",
-            module: "enums.soia",
+            id: "enums.soia:JsonValue",
             fields: [
               {
                 name: "NULL",
@@ -58,7 +56,7 @@ describe("simple enum", () => {
                 number: 100,
                 type: {
                   kind: "primitive",
-                  primitive: "bool",
+                  value: "bool",
                 },
               },
               {
@@ -66,7 +64,7 @@ describe("simple enum", () => {
                 number: 6,
                 type: {
                   kind: "primitive",
-                  primitive: "float64",
+                  value: "float64",
                 },
               },
               {
@@ -74,7 +72,7 @@ describe("simple enum", () => {
                 number: 3,
                 type: {
                   kind: "primitive",
-                  primitive: "string",
+                  value: "string",
                 },
               },
               {
@@ -82,10 +80,11 @@ describe("simple enum", () => {
                 number: 4,
                 type: {
                   kind: "array",
-                  item: {
-                    kind: "record",
-                    name: "JsonValue",
-                    module: "enums.soia",
+                  value: {
+                    item: {
+                      kind: "record",
+                      value: "enums.soia:JsonValue",
+                    },
                   },
                 },
               },
@@ -94,10 +93,11 @@ describe("simple enum", () => {
                 number: 5,
                 type: {
                   kind: "array",
-                  item: {
-                    kind: "record",
-                    name: "JsonValue.Pair",
-                    module: "enums.soia",
+                  value: {
+                    item: {
+                      kind: "record",
+                      value: "enums.soia:JsonValue.Pair",
+                    },
                   },
                 },
               },
@@ -105,14 +105,13 @@ describe("simple enum", () => {
           },
           {
             kind: "struct",
-            name: "JsonValue.Pair",
-            module: "enums.soia",
+            id: "enums.soia:JsonValue.Pair",
             fields: [
               {
                 name: "name",
                 type: {
                   kind: "primitive",
-                  primitive: "string",
+                  value: "string",
                 },
                 number: 0,
               },
@@ -120,8 +119,7 @@ describe("simple enum", () => {
                 name: "value",
                 type: {
                   kind: "record",
-                  name: "JsonValue",
-                  module: "enums.soia",
+                  value: "enums.soia:JsonValue",
                 },
                 number: 1,
               },

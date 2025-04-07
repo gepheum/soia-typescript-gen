@@ -9,20 +9,18 @@ describe("Car", () => {
     expect(Car.SERIALIZER.typeDescriptor.asJson()).toMatch({
       type: {
         kind: "record",
-        name: "Car",
-        module: "vehicles/car.soia",
+        value: "vehicles/car.soia:Car",
       },
       records: [
         {
           kind: "struct",
-          name: "Car",
-          module: "vehicles/car.soia",
+          id: "vehicles/car.soia:Car",
           fields: [
             {
               name: "model",
               type: {
                 kind: "primitive",
-                primitive: "string",
+                value: "string",
               },
               number: 0,
             },
@@ -30,7 +28,7 @@ describe("Car", () => {
               name: "purchase_time",
               type: {
                 kind: "primitive",
-                primitive: "timestamp",
+                value: "timestamp",
               },
               number: 1,
             },
@@ -38,8 +36,7 @@ describe("Car", () => {
               name: "owner",
               type: {
                 kind: "record",
-                name: "User",
-                module: "user.soia",
+                value: "user.soia:User",
               },
               number: 2,
             },
@@ -47,10 +44,9 @@ describe("Car", () => {
               name: "second_owner",
               type: {
                 kind: "optional",
-                other: {
+                value: {
                   kind: "record",
-                  name: "User",
-                  module: "user.soia",
+                  value: "user.soia:User",
                 },
               },
               number: 3,
@@ -59,14 +55,13 @@ describe("Car", () => {
         },
         {
           kind: "struct",
-          name: "User",
-          module: "user.soia",
+          id: "user.soia:User",
           fields: [
             {
               name: "user_id",
               type: {
                 kind: "primitive",
-                primitive: "int64",
+                value: "int64",
               },
               number: 0,
             },
@@ -91,7 +86,7 @@ describe("Car", () => {
         purchaseTime: Timestamp.fromUnixMillis(5000),
       }),
       {
-        denseJson: ["Toyota Camry", 5000, ["123"]],
+        denseJson: ["Toyota Camry", 5000, [123]],
         readableJson: {
           model: "Toyota Camry",
           purchase_time: {
@@ -99,7 +94,7 @@ describe("Car", () => {
             formatted: "1970-01-01T00:00:05.000Z",
           },
           owner: {
-            user_id: "123",
+            user_id: 123,
           },
         },
         bytesAsBase16: "f9f30c546f796f74612043616d7279ef8813000000000000f77b",
