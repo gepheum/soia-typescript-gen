@@ -41,7 +41,7 @@ class TypescriptCodeGenerator implements CodeGenerator<Config> {
     const outputFiles: CodeGenerator.OutputFile[] = [];
     for (const module of input.modules) {
       outputFiles.push({
-        path: `${module.path}.js`,
+        path: module.path.replace(/\.soia$/, ".js"),
         code: new TsModuleCodeGenerator(
           module,
           recordMap,
@@ -50,7 +50,7 @@ class TypescriptCodeGenerator implements CodeGenerator<Config> {
         ).generate(),
       });
       outputFiles.push({
-        path: `${module.path}.d.ts`,
+        path: module.path.replace(/\.soia$/, ".d.ts"),
         code: new TsModuleCodeGenerator(
           module,
           recordMap,
@@ -159,7 +159,9 @@ class TsModuleCodeGenerator {
     for (const entry of Object.entries(this.inModule.pathToImportedNames)) {
       const [path, importedNames] = entry;
       const { importPathExtension } = this.config;
-      let tsPath = `${paths.relative(thisPath, path)}${importPathExtension}`;
+      let tsPath =
+        paths.relative(thisPath, path).replace(/\.soia/, "") +
+        importPathExtension;
       if (!tsPath.startsWith(".")) {
         tsPath = `./${tsPath}`;
       }

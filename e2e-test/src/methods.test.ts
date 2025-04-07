@@ -1,6 +1,6 @@
-import { JsonValue } from "../soiagen/enums.soia.js";
-import { MyProcedure, WithExplicitNumber } from "../soiagen/methods.soia.js";
-import { Point } from "../soiagen/structs.soia.js";
+import { JsonValue } from "../soiagen/enums.js";
+import { MyProcedure, WithExplicitNumber } from "../soiagen/methods.js";
+import { Point } from "../soiagen/structs.js";
 import { expect, is } from "buckwheat";
 import { describe, it } from "mocha";
 import * as soia from "soia";

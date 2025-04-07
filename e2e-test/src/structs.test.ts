@@ -7,7 +7,7 @@ import {
   Items,
   Point,
   Triangle,
-} from "../soiagen/structs.soia.js";
+} from "../soiagen/structs.js";
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
 import { ByteString, Timestamp } from "soia";

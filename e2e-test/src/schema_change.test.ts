@@ -7,7 +7,7 @@ import {
   RemovalAfter,
   RemovalBefore,
   Zelda,
-} from "../soiagen/schema_change.soia.js";
+} from "../soiagen/schema_change.js";
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
 
