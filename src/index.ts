@@ -96,16 +96,6 @@ class TsModuleCodeGenerator {
       this.writeClassesForRecord(recordLocation);
     }
 
-    if (this.inModule.methods.length) {
-      this.push(`
-        ${TsModuleCodeGenerator.SEPARATOR}
-        // Methods
-        ${TsModuleCodeGenerator.SEPARATOR}\n\n`);
-      for (const method of this.inModule.methods) {
-        this.writeMethod(method);
-      }
-    }
-
     // Once we have created the classes for the records, we can initialize them.
     if (this.fileType === ".js") {
       if (this.inModule.records.length) {
@@ -123,6 +113,16 @@ class TsModuleCodeGenerator {
         this.push(`
             ]
           );\n\n`);
+      }
+    }
+
+    if (this.inModule.methods.length) {
+      this.push(`
+        ${TsModuleCodeGenerator.SEPARATOR}
+        // Methods
+        ${TsModuleCodeGenerator.SEPARATOR}\n\n`);
+      for (const method of this.inModule.methods) {
+        this.writeMethod(method);
       }
     }
 

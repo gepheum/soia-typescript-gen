@@ -6,3 +6,7 @@ method MyProcedure(Point): JsonValue;
 method WithExplicitNumber([Point]): JsonValue? = 3;
 
 method BigInt(bool?): bool = 4;
+
+struct MyRequest {}
+struct MyResponse {}
+method MyMethod(MyRequest): MyResponse;

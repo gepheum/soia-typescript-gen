@@ -1,5 +1,11 @@
 import { JsonValue } from "../soiagen/enums.js";
-import { MyProcedure, WithExplicitNumber } from "../soiagen/methods.js";
+import {
+  MyMethod,
+  MyProcedure,
+  MyRequest,
+  MyResponse,
+  WithExplicitNumber,
+} from "../soiagen/methods.js";
 import { Point } from "../soiagen/structs.js";
 import { expect, is } from "buckwheat";
 import { describe, it } from "mocha";
@@ -14,6 +20,11 @@ describe("methods", () => {
         number: 1974132327,
         requestSerializer: is(Point.SERIALIZER),
         responseSerializer: is(JsonValue.SERIALIZER),
+      });
+      expect(MyMethod).toMatch({
+        name: "MyMethod",
+        requestSerializer: is(MyRequest.SERIALIZER),
+        responseSerializer: is(MyResponse.SERIALIZER),
       });
     });
     it("#1", () => {
