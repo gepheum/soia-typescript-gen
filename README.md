@@ -84,7 +84,7 @@ jolyMut.name = "Joly Doe";
 
 const jolyHistoryMut = new UserHistory.Mutable();
 jolyHistoryMut.user = jolyMut;
-// The right-hand side of the assignment can be either frozen or mutable.
+// ^ The right-hand side of the assignment can be either frozen or mutable.
 
 // jolyHistoryMut.user.quote = "I am Joly.";
 // ^ Does not compile: quote is readonly because jolyHistoryMut.user is possibly
