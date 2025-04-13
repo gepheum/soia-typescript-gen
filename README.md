@@ -166,6 +166,7 @@ const roniStatus = User.SubscriptionStatus.create({
 assert(johnStatus.kind === "FREE");
 assert(johnStatus.value === undefined);
 
+// Use "?" for UNKNOWN.
 assert(jolyStatus.kind === "?");
 
 assert(roniStatus.kind === "trial");
@@ -298,7 +299,7 @@ Reflection allows you to inspect a soia type at runtime.
 ```typescript
 const fieldNames: string[] = [];
 for (const field of User.SERIALIZER.typeDescriptor.fields) {
-  const { name, property, type } = field;
+  const { name, number, property, type } = field;
   fieldNames.push(name);
 }
 console.log(fieldNames);
