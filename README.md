@@ -294,6 +294,16 @@ console.log(TARZAN);
 // }
 ```
 
+### Soia services
+
+#### Starting a soia service on an HTTP server
+
+Full example [here](https://github.com/gepheum/soia-typescript-example/blob/main/src/server.ts).
+
+#### Sending RPCs to a soia service
+
+Full example [here](https://github.com/gepheum/soia-typescript-example/blob/main/src/client.ts).
+
 ### Reflection
 
 Reflection allows you to inspect a soia type at runtime.
@@ -311,4 +321,28 @@ console.log(fieldNames);
 const typeDescriptor = parseTypeDescriptor(
   User.SERIALIZER.typeDescriptor.asJson(),
 );
+```
+
+### Writing unit tests
+
+With mocha and [buckwheat](https://github.com/gepheum/buckwheat).
+
+```typescript
+expect(tarzan).toMatch({
+  name: "Tarzan",
+  quote: /^A/, // must start with the letter A
+  pets: [
+    {
+      name: "Cheeta",
+      heightInMeters: near(1.6, 0.1),
+    },
+  ],
+  subscriptionStatus: {
+    kind: "trial",
+    value: {
+      startTime: Timestamp.fromUnixMillis(1234),
+    },
+  },
+  // `userId` is not specified so it can be anything
+});
 ```
