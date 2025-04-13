@@ -190,6 +190,8 @@ function getSubscriptionInfoText(status: User.SubscriptionStatus): string {
 
 ### Serialization
 
+Every frozen struct class and enum class has a static readonly `SERIALIZER` property which can be used for serializing and deserializing instances of the class.
+
 ```typescript
 
 const serializer = User.SERIALIZER;
