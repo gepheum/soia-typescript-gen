@@ -161,7 +161,6 @@ const roniStatus = User.SubscriptionStatus.create({
 #### Conditions on enums
 
 ```typescript
-
 // Use e.kind === "CONSTANT_NAME" to check if the enum value is a constant.
 assert(johnStatus.kind === "FREE");
 assert(johnStatus.value === undefined);
