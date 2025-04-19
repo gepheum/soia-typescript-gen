@@ -2,6 +2,8 @@
 
 Official plugin for generating TypeScript/JavaScript code from [.soia](https://github.com/gepheum/soia) files.
 
+Generated code can run Node, Deno or in the browser.
+
 ## Installation
 
 From your project's root directory, run `npm i --save-dev soia-typescript-gen`.
