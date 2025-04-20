@@ -1,3 +1,6 @@
+[![npm](https://img.shields.io/npm/v/soia-typescript-gen)](https://www.npmjs.com/package/soia-typescript-gen)
+[![build](https://github.com/gepheum/soia-typescript-generator/workflows/Build/badge.svg)](https://github.com/gepheum/soia-typescript-generator/actions)
+
 # Soia's TypeScript code generator
 
 Official plugin for generating TypeScript/JavaScript code from [.soia](https://github.com/gepheum/soia) files.
