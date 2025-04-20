@@ -1,5 +1,5 @@
 [![npm](https://img.shields.io/npm/v/soia-typescript-gen)](https://www.npmjs.com/package/soia-typescript-gen)
-[![build](https://github.com/gepheum/soia-typescript-generator/workflows/Build/badge.svg)](https://github.com/gepheum/soia-typescript-generator/actions)
+[![build](https://github.com/gepheum/soia-typescript-gen/workflows/Build/badge.svg)](https://github.com/gepheum/soia-typescript-gen/actions)
 
 # Soia's TypeScript code generator
 
