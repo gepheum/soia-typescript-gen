@@ -321,12 +321,18 @@ class RecordInfoCreator {
             value: initializer,
           }),
         );
-        const valueInitializer = TsType.inlineInterface({
-          kind: nameLiteral,
-          value: initializer,
-        });
-        typesInValueOnlyInitializerUnion.push(valueInitializer);
-        typesInUnionView.push(valueInitializer);
+        typesInValueOnlyInitializerUnion.push(
+          TsType.inlineInterface({
+            kind: nameLiteral,
+            value: initializer,
+          }),
+        );
+        typesInUnionView.push(
+          TsType.inlineInterface({
+            kind: nameLiteral,
+            value: frozen,
+          }),
+        );
       }
     }
 
