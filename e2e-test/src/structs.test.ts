@@ -65,7 +65,9 @@ describe("structs", () => {
 
   it("#toString()", () => {
     expect(Point.DEFAULT.toString()).toBe("{}");
-    expect(Point.create<"partial">({ x: 10 }).toString()).toBe('{\n  "x": 10\n}');
+    expect(Point.create<"partial">({ x: 10 }).toString()).toBe(
+      '{\n  "x": 10\n}',
+    );
     expect(Point.create<"partial">({ x: 10, y: 20 }).toString()).toBe(
       '{\n  "x": 10,\n  "y": 20\n}',
     );
@@ -154,7 +156,10 @@ describe("structs", () => {
         lastName: "Doe",
       },
     });
-    mutable.owner = FullName.create<"partial">({ firstName: "Jane", lastName: "Jackson" });
+    mutable.owner = FullName.create<"partial">({
+      firstName: "Jane",
+      lastName: "Jackson",
+    });
     mutable.mutableOwner.lastName = "Johnson";
     carOwner = mutable.toFrozen();
     expect(carOwner).toMatch({
@@ -175,27 +180,36 @@ describe("structs", () => {
 
   describe("floats", () => {
     const serializerTester = new SerializerTester(Floats.SERIALIZER);
-    serializerTester.reserializeAndAssert(Floats.create<"partial">({ x: 0 / 0 }), {
-      denseJson: ["NaN"],
-      readableJson: {
-        x: "NaN",
+    serializerTester.reserializeAndAssert(
+      Floats.create<"partial">({ x: 0 / 0 }),
+      {
+        denseJson: ["NaN"],
+        readableJson: {
+          x: "NaN",
+        },
+        bytesAsBase16: "f7f00000c07f",
       },
-      bytesAsBase16: "f7f00000c07f",
-    });
-    serializerTester.reserializeAndAssert(Floats.create<"partial">({ y: 1 / 0 }), {
-      denseJson: [0, "Infinity"],
-      readableJson: {
-        y: "Infinity",
+    );
+    serializerTester.reserializeAndAssert(
+      Floats.create<"partial">({ y: 1 / 0 }),
+      {
+        denseJson: [0, "Infinity"],
+        readableJson: {
+          y: "Infinity",
+        },
+        bytesAsBase16: "f800f1000000000000f07f",
       },
-      bytesAsBase16: "f800f1000000000000f07f",
-    });
-    serializerTester.reserializeAndAssert(Floats.create<"partial">({ y: -1 / 0 }), {
-      denseJson: [0, "-Infinity"],
-      readableJson: {
-        y: "-Infinity",
+    );
+    serializerTester.reserializeAndAssert(
+      Floats.create<"partial">({ y: -1 / 0 }),
+      {
+        denseJson: [0, "-Infinity"],
+        readableJson: {
+          y: "-Infinity",
+        },
+        bytesAsBase16: "f800f1000000000000f0ff",
       },
-      bytesAsBase16: "f800f1000000000000f0ff",
-    });
+    );
   });
 });
 
@@ -296,7 +310,10 @@ describe("struct reflection", () => {
       return mutable.toFrozen();
     }
 
-    const fullName = FullName.create<"partial">({ firstName: "Jane", lastName: "Doe" });
+    const fullName = FullName.create<"partial">({
+      firstName: "Jane",
+      lastName: "Doe",
+    });
     const copy = copyAllFieldsButOne(
       FullName.SERIALIZER.typeDescriptor,
       fullName,
@@ -430,7 +447,9 @@ describe("struct with indexed arrays", () => {
       expect(items.searchArrayWithStringKey(" ")).toBe(undefined);
     });
     it("10", () => {
-      expect(Items.create<"partial">({}).searchArrayWithStringKey(" ")).toBe(undefined);
+      expect(Items.create<"partial">({}).searchArrayWithStringKey(" ")).toBe(
+        undefined,
+      );
     });
 
     const mutableItems = items.toMutable();
