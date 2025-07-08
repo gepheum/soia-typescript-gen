@@ -226,7 +226,7 @@ class TsModuleCodeGenerator {
   private declarePropertiesOfFrozenClass(struct: StructInfo): void {
     const { className, fields, indexableFields } = struct;
     this.push(`
-      static create<Accept extends "partial" | "whole" = "partial">(
+      static create<Accept extends "partial" | "whole" = "whole">(
         initializer: $.WholeOrPartial<${className.type}.Initializer, Accept>,
       ): ${className.type};\n\n`);
     this.push("private constructor();\n\n");

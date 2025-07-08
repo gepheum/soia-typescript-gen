@@ -24,7 +24,7 @@ describe("schema change", () => {
           s: "S1",
         }),
         BarAfter.DEFAULT,
-        BarAfter.create({
+        BarAfter.create<"partial">({
           x: 3.0,
         }),
       ],
@@ -122,7 +122,7 @@ describe("schema change", () => {
       ],
     });
 
-    const expected = RemovalBefore.create({
+    const expected = RemovalBefore.create<"partial">({
       b: "BB",
       es: [RemovalBefore.E.C, RemovalBefore.E.UNKNOWN, RemovalBefore.E.UNKNOWN],
     });

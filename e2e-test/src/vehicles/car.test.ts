@@ -78,7 +78,7 @@ describe("Car", () => {
     const serializer = Car.SERIALIZER;
     const serializerTester = new SerializerTester(serializer);
     serializerTester.reserializeAndAssert(
-      Car.create({
+      Car.create<"partial">({
         model: "Toyota Camry",
         owner: {
           userId: BigInt(123),

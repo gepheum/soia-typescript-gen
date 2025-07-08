@@ -46,7 +46,7 @@ describe("structs", () => {
 
   it("create partial versus whole", () => {
     {
-      const _: Point = Point.create({
+      const _: Point = Point.create<"partial">({
         x: 10,
       });
     }
@@ -65,8 +65,8 @@ describe("structs", () => {
 
   it("#toString()", () => {
     expect(Point.DEFAULT.toString()).toBe("{}");
-    expect(Point.create({ x: 10 }).toString()).toBe('{\n  "x": 10\n}');
-    expect(Point.create({ x: 10, y: 20 }).toString()).toBe(
+    expect(Point.create<"partial">({ x: 10 }).toString()).toBe('{\n  "x": 10\n}');
+    expect(Point.create<"partial">({ x: 10, y: 20 }).toString()).toBe(
       '{\n  "x": 10,\n  "y": 20\n}',
     );
   });
@@ -96,8 +96,8 @@ describe("structs", () => {
   });
 
   describe("mutableArray() getter", () => {
-    const p0 = Point.create({ x: 10 });
-    const p1 = Point.create({ x: 11 });
+    const p0 = Point.create<"partial">({ x: 10 });
+    const p1 = Point.create<"partial">({ x: 11 });
     const points = Object.freeze([p0, p1]);
     it("#0", () => {
       const mutableTriangle = new Triangle.Mutable();
@@ -154,7 +154,7 @@ describe("structs", () => {
         lastName: "Doe",
       },
     });
-    mutable.owner = FullName.create({ firstName: "Jane", lastName: "Jackson" });
+    mutable.owner = FullName.create<"partial">({ firstName: "Jane", lastName: "Jackson" });
     mutable.mutableOwner.lastName = "Johnson";
     carOwner = mutable.toFrozen();
     expect(carOwner).toMatch({
@@ -175,21 +175,21 @@ describe("structs", () => {
 
   describe("floats", () => {
     const serializerTester = new SerializerTester(Floats.SERIALIZER);
-    serializerTester.reserializeAndAssert(Floats.create({ x: 0 / 0 }), {
+    serializerTester.reserializeAndAssert(Floats.create<"partial">({ x: 0 / 0 }), {
       denseJson: ["NaN"],
       readableJson: {
         x: "NaN",
       },
       bytesAsBase16: "f7f00000c07f",
     });
-    serializerTester.reserializeAndAssert(Floats.create({ y: 1 / 0 }), {
+    serializerTester.reserializeAndAssert(Floats.create<"partial">({ y: 1 / 0 }), {
       denseJson: [0, "Infinity"],
       readableJson: {
         y: "Infinity",
       },
       bytesAsBase16: "f800f1000000000000f07f",
     });
-    serializerTester.reserializeAndAssert(Floats.create({ y: -1 / 0 }), {
+    serializerTester.reserializeAndAssert(Floats.create<"partial">({ y: -1 / 0 }), {
       denseJson: [0, "-Infinity"],
       readableJson: {
         y: "-Infinity",
@@ -261,7 +261,7 @@ describe("struct reflection", () => {
     const firstName: StructField<FullName> =
       typeDescriptor.getField("firstName");
 
-    const fullName = FullName.create({
+    const fullName = FullName.create<"partial">({
       firstName: "Jane",
       lastName: "Doe",
     });
@@ -296,7 +296,7 @@ describe("struct reflection", () => {
       return mutable.toFrozen();
     }
 
-    const fullName = FullName.create({ firstName: "Jane", lastName: "Doe" });
+    const fullName = FullName.create<"partial">({ firstName: "Jane", lastName: "Doe" });
     const copy = copyAllFieldsButOne(
       FullName.SERIALIZER.typeDescriptor,
       fullName,
@@ -430,7 +430,7 @@ describe("struct with indexed arrays", () => {
       expect(items.searchArrayWithStringKey(" ")).toBe(undefined);
     });
     it("10", () => {
-      expect(Items.create({}).searchArrayWithStringKey(" ")).toBe(undefined);
+      expect(Items.create<"partial">({}).searchArrayWithStringKey(" ")).toBe(undefined);
     });
 
     const mutableItems = items.toMutable();
