@@ -218,10 +218,10 @@ class RecordInfoCreator {
         keyType = TsType.simple(`${keyType}.Kind`);
       }
       const frozenValueType = typeSpeller.getTsType(type.item, "frozen");
-      const propertiesChain = key.fieldNames
+      const propertiesChain = key.path
         .map((n) => {
           const desiredName = convertCase(
-            n.text,
+            n.name.text,
             "lower_underscore",
             "lowerCamel",
           );
@@ -230,10 +230,10 @@ class RecordInfoCreator {
         .join(".");
       const keyExpression = `v.${propertiesChain}`;
       const hashableExpression = this.getHashableExpression(key.keyType);
-      let searchMethodParamName = key.fieldNames
+      let searchMethodParamName = key.path
         .map((token, i) =>
           convertCase(
-            token.text,
+            token.name.text,
             "lower_underscore",
             i == 0 ? "lowerCamel" : "UpperCamel",
           ),
@@ -261,7 +261,7 @@ class RecordInfoCreator {
       searchMethodName: searchMethodName,
       number: field.number,
       type: type,
-      isRecursive: field.isRecursive,
+      isRecursive: !!field.isRecursive,
       tsTypes: tsTypes,
       indexable: indexable,
     };
@@ -378,7 +378,7 @@ class RecordInfoCreator {
       quotedName: quotedName,
       number: field.number,
       type: type,
-      isRecursive: field.isRecursive,
+      isRecursive: !!field.isRecursive,
       tsTypes: this.getTsTypes(field),
     };
   }
@@ -388,7 +388,7 @@ class RecordInfoCreator {
     if (!type) {
       throw new TypeError();
     }
-    const allRecordsFrozen = field.isRecursive;
+    const allRecordsFrozen = !!field.isRecursive;
     const tsTypes = {} as Record<TypeFlavor, TsType>;
     for (const flavor of TYPE_FLAVORS) {
       const tsType = this.typeSpeller.getTsType(type, flavor, allRecordsFrozen);

@@ -615,7 +615,7 @@ class TsModuleCodeGenerator {
       case "array": {
         const item = this.getTypeSpecExpr(type.item);
         if (type.key) {
-          const keyChain = type.key.fieldNames.map((n) => n.text).join(".");
+          const keyChain = type.key.path.map((n) => n.name.text).join(".");
           return `{ kind: "array", item: ${item}, keyChain: "${keyChain}" }`;
         } else {
           return `{ kind: "array", item: ${item} }`;
