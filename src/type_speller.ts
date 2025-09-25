@@ -102,10 +102,6 @@ export class TypeSpeller {
       }
       case "optional": {
         const valueType = this.getTsType(type.other, flavor, allRecordsFrozen);
-        if (flavor === "mutable") {
-          // The generated mutableX() methods cannot return null.
-          return valueType;
-        }
         return TsType.union([valueType, TsType.NULL]);
       }
       case "primitive": {
