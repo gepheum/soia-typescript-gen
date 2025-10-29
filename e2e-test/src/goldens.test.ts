@@ -90,51 +90,56 @@ function verifyValueBundle(valueBundle: Assertion.ValueBundle): void {
   ];
   for (const inputValue of typedValues) {
     try {
-      verifyAssertion(
-        Assertion.create({
-          kind: "bytes_equal",
-          value: {
-            actual: {
-              kind: "to_bytes",
-              value: valueBundle.value,
-            },
-            expected: {
-              kind: "literal",
-              value: valueBundle.expectedBytes,
-            },
-          },
+      // Verify bytes - check if actual matches any of the expected values
+      const actualBytes = evaluateBytes(
+        BytesExpression.create({
+          kind: "to_bytes",
+          value: valueBundle.value,
         }),
       );
-      verifyAssertion(
-        Assertion.create({
-          kind: "string_equal",
-          value: {
-            actual: {
-              kind: "to_dense_json",
-              value: valueBundle.value,
-            },
-            expected: {
-              kind: "literal",
-              value: valueBundle.expectedDenseJson,
-            },
-          },
+      const bytesMatch = valueBundle.expectedBytes.some((expectedBytes) => {
+        const expected = evaluateBytes(
+          BytesExpression.create({
+            kind: "literal",
+            value: expectedBytes,
+          }),
+        );
+        return actualBytes.toBase16() === expected.toBase16();
+      });
+      if (!bytesMatch) {
+        throw new AssertionError({
+          actual: "hex:" + actualBytes.toBase16(),
+          expected: valueBundle.expectedBytes.map((b) => "hex:" + b.toBase16()).join(" or "),
+        });
+      }
+
+      // Verify dense JSON - check if actual matches any of the expected values
+      const actualDenseJson = evaluateString(
+        StringExpression.create({
+          kind: "to_dense_json",
+          value: valueBundle.value,
         }),
       );
-      verifyAssertion(
-        Assertion.create({
-          kind: "string_equal",
-          value: {
-            actual: {
-              kind: "to_readable_json",
-              value: valueBundle.value,
-            },
-            expected: {
-              kind: "literal",
-              value: valueBundle.expectedReadableJson,
-            },
-          },
+      if (!valueBundle.expectedDenseJson.includes(actualDenseJson)) {
+        throw new AssertionError({
+          actual: actualDenseJson,
+          expected: valueBundle.expectedDenseJson.join(" or "),
+        });
+      }
+
+      // Verify readable JSON - check if actual matches any of the expected values
+      const actualReadableJson = evaluateString(
+        StringExpression.create({
+          kind: "to_readable_json",
+          value: valueBundle.value,
         }),
       );
+      if (!valueBundle.expectedReadableJson.includes(actualReadableJson)) {
+        throw new AssertionError({
+          actual: actualReadableJson,
+          expected: valueBundle.expectedReadableJson.join(" or "),
+        });
+      }
     } catch (e) {
       if (e instanceof AssertionError) {
         e.addContext(`input value: ${inputValue}`);
@@ -152,21 +157,13 @@ function verifyValueBundle(valueBundle: Assertion.ValueBundle): void {
           evaluateString(alternativeJson),
         ),
       );
-      verifyAssertion(
-        Assertion.create({
-          kind: "string_equal",
-          value: {
-            actual: {
-              kind: "literal",
-              value: roundTripJson,
-            },
-            expected: {
-              kind: "literal",
-              value: valueBundle.expectedDenseJson,
-            },
-          },
-        }),
-      );
+      // Check if roundTripJson matches any of the expected values
+      if (!valueBundle.expectedDenseJson.includes(roundTripJson)) {
+        throw new AssertionError({
+          actual: roundTripJson,
+          expected: valueBundle.expectedDenseJson.join(" or "),
+        });
+      }
     } catch (e) {
       if (e instanceof AssertionError) {
         e.addContext(
@@ -185,21 +182,17 @@ function verifyValueBundle(valueBundle: Assertion.ValueBundle): void {
           evaluateBytes(alternativeBytes),
         ),
       );
-      verifyAssertion(
-        Assertion.create({
-          kind: "bytes_equal",
-          value: {
-            actual: {
-              kind: "literal",
-              value: soia.ByteString.sliceOf(roundTripBytes.toBuffer()),
-            },
-            expected: {
-              kind: "literal",
-              value: valueBundle.expectedBytes,
-            },
-          },
-        }),
-      );
+      // Check if roundTripBytes matches any of the expected values
+      const roundTripBytesHex = roundTripBytes.toBase16();
+      const bytesMatch = valueBundle.expectedBytes.some((expectedBytes) => {
+        return expectedBytes.toBase16() === roundTripBytesHex;
+      });
+      if (!bytesMatch) {
+        throw new AssertionError({
+          actual: "hex:" + roundTripBytesHex,
+          expected: valueBundle.expectedBytes.map((b) => "hex:" + b.toBase16()).join(" or "),
+        });
+      }
     } catch (e) {
       if (e instanceof AssertionError) {
         e.addContext(
