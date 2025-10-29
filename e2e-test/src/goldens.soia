@@ -1,4 +1,3 @@
-
 struct UnitTest {
   test_number: int32;
   assertion: Assertion;
@@ -147,8 +146,8 @@ const UNIT_TESTS: [UnitTest] = [
         ],
         alternative_bytes: [],
         expected_type_descriptor: null,
-      }
-    }
+      },
+    },
   },
   {
     test_number: 1002,
@@ -170,8 +169,8 @@ const UNIT_TESTS: [UnitTest] = [
         ],
         alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"timestamp\"\n  },\n  \"records\": []\n}",
-      }
-    }
+      },
+    },
   },
   {
     test_number: 1003,
@@ -185,7 +184,12 @@ const UNIT_TESTS: [UnitTest] = [
         expected_dense_json: "1692999034586",
         expected_readable_json: '{\n  "unix_millis": 1692999034586,\n  "formatted": "2023-08-25T21:30:34.586Z"\n}',
         expected_bytes: "hex:736f6961efda269b2e8a010000",
-        alternative_jsons: [],
+        alternative_jsons: [
+          {
+            kind: "literal",
+            value: "\"1692999034586\"",
+          },
+        ],
         alternative_bytes: [
           {
             kind: "to_bytes",
@@ -196,7 +200,259 @@ const UNIT_TESTS: [UnitTest] = [
           },
         ],
         expected_type_descriptor: null,
-      }
-    }
+      },
+    },
+  },
+  {
+    test_number: 1004,
+    assertion: {
+      kind: "value_bundle",
+      value: {
+        value: {
+          kind: "int32",
+          value: 2,
+        },
+        expected_dense_json: "2",
+        expected_readable_json: "2",
+        expected_bytes: "hex:736f696102",
+        alternative_jsons: [
+          {
+            kind: "literal",
+            value: "\"2\"",
+          },
+        ],
+        alternative_bytes: [
+          {
+            kind: "to_bytes",
+            value: {
+              kind: "float64",
+              value: 2.0,
+            },
+          },
+        ],
+        expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"int32\"\n  },\n  \"records\": []\n}",
+      },
+    },
+  },
+  {
+    test_number: 1005,
+    assertion: {
+      kind: "value_bundle",
+      value: {
+        value: {
+          kind: "int32",
+          value: -1,
+        },
+        expected_dense_json: "-1",
+        expected_readable_json: "-1",
+        expected_bytes: "hex:736f6961ebff",
+        alternative_jsons: [
+          {
+            kind: "literal",
+            value: "\"-1\"",
+          },
+        ],
+        alternative_bytes: [],
+        expected_type_descriptor: null,
+      },
+    },
+  },
+  {
+    test_number: 1006,
+    assertion: {
+      kind: "value_bundle",
+      value: {
+        value: {
+          kind: "int32",
+          value: 231,
+        },
+        expected_dense_json: "231",
+        expected_readable_json: "231",
+        expected_bytes: "hex:736f6961e7",
+        alternative_jsons: [],
+        alternative_bytes: [],
+        expected_type_descriptor: null,
+      },
+    },
+  },
+  {
+    test_number: 1007,
+    assertion: {
+      kind: "value_bundle",
+      value: {
+        value: {
+          kind: "int32",
+          value: 232,
+        },
+        expected_dense_json: "232",
+        expected_readable_json: "232",
+        expected_bytes: "hex:736f6961e8e800",
+        alternative_jsons: [],
+        alternative_bytes: [],
+        expected_type_descriptor: null,
+      },
+    },
+  },
+  {
+    test_number: 1008,
+    assertion: {
+      kind: "value_bundle",
+      value: {
+        value: {
+          kind: "int32",
+          value: 65535,
+        },
+        expected_dense_json: "65535",
+        expected_readable_json: "65535",
+        expected_bytes: "hex:736f6961e8ffff",
+        alternative_jsons: [],
+        alternative_bytes: [],
+        expected_type_descriptor: null,
+      },
+    },
+  },
+  {
+    test_number: 1009,
+    assertion: {
+      kind: "value_bundle",
+      value: {
+        value: {
+          kind: "int32",
+          value: 65536,
+        },
+        expected_dense_json: "65536",
+        expected_readable_json: "65536",
+        expected_bytes: "hex:736f6961e900000100",
+        alternative_jsons: [],
+        alternative_bytes: [],
+        expected_type_descriptor: null,
+      },
+    },
+  },
+  {
+    test_number: 1010,
+    assertion: {
+      kind: "value_bundle",
+      value: {
+        value: {
+          kind: "int32",
+          value: 2147483647,
+        },
+        expected_dense_json: "2147483647",
+        expected_readable_json: "2147483647",
+        expected_bytes: "hex:736f6961e9ffffff7f",
+        alternative_jsons: [],
+        alternative_bytes: [],
+        expected_type_descriptor: null,
+      },
+    },
+  },
+  {
+    test_number: 1011,
+    assertion: {
+      kind: "value_bundle",
+      value: {
+        value: {
+          kind: "int32",
+          value: -255,
+        },
+        expected_dense_json: "-255",
+        expected_readable_json: "-255",
+        expected_bytes: "hex:736f6961eb01",
+        alternative_jsons: [],
+        alternative_bytes: [],
+        expected_type_descriptor: null,
+      },
+    },
+  },
+  {
+    test_number: 1012,
+    assertion: {
+      kind: "value_bundle",
+      value: {
+        value: {
+          kind: "int32",
+          value: -256,
+        },
+        expected_dense_json: "-256",
+        expected_readable_json: "-256",
+        expected_bytes: "hex:736f6961eb00",
+        alternative_jsons: [],
+        alternative_bytes: [],
+        expected_type_descriptor: null,
+      },
+    },
+  },
+  {
+    test_number: 1013,
+    assertion: {
+      kind: "value_bundle",
+      value: {
+        value: {
+          kind: "int32",
+          value: -257,
+        },
+        expected_dense_json: "-257",
+        expected_readable_json: "-257",
+        expected_bytes: "hex:736f6961ecfffe",
+        alternative_jsons: [],
+        alternative_bytes: [],
+        expected_type_descriptor: null,
+      },
+    },
+  },
+  {
+    test_number: 1014,
+    assertion: {
+      kind: "value_bundle",
+      value: {
+        value: {
+          kind: "int32",
+          value: -65536,
+        },
+        expected_dense_json: "-65536",
+        expected_readable_json: "-65536",
+        expected_bytes: "hex:736f6961ec0000",
+        alternative_jsons: [],
+        alternative_bytes: [],
+        expected_type_descriptor: null,
+      },
+    },
+  },
+  {
+    test_number: 1015,
+    assertion: {
+      kind: "value_bundle",
+      value: {
+        value: {
+          kind: "int32",
+          value: -65537,
+        },
+        expected_dense_json: "-65537",
+        expected_readable_json: "-65537",
+        expected_bytes: "hex:736f6961edfffffeff",
+        alternative_jsons: [],
+        alternative_bytes: [],
+        expected_type_descriptor: null,
+      },
+    },
+  },
+  {
+    test_number: 1016,
+    assertion: {
+      kind: "value_bundle",
+      value: {
+        value: {
+          kind: "int32",
+          value: -2147483648,
+        },
+        expected_dense_json: "-2147483648",
+        expected_readable_json: "-2147483648",
+        expected_bytes: "hex:736f6961ed00000080",
+        alternative_jsons: [],
+        alternative_bytes: [],
+        expected_type_descriptor: null,
+      },
+    },
   },
 ];

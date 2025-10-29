@@ -19,7 +19,15 @@ class AssertionError extends assert.AssertionError {
 }
 
 describe("goldens", () => {
-  for (const unitTest of UNIT_TESTS) {
+  for (let i = 0; i < UNIT_TESTS.length; ++i) {
+    const unitTest = UNIT_TESTS[i]!;
+    if (unitTest.testNumber !== UNIT_TESTS[0]!.testNumber + i) {
+      throw new Error(
+        `Test numbers are not sequential at test #${i}: ` +
+          `found ${unitTest.testNumber}, ` +
+          `expected ${UNIT_TESTS[0]!.testNumber + i}`,
+      );
+    }
     try {
       verifyAssertion(unitTest.assertion);
     } catch (e) {
