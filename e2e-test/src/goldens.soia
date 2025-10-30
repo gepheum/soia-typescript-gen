@@ -865,7 +865,7 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: ["hex:736f6961ff"],
         alternative_jsons: [],
         alternative_bytes: [],
-        expected_type_descriptor: null,
+        expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"optional\",\n    \"value\": {\n      \"kind\": \"primitive\",\n      \"value\": \"bool\"\n    }\n  },\n  \"records\": []\n}",
       },
     },
   },
@@ -876,11 +876,47 @@ const UNIT_TESTS: [UnitTest] = [
       value: {
         value: {
           kind: "bool_optional",
-          value: false,
+          value: null,
         },
-        expected_dense_json: ["0"],
-        expected_readable_json: ["false"],
-        expected_bytes: ["hex:736f696100"],
+        expected_dense_json: ["null"],
+        expected_readable_json: ["null"],
+        expected_bytes: ["hex:736f6961ff"],
+        alternative_jsons: [],
+        alternative_bytes: [],
+        expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"optional\",\n    \"value\": {\n      \"kind\": \"primitive\",\n      \"value\": \"bool\"\n    }\n  },\n  \"records\": []\n}",
+      },
+    },
+  },
+  {
+    test_number: 1039,
+    assertion: {
+      kind: "reserialize_value",
+      value: {
+        value: {
+          kind: "ints",
+          value: [],
+        },
+        expected_dense_json: ["[]"],
+        expected_readable_json: ["[]"],
+        expected_bytes: ["hex:736f6961f6"],
+        alternative_jsons: [],
+        alternative_bytes: [],
+        expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"array\",\n    \"value\": {\n      \"item\": {\n        \"kind\": \"primitive\",\n        \"value\": \"int32\"\n      }\n    }\n  },\n  \"records\": []\n}",
+      },
+    },
+  },
+  {
+    test_number: 1040,
+    assertion: {
+      kind: "reserialize_value",
+      value: {
+        value: {
+          kind: "ints",
+          value: [1, 2, 3],
+        },
+        expected_dense_json: ["[1,2,3]"],
+        expected_readable_json: ["[\n  1,\n  2,\n  3\n]"],
+        expected_bytes: ["hex:736f6961f9010203"],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -888,7 +924,7 @@ const UNIT_TESTS: [UnitTest] = [
     },
   },
   {
-    test_number: 1039,
+    test_number: 1041,
     assertion: {
       kind: "reserialize_large_string",
       value: {
@@ -898,7 +934,7 @@ const UNIT_TESTS: [UnitTest] = [
     },
   },
   {
-    test_number: 1040,
+    test_number: 1042,
     assertion: {
       kind: "reserialize_large_string",
       value: {
@@ -908,7 +944,7 @@ const UNIT_TESTS: [UnitTest] = [
     },
   },
   {
-    test_number: 1041,
+    test_number: 1043,
     assertion: {
       kind: "reserialize_large_array",
       value: {
@@ -918,7 +954,7 @@ const UNIT_TESTS: [UnitTest] = [
     },
   },
   {
-    test_number: 1042,
+    test_number: 1044,
     assertion: {
       kind: "reserialize_large_array",
       value: {
@@ -928,7 +964,7 @@ const UNIT_TESTS: [UnitTest] = [
     },
   },
   {
-    test_number: 1043,
+    test_number: 1045,
     assertion: {
       kind: "reserialize_large_array",
       value: {
@@ -938,7 +974,7 @@ const UNIT_TESTS: [UnitTest] = [
     },
   },
   {
-    test_number: 1044,
+    test_number: 1046,
     assertion: {
       kind: "reserialize_large_array",
       value: {
