@@ -64,28 +64,38 @@ function verifyAssertion(assertion: Assertion): void {
       }
       break;
     }
-    case "value_bundle": {
-      return verifyValueBundle(assertion.union.value);
+    case "reserialize_value": {
+      return reserializeValueAndVerify(assertion.union.value);
+    }
+    case "reserialize_large_string": {
+      return reserializeLargeStringAndVerify(assertion.union.value);
+    }
+    case "reserialize_large_array": {
+      return reserializeLargeArrayAndVerify(assertion.union.value);
     }
     case "?":
       throw new Error();
+    default: {
+      const _: never = assertion.union;
+      throw new Error(`Unhandled assertion kind: ${_}`);
+    }
   }
 }
 
-function verifyValueBundle(valueBundle: Assertion.ValueBundle): void {
+function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
   const typedValues = [
-    valueBundle.value,
+    input.value,
     TypedValue.create({
       kind: "round_trip_dense_json",
-      value: valueBundle.value,
+      value: input.value,
     }),
     TypedValue.create({
       kind: "round_trip_readable_json",
-      value: valueBundle.value,
+      value: input.value,
     }),
     TypedValue.create({
       kind: "round_trip_bytes",
-      value: valueBundle.value,
+      value: input.value,
     }),
   ];
   for (const inputValue of typedValues) {
@@ -94,10 +104,10 @@ function verifyValueBundle(valueBundle: Assertion.ValueBundle): void {
       const actualBytes = evaluateBytes(
         BytesExpression.create({
           kind: "to_bytes",
-          value: valueBundle.value,
+          value: input.value,
         }),
       );
-      const bytesMatch = valueBundle.expectedBytes.some((expectedBytes) => {
+      const bytesMatch = input.expectedBytes.some((expectedBytes) => {
         const expected = evaluateBytes(
           BytesExpression.create({
             kind: "literal",
@@ -109,7 +119,7 @@ function verifyValueBundle(valueBundle: Assertion.ValueBundle): void {
       if (!bytesMatch) {
         throw new AssertionError({
           actual: "hex:" + actualBytes.toBase16(),
-          expected: valueBundle.expectedBytes.map((b) => "hex:" + b.toBase16()).join(" or "),
+          expected: input.expectedBytes.map((b) => "hex:" + b.toBase16()).join(" or "),
         });
       }
 
@@ -117,13 +127,13 @@ function verifyValueBundle(valueBundle: Assertion.ValueBundle): void {
       const actualDenseJson = evaluateString(
         StringExpression.create({
           kind: "to_dense_json",
-          value: valueBundle.value,
+          value: input.value,
         }),
       );
-      if (!valueBundle.expectedDenseJson.includes(actualDenseJson)) {
+      if (!input.expectedDenseJson.includes(actualDenseJson)) {
         throw new AssertionError({
           actual: actualDenseJson,
-          expected: valueBundle.expectedDenseJson.join(" or "),
+          expected: input.expectedDenseJson.join(" or "),
         });
       }
 
@@ -131,13 +141,13 @@ function verifyValueBundle(valueBundle: Assertion.ValueBundle): void {
       const actualReadableJson = evaluateString(
         StringExpression.create({
           kind: "to_readable_json",
-          value: valueBundle.value,
+          value: input.value,
         }),
       );
-      if (!valueBundle.expectedReadableJson.includes(actualReadableJson)) {
+      if (!input.expectedReadableJson.includes(actualReadableJson)) {
         throw new AssertionError({
           actual: actualReadableJson,
-          expected: valueBundle.expectedReadableJson.join(" or "),
+          expected: input.expectedReadableJson.join(" or "),
         });
       }
     } catch (e) {
@@ -147,8 +157,8 @@ function verifyValueBundle(valueBundle: Assertion.ValueBundle): void {
       throw e;
     }
   }
-  const typedValue = evaluteTypedValue(valueBundle.value);
-  for (const alternativeJson of valueBundle.alternativeJsons) {
+  const typedValue = evaluteTypedValue(input.value);
+  for (const alternativeJson of input.alternativeJsons) {
     try {
       const roundTripJson = toDenseJson(
         typedValue.serializer,
@@ -158,10 +168,10 @@ function verifyValueBundle(valueBundle: Assertion.ValueBundle): void {
         ),
       );
       // Check if roundTripJson matches any of the expected values
-      if (!valueBundle.expectedDenseJson.includes(roundTripJson)) {
+      if (!input.expectedDenseJson.includes(roundTripJson)) {
         throw new AssertionError({
           actual: roundTripJson,
-          expected: valueBundle.expectedDenseJson.join(" or "),
+          expected: input.expectedDenseJson.join(" or "),
         });
       }
     } catch (e) {
@@ -173,24 +183,24 @@ function verifyValueBundle(valueBundle: Assertion.ValueBundle): void {
       throw e;
     }
   }
-  for (const alternativeBytes of valueBundle.alternativeBytes) {
+  for (const alternativeBytes of input.alternativeBytes) {
     try {
       const roundTripBytes = toBytes(
         typedValue.serializer,
-        fromBytesDropUnrecognized(
+        fromBytesDropUnrecognizedFields(
           typedValue.serializer,
           evaluateBytes(alternativeBytes),
         ),
       );
       // Check if roundTripBytes matches any of the expected values
       const roundTripBytesHex = roundTripBytes.toBase16();
-      const bytesMatch = valueBundle.expectedBytes.some((expectedBytes) => {
+      const bytesMatch = input.expectedBytes.some((expectedBytes) => {
         return expectedBytes.toBase16() === roundTripBytesHex;
       });
       if (!bytesMatch) {
         throw new AssertionError({
           actual: "hex:" + roundTripBytesHex,
-          expected: valueBundle.expectedBytes.map((b) => "hex:" + b.toBase16()).join(" or "),
+          expected: input.expectedBytes.map((b) => "hex:" + b.toBase16()).join(" or "),
         });
       }
     } catch (e) {
@@ -202,7 +212,7 @@ function verifyValueBundle(valueBundle: Assertion.ValueBundle): void {
       throw e;
     }
   }
-  if (valueBundle.expectedTypeDescriptor) {
+  if (input.expectedTypeDescriptor) {
     const actual = JSON.stringify(
       typedValue.serializer.typeDescriptor.asJson(),
       null,
@@ -218,11 +228,104 @@ function verifyValueBundle(valueBundle: Assertion.ValueBundle): void {
           },
           expected: {
             kind: "literal",
-            value: valueBundle.expectedTypeDescriptor,
+            value: input.expectedTypeDescriptor,
           },
         },
       }),
     );
+  }
+}
+
+function reserializeLargeStringAndVerify(input: Assertion.ReserializeLargeString): void {
+  const str = "a".repeat(input.numChars);
+  {
+    const json = toDenseJson(soia.primitiveSerializer("string"), str);
+    const roundTrip = fromJsonDropUnrecognizedFields(
+      soia.primitiveSerializer("string"),
+      json,
+    );
+    if (roundTrip !== str) {
+      throw new AssertionError({
+        actual: roundTrip,
+        expected: str,
+      });
+    }
+  }
+  {
+    const json = toReadableJson(soia.primitiveSerializer("string"), str);
+    const roundTrip = fromJsonDropUnrecognizedFields(
+      soia.primitiveSerializer("string"),
+      json,
+    );
+    if (roundTrip !== str) {
+      throw new AssertionError({
+        actual: roundTrip,
+        expected: str,
+      });
+    }
+  }
+  {
+    const bytes = toBytes(soia.primitiveSerializer("string"), str);
+    if (!bytes.toBase16().startsWith(input.expectedBytePrefix.toBase16())) {
+      throw new AssertionError({
+        actual: "hex:" + bytes.toBase16(),
+        expected: "hex:" + input.expectedBytePrefix.toBase16() + "...",
+      });
+    }
+    const roundTrip = fromBytesDropUnrecognizedFields(
+      soia.primitiveSerializer("string"),
+      bytes,
+    );
+    if (roundTrip !== str) {
+      throw new AssertionError({
+        actual: roundTrip,
+        expected: str,
+      });
+    }
+  }
+}
+
+function reserializeLargeArrayAndVerify(input: Assertion.ReserializeLargeArray): void {
+  const array = Array<number>(input.numItems).fill(1);
+  const serializer = soia.arraySerializer(soia.primitiveSerializer("int32"));
+  const isArray = (arr: readonly number[]): boolean => {
+    return arr.length === input.numItems && arr.every((v) => v === 1);
+  }
+  {
+    const json = toDenseJson(serializer, array);
+    const roundTrip = fromJsonDropUnrecognizedFields(serializer, json);
+    if (!isArray(roundTrip)) {
+      throw new AssertionError({
+        actual: roundTrip,
+        expected: array,
+      });
+    }
+  }
+  {
+    const json = toReadableJson(serializer, array);
+    const roundTrip = fromJsonDropUnrecognizedFields(serializer, json);
+    if (!isArray(roundTrip)) {
+      throw new AssertionError({
+        actual: roundTrip,
+        expected: array,
+      });
+    }
+  }
+  {
+    const bytes = toBytes(serializer, array);
+    if (!bytes.toBase16().startsWith(input.expectedBytePrefix.toBase16())) {
+      throw new AssertionError({
+        actual: "hex:" + bytes.toBase16(),
+        expected: "hex:" + input.expectedBytePrefix.toBase16() + "...",
+      });
+    }
+    const roundTrip = fromBytesDropUnrecognizedFields(serializer, bytes);
+    if (!isArray(roundTrip)) {
+      throw new AssertionError({
+        actual: roundTrip,
+        expected: array,
+      });
+    }
   }
 }
 
@@ -282,7 +385,7 @@ function evaluatePoint(point: PointExpression): Point {
         evaluateBytes(point.union.value),
       );
     case "from_bytes_drop_unrecognized":
-      return fromBytesDropUnrecognized(
+      return fromBytesDropUnrecognizedFields(
         Point.SERIALIZER,
         evaluateBytes(point.union.value),
       );
@@ -387,7 +490,7 @@ function evaluteTypedValue<T>(literal: TypedValue): TypedValueType<unknown> {
     case "round_trip_bytes": {
       const other = evaluteTypedValue(literal.union.value);
       return {
-        value: fromBytesDropUnrecognized(
+        value: fromBytesDropUnrecognizedFields(
           other.serializer,
           toBytes(other.serializer, other.value),
         ),
@@ -445,7 +548,7 @@ function fromJsonDropUnrecognizedFields<T>(
   }
 }
 
-function fromBytesDropUnrecognized<T>(
+function fromBytesDropUnrecognizedFields<T>(
   serializer: soia.Serializer<T>,
   bytes: soia.ByteString,
 ): T {
