@@ -1,3 +1,12 @@
+import { expect } from "buckwheat";
+import { describe, it } from "mocha";
+import {
+  ByteString,
+  MutableForm,
+  StructDescriptor,
+  StructField,
+  Timestamp,
+} from "soia";
 import { SerializerTester } from "../../node_modules/soia/dist/esm/serializer_tester.js";
 import {
   CarOwner,
@@ -8,10 +17,6 @@ import {
   Point,
   Triangle,
 } from "../soiagen/structs.js";
-import { expect } from "buckwheat";
-import { describe, it } from "mocha";
-import { ByteString, Timestamp } from "soia";
-import { MutableForm, StructDescriptor, StructField } from "soia";
 
 describe("structs", () => {
   it("reserialize", () => {

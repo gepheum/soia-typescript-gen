@@ -1,3 +1,6 @@
+import * as assert from "assert";
+import { describe } from "mocha";
+import * as soia from "soia";
 import {
   Assertion,
   BytesExpression,
@@ -8,9 +11,6 @@ import {
   TypedValue,
   UNIT_TESTS,
 } from "../soiagen/goldens.js";
-import * as assert from "assert";
-import { describe } from "mocha";
-import * as soia from "soia";
 
 class AssertionError extends assert.AssertionError {
   addContext(context: string): void {
@@ -119,7 +119,9 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
       if (!bytesMatch) {
         throw new AssertionError({
           actual: "hex:" + actualBytes.toBase16(),
-          expected: input.expectedBytes.map((b) => "hex:" + b.toBase16()).join(" or "),
+          expected: input.expectedBytes
+            .map((b) => "hex:" + b.toBase16())
+            .join(" or "),
         });
       }
 
@@ -200,7 +202,9 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
       if (!bytesMatch) {
         throw new AssertionError({
           actual: "hex:" + roundTripBytesHex,
-          expected: input.expectedBytes.map((b) => "hex:" + b.toBase16()).join(" or "),
+          expected: input.expectedBytes
+            .map((b) => "hex:" + b.toBase16())
+            .join(" or "),
         });
       }
     } catch (e) {
@@ -236,7 +240,9 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
   }
 }
 
-function reserializeLargeStringAndVerify(input: Assertion.ReserializeLargeString): void {
+function reserializeLargeStringAndVerify(
+  input: Assertion.ReserializeLargeString,
+): void {
   const str = "a".repeat(input.numChars);
   {
     const json = toDenseJson(soia.primitiveSerializer("string"), str);
@@ -285,12 +291,14 @@ function reserializeLargeStringAndVerify(input: Assertion.ReserializeLargeString
   }
 }
 
-function reserializeLargeArrayAndVerify(input: Assertion.ReserializeLargeArray): void {
+function reserializeLargeArrayAndVerify(
+  input: Assertion.ReserializeLargeArray,
+): void {
   const array = Array<number>(input.numItems).fill(1);
   const serializer = soia.arraySerializer(soia.primitiveSerializer("int32"));
   const isArray = (arr: readonly number[]): boolean => {
     return arr.length === input.numItems && arr.every((v) => v === 1);
-  }
+  };
   {
     const json = toDenseJson(serializer, array);
     const roundTrip = fromJsonDropUnrecognizedFields(serializer, json);

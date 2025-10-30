@@ -1,6 +1,3 @@
-import { ClassName } from "./class_speller.js";
-import { TsType } from "./ts_type.js";
-import { TYPE_FLAVORS, TypeFlavor, TypeSpeller } from "./type_speller.js";
 import {
   Field,
   PrimitiveType,
@@ -11,6 +8,9 @@ import {
   capitalize,
   convertCase,
 } from "soiac";
+import { ClassName } from "./class_speller.js";
+import { TsType } from "./ts_type.js";
+import { TYPE_FLAVORS, TypeFlavor, TypeSpeller } from "./type_speller.js";
 
 /**
  * A `RecordInfo` contains all the information required for generating
@@ -280,7 +280,7 @@ class RecordInfoCreator {
 
     typesInInitializerUnion.push(TsType.simple(className.type));
 
-    const registerConstantField = (f: EnumConstantField) => {
+    const registerConstantField = (f: EnumConstantField): void => {
       constantFields.push(f);
       const nameLiteral = TsType.literal(f.name);
       typesInKindTypeUnion.push(nameLiteral);
@@ -420,6 +420,10 @@ class RecordInfoCreator {
             return "k.unixMillis";
           case "bytes":
             return "k.toBase16()";
+          default: {
+            const _: never = type.primitive;
+            throw new TypeError(_);
+          }
         }
       case "record": {
         return "k";

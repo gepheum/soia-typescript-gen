@@ -1,9 +1,9 @@
-import { SerializerTester } from "../../node_modules/soia/dist/esm/serializer_tester.js";
-import { JsonValue, Weekday } from "../soiagen/enums.js";
-import { Car } from "../soiagen/vehicles/car.js";
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
 import { EnumField } from "soia";
+import { SerializerTester } from "../../node_modules/soia/dist/esm/serializer_tester.js";
+import { JsonValue, Weekday } from "../soiagen/enums.js";
+import { Car } from "../soiagen/vehicles/car.js";
 
 describe("simple enum", () => {
   const monday = Weekday.MONDAY;

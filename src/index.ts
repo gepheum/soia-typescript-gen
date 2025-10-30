@@ -1,13 +1,3 @@
-import { maybeEscapeTopLevelUpperCaseName } from "./class_speller.js";
-import { toFrozenExpression } from "./expression_maker.js";
-import {
-  EnumInfo,
-  RecordInfo,
-  StructField,
-  StructInfo,
-  createRecordInfo,
-} from "./record_info.js";
-import { TypeSpeller } from "./type_speller.js";
 import * as paths from "path";
 import type {
   CodeGenerator,
@@ -19,6 +9,16 @@ import type {
   ResolvedType,
 } from "soiac";
 import { z } from "zod";
+import { maybeEscapeTopLevelUpperCaseName } from "./class_speller.js";
+import { toFrozenExpression } from "./expression_maker.js";
+import {
+  EnumInfo,
+  RecordInfo,
+  StructField,
+  StructInfo,
+  createRecordInfo,
+} from "./record_info.js";
+import { TypeSpeller } from "./type_speller.js";
 
 const Config = z.object({
   importPathExtension: z.union([
@@ -141,7 +141,7 @@ class TsModuleCodeGenerator {
 
   private resolveClientModulePath(): string {
     const { config, inModule } = this;
-    let { clientModulePath } = config;
+    const { clientModulePath } = config;
     if (clientModulePath === undefined) {
       return "soia";
     }
@@ -206,7 +206,7 @@ class TsModuleCodeGenerator {
   }
 
   private writeFrozenClassForStruct(struct: StructInfo): void {
-    const { fileType, typeSpeller } = this;
+    const { fileType } = this;
     const { className } = struct;
     this.push(
       className.isNested ? `// Exported as '${className.type}'\n` : "export ",
@@ -306,7 +306,7 @@ class TsModuleCodeGenerator {
   }
 
   private writeClassForEnum(enumInfo: EnumInfo): void {
-    const { fileType, typeSpeller } = this;
+    const { fileType } = this;
     const { className } = enumInfo;
     this.push(
       className.isNested ? `// Exported as '${className.type}'\n` : "export ",
@@ -664,8 +664,8 @@ class TsModuleCodeGenerator {
     // where N is the length of this array.
     const contextStack: Array<"{" | "(" | "[" | "<" | ":" | "."> = [];
     // Returns the last element in `contextStack`.
-    const peakTop = () => contextStack.at(-1)!;
-    const getMatchingLeftBracket = (r: "}" | ")" | "]" | ">") => {
+    const peakTop = (): string => contextStack.at(-1)!;
+    const getMatchingLeftBracket = (r: "}" | ")" | "]" | ">"): string => {
       switch (r) {
         case "}":
           return "{";

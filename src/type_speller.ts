@@ -1,6 +1,6 @@
+import type { Module, RecordKey, RecordLocation, ResolvedType } from "soiac";
 import { ClassName, getClassName } from "./class_speller.js";
 import { TsType } from "./ts_type.js";
-import type { Module, RecordKey, RecordLocation, ResolvedType } from "soiac";
 
 export type TypeFlavor = "initializer" | "frozen" | "maybe-mutable" | "mutable";
 

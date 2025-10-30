@@ -4,7 +4,7 @@
  */
 export class TsType {
   /** Creates a single-lined non-union type. */
-  static simple(type: string) {
+  static simple(type: string): TsType {
     const multiline = type.includes("\n");
     return new TsType([type], multiline);
   }
@@ -17,7 +17,7 @@ export class TsType {
     const multiline = args.some((u) => u.multiline);
     let type: string;
     if (multiline) {
-      const mapFn = (a: TsType) => `\n${a.toString().trimStart()},`;
+      const mapFn = (a: TsType): string => `\n${a.toString().trimStart()},`;
       type = `${name}<${args.map(mapFn).join("")}\n>`;
     } else {
       type = `${name}<${args.join(", ")}>`;
@@ -26,7 +26,7 @@ export class TsType {
   }
 
   /** A literal value, e.g. `"foobar"` or `3`. */
-  static literal(value: string | number) {
+  static literal(value: string | number): TsType {
     return this.simple(JSON.stringify(value));
   }
 
@@ -41,10 +41,10 @@ export class TsType {
     const multiline =
       entries.length >= 3 || [...entries].some((e) => e[1].multiline);
     if (multiline) {
-      const mapFn = (e: [string, TsType]) => `${e[0]}: ${e[1]};\n`;
+      const mapFn = (e: [string, TsType]): string => `${e[0]}: ${e[1]};\n`;
       return new TsType([`{\n${entries.map(mapFn).join("")}}`], multiline);
     }
-    const mapFn = (e: [string, TsType]) => `${e[0]}: ${e[1]}`;
+    const mapFn = (e: [string, TsType]): string => `${e[0]}: ${e[1]}`;
     return new TsType([`{ ${entries.map(mapFn).join("; ")} }`], multiline);
   }
 
@@ -81,7 +81,7 @@ export class TsType {
     private readonly multiline: boolean,
   ) {}
 
-  get isNever() {
+  get isNever(): boolean {
     return this.typesInUnion.length <= 0;
   }
 

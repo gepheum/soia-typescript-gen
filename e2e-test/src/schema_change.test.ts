@@ -1,3 +1,5 @@
+import { expect } from "buckwheat";
+import { describe, it } from "mocha";
 import { toBase16 } from "../../node_modules/soia/dist/esm/serializer_tester.js";
 import {
   BarAfter,
@@ -8,8 +10,6 @@ import {
   RemovalBefore,
   Zelda,
 } from "../soiagen/schema_change.js";
-import { expect } from "buckwheat";
-import { describe, it } from "mocha";
 
 describe("schema change", () => {
   describe("unrecognized fields", () => {

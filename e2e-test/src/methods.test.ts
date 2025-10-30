@@ -1,3 +1,6 @@
+import { expect, is } from "buckwheat";
+import { describe, it } from "mocha";
+import * as soia from "soia";
 import { JsonValue } from "../soiagen/enums.js";
 import {
   MyMethod,
@@ -7,9 +10,6 @@ import {
   WithExplicitNumber,
 } from "../soiagen/methods.js";
 import { Point } from "../soiagen/structs.js";
-import { expect, is } from "buckwheat";
-import { describe, it } from "mocha";
-import * as soia from "soia";
 
 describe("methods", () => {
   describe("works", () => {

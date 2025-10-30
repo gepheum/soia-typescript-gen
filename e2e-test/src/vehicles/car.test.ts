@@ -1,8 +1,8 @@
-import { SerializerTester } from "../../../node_modules/soia/dist/esm/serializer_tester.js";
-import { Car } from "../../soiagen/vehicles/car.js";
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
 import { Timestamp } from "soia";
+import { SerializerTester } from "../../../node_modules/soia/dist/esm/serializer_tester.js";
+import { Car } from "../../soiagen/vehicles/car.js";
 
 describe("Car", () => {
   it("TypeDescriptor#asJson()", () => {

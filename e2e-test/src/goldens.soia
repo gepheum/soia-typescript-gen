@@ -82,9 +82,12 @@ enum PointExpression {
 }
 
 struct Point {
+  removed;
   x: int32;
   removed;
+  removed;
   y: int32;
+  removed;
 }
 
 struct Color {
@@ -104,8 +107,12 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "bool",
           value: true,
         },
-        expected_dense_json: ["1"],
-        expected_readable_json: ["true"],
+        expected_dense_json: [
+          "1",
+        ],
+        expected_readable_json: [
+          "true",
+        ],
         alternative_jsons: [
           {
             kind: "literal",
@@ -124,7 +131,9 @@ const UNIT_TESTS: [UnitTest] = [
             value: '"1"',
           },
         ],
-        expected_bytes: ["hex:736f696101"],
+        expected_bytes: [
+          "hex:736f696101",
+        ],
         alternative_bytes: [
           {
             kind: "to_bytes",
@@ -147,9 +156,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "bool",
           value: false,
         },
-        expected_dense_json: ["0"],
-        expected_readable_json: ["false"],
-        expected_bytes: ["hex:736f696100"],
+        expected_dense_json: [
+          "0",
+        ],
+        expected_readable_json: [
+          "false",
+        ],
+        expected_bytes: [
+          "hex:736f696100",
+        ],
         alternative_jsons: [
           {
             kind: "literal",
@@ -178,9 +193,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "timestamp",
           value: "1970-01-01T00:00:00.000Z",
         },
-        expected_dense_json: ["0"],
-        expected_readable_json: ['{\n  "unix_millis": 0,\n  "formatted": "1970-01-01T00:00:00.000Z"\n}'],
-        expected_bytes: ["hex:736f696100"],
+        expected_dense_json: [
+          "0",
+        ],
+        expected_readable_json: [
+          '{\n  "unix_millis": 0,\n  "formatted": "1970-01-01T00:00:00.000Z"\n}',
+        ],
+        expected_bytes: [
+          "hex:736f696100",
+        ],
         alternative_jsons: [
           {
             kind: "literal",
@@ -201,9 +222,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "timestamp",
           value: "2023-08-25T21:30:34.586Z",
         },
-        expected_dense_json: ["1692999034586"],
-        expected_readable_json: ['{\n  "unix_millis": 1692999034586,\n  "formatted": "2023-08-25T21:30:34.586Z"\n}'],
-        expected_bytes: ["hex:736f6961efda269b2e8a010000"],
+        expected_dense_json: [
+          "1692999034586",
+        ],
+        expected_readable_json: [
+          '{\n  "unix_millis": 1692999034586,\n  "formatted": "2023-08-25T21:30:34.586Z"\n}',
+        ],
+        expected_bytes: [
+          "hex:736f6961efda269b2e8a010000",
+        ],
         alternative_jsons: [
           {
             kind: "literal",
@@ -232,9 +259,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int32",
           value: 2,
         },
-        expected_dense_json: ["2"],
-        expected_readable_json: ["2"],
-        expected_bytes: ["hex:736f696102"],
+        expected_dense_json: [
+          "2",
+        ],
+        expected_readable_json: [
+          "2",
+        ],
+        expected_bytes: [
+          "hex:736f696102",
+        ],
         alternative_jsons: [
           {
             kind: "literal",
@@ -263,9 +296,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int32",
           value: -1,
         },
-        expected_dense_json: ["-1"],
-        expected_readable_json: ["-1"],
-        expected_bytes: ["hex:736f6961ebff"],
+        expected_dense_json: [
+          "-1",
+        ],
+        expected_readable_json: [
+          "-1",
+        ],
+        expected_bytes: [
+          "hex:736f6961ebff",
+        ],
         alternative_jsons: [
           {
             kind: "literal",
@@ -286,9 +325,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int32",
           value: 231,
         },
-        expected_dense_json: ["231"],
-        expected_readable_json: ["231"],
-        expected_bytes: ["hex:736f6961e7"],
+        expected_dense_json: [
+          "231",
+        ],
+        expected_readable_json: [
+          "231",
+        ],
+        expected_bytes: [
+          "hex:736f6961e7",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -304,9 +349,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int32",
           value: 232,
         },
-        expected_dense_json: ["232"],
-        expected_readable_json: ["232"],
-        expected_bytes: ["hex:736f6961e8e800"],
+        expected_dense_json: [
+          "232",
+        ],
+        expected_readable_json: [
+          "232",
+        ],
+        expected_bytes: [
+          "hex:736f6961e8e800",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -322,9 +373,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int32",
           value: 65535,
         },
-        expected_dense_json: ["65535"],
-        expected_readable_json: ["65535"],
-        expected_bytes: ["hex:736f6961e8ffff"],
+        expected_dense_json: [
+          "65535",
+        ],
+        expected_readable_json: [
+          "65535",
+        ],
+        expected_bytes: [
+          "hex:736f6961e8ffff",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -340,9 +397,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int32",
           value: 65536,
         },
-        expected_dense_json: ["65536"],
-        expected_readable_json: ["65536"],
-        expected_bytes: ["hex:736f6961e900000100"],
+        expected_dense_json: [
+          "65536",
+        ],
+        expected_readable_json: [
+          "65536",
+        ],
+        expected_bytes: [
+          "hex:736f6961e900000100",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -358,9 +421,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int32",
           value: 2147483647,
         },
-        expected_dense_json: ["2147483647"],
-        expected_readable_json: ["2147483647"],
-        expected_bytes: ["hex:736f6961e9ffffff7f"],
+        expected_dense_json: [
+          "2147483647",
+        ],
+        expected_readable_json: [
+          "2147483647",
+        ],
+        expected_bytes: [
+          "hex:736f6961e9ffffff7f",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -376,9 +445,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int32",
           value: -255,
         },
-        expected_dense_json: ["-255"],
-        expected_readable_json: ["-255"],
-        expected_bytes: ["hex:736f6961eb01"],
+        expected_dense_json: [
+          "-255",
+        ],
+        expected_readable_json: [
+          "-255",
+        ],
+        expected_bytes: [
+          "hex:736f6961eb01",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -394,9 +469,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int32",
           value: -256,
         },
-        expected_dense_json: ["-256"],
-        expected_readable_json: ["-256"],
-        expected_bytes: ["hex:736f6961eb00"],
+        expected_dense_json: [
+          "-256",
+        ],
+        expected_readable_json: [
+          "-256",
+        ],
+        expected_bytes: [
+          "hex:736f6961eb00",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -412,9 +493,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int32",
           value: -257,
         },
-        expected_dense_json: ["-257"],
-        expected_readable_json: ["-257"],
-        expected_bytes: ["hex:736f6961ecfffe"],
+        expected_dense_json: [
+          "-257",
+        ],
+        expected_readable_json: [
+          "-257",
+        ],
+        expected_bytes: [
+          "hex:736f6961ecfffe",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -430,9 +517,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int32",
           value: -65536,
         },
-        expected_dense_json: ["-65536"],
-        expected_readable_json: ["-65536"],
-        expected_bytes: ["hex:736f6961ec0000"],
+        expected_dense_json: [
+          "-65536",
+        ],
+        expected_readable_json: [
+          "-65536",
+        ],
+        expected_bytes: [
+          "hex:736f6961ec0000",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -448,9 +541,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int32",
           value: -65537,
         },
-        expected_dense_json: ["-65537"],
-        expected_readable_json: ["-65537"],
-        expected_bytes: ["hex:736f6961edfffffeff"],
+        expected_dense_json: [
+          "-65537",
+        ],
+        expected_readable_json: [
+          "-65537",
+        ],
+        expected_bytes: [
+          "hex:736f6961edfffffeff",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -466,9 +565,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int32",
           value: -2147483648,
         },
-        expected_dense_json: ["-2147483648"],
-        expected_readable_json: ["-2147483648"],
-        expected_bytes: ["hex:736f6961ed00000080"],
+        expected_dense_json: [
+          "-2147483648",
+        ],
+        expected_readable_json: [
+          "-2147483648",
+        ],
+        expected_bytes: [
+          "hex:736f6961ed00000080",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -484,9 +589,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int64",
           value: 888888888888,
         },
-        expected_dense_json: ["888888888888"],
-        expected_readable_json: ["888888888888"],
-        expected_bytes: ["hex:736f6961ee380ee8f5ce000000"],
+        expected_dense_json: [
+          "888888888888",
+        ],
+        expected_readable_json: [
+          "888888888888",
+        ],
+        expected_bytes: [
+          "hex:736f6961ee380ee8f5ce000000",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"int64\"\n  },\n  \"records\": []\n}",
@@ -502,9 +613,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int64",
           value: 9223372036854775807,
         },
-        expected_dense_json: ["\"9223372036854775807\""],
-        expected_readable_json: ["\"9223372036854775807\""],
-        expected_bytes: ["hex:736f6961eeffffffffffffff7f"],
+        expected_dense_json: [
+          "\"9223372036854775807\"",
+        ],
+        expected_readable_json: [
+          "\"9223372036854775807\"",
+        ],
+        expected_bytes: [
+          "hex:736f6961eeffffffffffffff7f",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -520,9 +637,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int64",
           value: -9223372036854775808,
         },
-        expected_dense_json: ["\"-9223372036854775808\""],
-        expected_readable_json: ["\"-9223372036854775808\""],
-        expected_bytes: ["hex:736f6961ee0000000000000080"],
+        expected_dense_json: [
+          "\"-9223372036854775808\"",
+        ],
+        expected_readable_json: [
+          "\"-9223372036854775808\"",
+        ],
+        expected_bytes: [
+          "hex:736f6961ee0000000000000080",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -538,9 +661,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int64",
           value: 9007199254740991,
         },
-        expected_dense_json: ["9007199254740991"],
-        expected_readable_json: ["9007199254740991"],
-        expected_bytes: ["hex:736f6961eeffffffffffff1f00"],
+        expected_dense_json: [
+          "9007199254740991",
+        ],
+        expected_readable_json: [
+          "9007199254740991",
+        ],
+        expected_bytes: [
+          "hex:736f6961eeffffffffffff1f00",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -556,9 +685,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int64",
           value: 9007199254740992,
         },
-        expected_dense_json: ["\"9007199254740992\""],
-        expected_readable_json: ["\"9007199254740992\""],
-        expected_bytes: ["hex:736f6961ee0000000000002000"],
+        expected_dense_json: [
+          "\"9007199254740992\"",
+        ],
+        expected_readable_json: [
+          "\"9007199254740992\"",
+        ],
+        expected_bytes: [
+          "hex:736f6961ee0000000000002000",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -574,9 +709,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int64",
           value: -9007199254740991,
         },
-        expected_dense_json: ["-9007199254740991"],
-        expected_readable_json: ["-9007199254740991"],
-        expected_bytes: ["hex:736f6961ee010000000000e0ff"],
+        expected_dense_json: [
+          "-9007199254740991",
+        ],
+        expected_readable_json: [
+          "-9007199254740991",
+        ],
+        expected_bytes: [
+          "hex:736f6961ee010000000000e0ff",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -592,9 +733,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "int64",
           value: -9007199254740992,
         },
-        expected_dense_json: ["\"-9007199254740992\""],
-        expected_readable_json: ["\"-9007199254740992\""],
-        expected_bytes: ["hex:736f6961ee000000000000e0ff"],
+        expected_dense_json: [
+          "\"-9007199254740992\"",
+        ],
+        expected_readable_json: [
+          "\"-9007199254740992\"",
+        ],
+        expected_bytes: [
+          "hex:736f6961ee000000000000e0ff",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -610,9 +757,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "uint64",
           value: 255,
         },
-        expected_dense_json: ["255"],
-        expected_readable_json: ["255"],
-        expected_bytes: ["hex:736f6961e8ff00"],
+        expected_dense_json: [
+          "255",
+        ],
+        expected_readable_json: [
+          "255",
+        ],
+        expected_bytes: [
+          "hex:736f6961e8ff00",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"uint64\"\n  },\n  \"records\": []\n}",
@@ -628,9 +781,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "uint64",
           value: 65535,
         },
-        expected_dense_json: ["65535"],
-        expected_readable_json: ["65535"],
-        expected_bytes: ["hex:736f6961e8ffff"],
+        expected_dense_json: [
+          "65535",
+        ],
+        expected_readable_json: [
+          "65535",
+        ],
+        expected_bytes: [
+          "hex:736f6961e8ffff",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -646,9 +805,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "uint64",
           value: 4294967295,
         },
-        expected_dense_json: ["4294967295"],
-        expected_readable_json: ["4294967295"],
-        expected_bytes: ["hex:736f6961e9ffffffff"],
+        expected_dense_json: [
+          "4294967295",
+        ],
+        expected_readable_json: [
+          "4294967295",
+        ],
+        expected_bytes: [
+          "hex:736f6961e9ffffffff",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -664,9 +829,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "uint64",
           value: 18446744073709551615,
         },
-        expected_dense_json: ["\"18446744073709551615\""],
-        expected_readable_json: ["\"18446744073709551615\""],
-        expected_bytes: ["hex:736f6961eaffffffffffffffff"],
+        expected_dense_json: [
+          "\"18446744073709551615\"",
+        ],
+        expected_readable_json: [
+          "\"18446744073709551615\"",
+        ],
+        expected_bytes: [
+          "hex:736f6961eaffffffffffffffff",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -682,9 +853,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "float32",
           value: 3.14,
         },
-        expected_dense_json: ["3.14"],
-        expected_readable_json: ["3.14"],
-        expected_bytes: ["hex:736f6961f0c3f54840"],
+        expected_dense_json: [
+          "3.14",
+        ],
+        expected_readable_json: [
+          "3.14",
+        ],
+        expected_bytes: [
+          "hex:736f6961f0c3f54840",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"float32\"\n  },\n  \"records\": []\n}",
@@ -700,9 +877,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "float64",
           value: 3.14,
         },
-        expected_dense_json: ["3.14"],
-        expected_readable_json: ["3.14"],
-        expected_bytes: ["hex:736f6961f11f85eb51b81e0940"],
+        expected_dense_json: [
+          "3.14",
+        ],
+        expected_readable_json: [
+          "3.14",
+        ],
+        expected_bytes: [
+          "hex:736f6961f11f85eb51b81e0940",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"float64\"\n  },\n  \"records\": []\n}",
@@ -718,9 +901,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "float64",
           value: -3.14,
         },
-        expected_dense_json: ["-3.14"],
-        expected_readable_json: ["-3.14"],
-        expected_bytes: ["hex:736f6961f11f85eb51b81e09c0"],
+        expected_dense_json: [
+          "-3.14",
+        ],
+        expected_readable_json: [
+          "-3.14",
+        ],
+        expected_bytes: [
+          "hex:736f6961f11f85eb51b81e09c0",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -736,9 +925,17 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "float32",
           value: 0.0,
         },
-        expected_dense_json: ["0", "0.0"],
-        expected_readable_json: ["0", "0.0"],
-        expected_bytes: ["hex:736f696100"],
+        expected_dense_json: [
+          "0",
+          "0.0",
+        ],
+        expected_readable_json: [
+          "0",
+          "0.0",
+        ],
+        expected_bytes: [
+          "hex:736f696100",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -754,9 +951,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "string",
           value: "",
         },
-        expected_dense_json: ["\"\""],
-        expected_readable_json: ["\"\""],
-        expected_bytes: ["hex:736f6961f2"],
+        expected_dense_json: [
+          "\"\"",
+        ],
+        expected_readable_json: [
+          "\"\"",
+        ],
+        expected_bytes: [
+          "hex:736f6961f2",
+        ],
         alternative_jsons: [
           {
             kind: "literal",
@@ -785,7 +988,9 @@ const UNIT_TESTS: [UnitTest] = [
           "\"Foôbar\"",
           "\"Fo\\u00f4bar\"",
         ],
-        expected_bytes: ["hex:736f6961f307466fc3b4626172"],
+        expected_bytes: [
+          "hex:736f6961f307466fc3b4626172",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -801,9 +1006,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "string",
           value: 'Foo\n"bar"',
         },
-        expected_dense_json: ['"Foo\\n\\"bar\\""'],
-        expected_readable_json: ['"Foo\\n\\"bar\\""'],
-        expected_bytes: ["hex:736f6961f309466f6f0a2262617222"],
+        expected_dense_json: [
+          '"Foo\\n\\"bar\\""',
+        ],
+        expected_readable_json: [
+          '"Foo\\n\\"bar\\""',
+        ],
+        expected_bytes: [
+          "hex:736f6961f309466f6f0a2262617222",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
@@ -819,9 +1030,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "bytes",
           value: "hex:f50469b735",
         },
-        expected_dense_json: ['"9QRptzU="'],
-        expected_readable_json: ['"hex:f50469b735"'],
-        expected_bytes: ["hex:736f6961f505f50469b735"],
+        expected_dense_json: [
+          '"9QRptzU="',
+        ],
+        expected_readable_json: [
+          '"hex:f50469b735"',
+        ],
+        expected_bytes: [
+          "hex:736f6961f505f50469b735",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"bytes\"\n  },\n  \"records\": []\n}",
@@ -837,9 +1054,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "bytes",
           value: "hex:",
         },
-        expected_dense_json: ['""'],
-        expected_readable_json: ['"hex:"'],
-        expected_bytes: ["hex:736f6961f4"],
+        expected_dense_json: [
+          '""',
+        ],
+        expected_readable_json: [
+          '"hex:"',
+        ],
+        expected_bytes: [
+          "hex:736f6961f4",
+        ],
         alternative_jsons: [
           {
             kind: "literal",
@@ -860,9 +1083,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "bool_optional",
           value: null,
         },
-        expected_dense_json: ["null"],
-        expected_readable_json: ["null"],
-        expected_bytes: ["hex:736f6961ff"],
+        expected_dense_json: [
+          "null",
+        ],
+        expected_readable_json: [
+          "null",
+        ],
+        expected_bytes: [
+          "hex:736f6961ff",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"optional\",\n    \"value\": {\n      \"kind\": \"primitive\",\n      \"value\": \"bool\"\n    }\n  },\n  \"records\": []\n}",
@@ -878,9 +1107,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "bool_optional",
           value: null,
         },
-        expected_dense_json: ["null"],
-        expected_readable_json: ["null"],
-        expected_bytes: ["hex:736f6961ff"],
+        expected_dense_json: [
+          "null",
+        ],
+        expected_readable_json: [
+          "null",
+        ],
+        expected_bytes: [
+          "hex:736f6961ff",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"optional\",\n    \"value\": {\n      \"kind\": \"primitive\",\n      \"value\": \"bool\"\n    }\n  },\n  \"records\": []\n}",
@@ -896,9 +1131,15 @@ const UNIT_TESTS: [UnitTest] = [
           kind: "ints",
           value: [],
         },
-        expected_dense_json: ["[]"],
-        expected_readable_json: ["[]"],
-        expected_bytes: ["hex:736f6961f6"],
+        expected_dense_json: [
+          "[]",
+        ],
+        expected_readable_json: [
+          "[]",
+        ],
+        expected_bytes: [
+          "hex:736f6961f6",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"array\",\n    \"value\": {\n      \"item\": {\n        \"kind\": \"primitive\",\n        \"value\": \"int32\"\n      }\n    }\n  },\n  \"records\": []\n}",
@@ -912,11 +1153,21 @@ const UNIT_TESTS: [UnitTest] = [
       value: {
         value: {
           kind: "ints",
-          value: [1, 2, 3],
+          value: [
+            1,
+            2,
+            3,
+          ],
         },
-        expected_dense_json: ["[1,2,3]"],
-        expected_readable_json: ["[\n  1,\n  2,\n  3\n]"],
-        expected_bytes: ["hex:736f6961f9010203"],
+        expected_dense_json: [
+          "[1,2,3]",
+        ],
+        expected_readable_json: [
+          "[\n  1,\n  2,\n  3\n]",
+        ],
+        expected_bytes: [
+          "hex:736f6961f9010203",
+        ],
         alternative_jsons: [],
         alternative_bytes: [],
         expected_type_descriptor: null,
