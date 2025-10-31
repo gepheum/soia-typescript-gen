@@ -53,7 +53,7 @@ export class TypeSpeller {
         const classRef = getClassName(recordLocation, this.origin).type;
         if (record.recordType === "struct") {
           if (flavor === "initializer") {
-            return TsType.simple(`${classRef}.Initializer`);
+            return TsType.simple(`${classRef}.Initializer<_Wholeness>`);
           } else if (flavor === "frozen" || allRecordsFrozen) {
             return TsType.simple(classRef);
           } else if (flavor === "maybe-mutable") {
@@ -69,7 +69,7 @@ export class TypeSpeller {
         }
         // An enum.
         if (flavor === "initializer") {
-          return TsType.simple(`${classRef}.Initializer`);
+          return TsType.simple(`${classRef}.Initializer<_Wholeness>`);
         } else if (flavor === "frozen" || flavor === "maybe-mutable") {
           return TsType.simple(classRef);
         } else if (flavor === "mutable") {

@@ -181,6 +181,18 @@ describe("recursive enum", () => {
     });
   });
 
+  it("#create partial", () => {
+    const partialValue = JsonValue.create<"partial">({
+      kind: "object",
+      value: [
+        {
+          name: "foo",
+        },
+      ],
+    });
+    expect(partialValue.kind).toBe("object");
+  });
+
   const complexValue = JsonValue.create({
     kind: "array",
     value: [

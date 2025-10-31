@@ -122,6 +122,7 @@ const BUILTIN_TYPE_NAMES: ReadonlySet<string> = new Set([
   // We can't use those as names for generated declarations at the top-level.
   "Array",
   "BigInt",
+  "Partial",
   "ReadonlyArray",
 ]);
 

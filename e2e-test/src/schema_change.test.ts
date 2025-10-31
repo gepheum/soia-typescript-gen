@@ -1,6 +1,8 @@
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
+import { WholeOrPartial } from "soia";
 import { toBase16 } from "../../node_modules/soia/dist/esm/serializer_tester.js";
+import { JsonValue } from "../soiagen/enums.js";
 import {
   BarAfter,
   EnumAfter,
@@ -13,8 +15,13 @@ import {
 
 describe("schema change", () => {
   describe("unrecognized fields", () => {
-    const foo = FooAfter.create({
+    const e: WholeOrPartial<JsonValue.Pair.Initializer, "partial"> = {};
+    const foo = FooAfter.create<"partial">({
       bars: [
+        {
+          x: 2.5,
+        },
+        {},
         BarAfter.create({
           x: 2.5,
           s: "S0",

@@ -226,8 +226,8 @@ class TsModuleCodeGenerator {
   private declarePropertiesOfFrozenClass(struct: StructInfo): void {
     const { className, fields, indexableFields } = struct;
     this.push(`
-      static create<Accept extends "partial" | "whole" = "whole">(
-        initializer: $.WholeOrPartial<${className.type}.Initializer, Accept>,
+      static create<_Wholeness extends "whole" | "partial" = "whole">(
+        initializer: ${className.type}.Initializer<_Wholeness>
       ): ${className.type};\n\n`);
     this.push("private constructor();\n\n");
     for (const field of fields) {
@@ -335,8 +335,11 @@ class TsModuleCodeGenerator {
     this.pushEol();
 
     // Declare the `create` function.
-    this.push("static create(initializer: ");
-    this.push(`${className.type}.Initializer): ${className.type};\n\n`);
+    this.push(
+      `static create<_Wholeness extends "whole" | "partial" = "whole">(
+        initializer: ${className.type}.Initializer<_Wholeness>
+      ): ${className.type};\n\n`,
+    );
 
     // Declare the `kind`, `value` and `union` properties.
     this.push(`readonly kind: ${className.type}.Kind;\n`);
@@ -426,17 +429,24 @@ class TsModuleCodeGenerator {
 
     // Declare the Initializer interface.
     if (fields.length) {
-      this.push("export interface Initializer {\n");
+      this.push(
+        'interface _Initializer<_Wholeness extends "whole" | "partial"> {\n',
+      );
       for (const field of fields) {
         const type = field.tsTypes.initializer;
-        this.push(`readonly ${field.property}?: ${type};\n`);
+        this.push(`readonly ${field.property}: ${type};\n`);
       }
       this.push("}\n\n");
+      this.push(
+        `export type Initializer<_Wholeness extends "whole" | "partial" = "whole"> =
+          _Wholeness extends "whole" ? _Initializer<"whole"> : Partial<_Initializer<"partial">>;\n\n`,
+      );
     } else {
       // The only value of type `Record<string | number | symbol, never>` is the
       // empty object `{}`.
       this.push(
-        "export type Initializer = {[_: string]: never} | OrMutable;\n\n",
+        `export type Initializer<_Wholeness extends "whole" | "partial" = "whole"> =
+          {[_: string]: never} | OrMutable;\n\n`,
       );
     }
 
@@ -453,7 +463,9 @@ class TsModuleCodeGenerator {
     if (!onlyConstants) {
       this.push(`export type Value = ${enumInfo.valueType};\n\n`);
     }
-    this.push(`export type Initializer = ${initializerType};\n\n`);
+    this.push(
+      `export type Initializer<_Wholeness extends "whole" | "partial" = "whole"> = ${initializerType};\n\n`,
+    );
     if (!onlyConstants) {
       this.push(`export type UnionView = ${unionViewType};\n\n`);
     }
