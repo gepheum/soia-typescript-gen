@@ -1,7 +1,6 @@
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
 import { toBase16 } from "../../node_modules/soia/dist/esm/serializer_tester.js";
-import { JsonValue } from "../soiagen/enums.js";
 import {
   BarAfter,
   EnumAfter,
