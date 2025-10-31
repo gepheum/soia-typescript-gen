@@ -4,6 +4,6 @@ set -e
 
 npm i
 npm run lint:fix
-npm run format
 npm run build
+npm run format
 npm run test
