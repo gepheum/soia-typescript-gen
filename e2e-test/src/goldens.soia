@@ -88,6 +88,7 @@ struct Point {
   removed;
   y: int32;
   removed;
+  color: Color;
 }
 
 struct Color {
@@ -102,7 +103,7 @@ const UNIT_TESTS: [UnitTest] = [
     test_number: 1000,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "bool",
           value: true,
@@ -144,14 +145,14 @@ const UNIT_TESTS: [UnitTest] = [
           },
         ],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"bool\"\n  },\n  \"records\": []\n}",
-      },
+      |},
     },
   },
   {
     test_number: 1001,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "bool",
           value: false,
@@ -179,16 +180,14 @@ const UNIT_TESTS: [UnitTest] = [
             value: "\"0\"",
           },
         ],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1002,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "timestamp",
           value: "1970-01-01T00:00:00.000Z",
@@ -208,16 +207,15 @@ const UNIT_TESTS: [UnitTest] = [
             value: "0.0",
           },
         ],
-        alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"timestamp\"\n  },\n  \"records\": []\n}",
-      },
+      |},
     },
   },
   {
     test_number: 1003,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "timestamp",
           value: "2023-08-25T21:30:34.586Z",
@@ -246,15 +244,14 @@ const UNIT_TESTS: [UnitTest] = [
             },
           },
         ],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1004,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int32",
           value: 2,
@@ -284,14 +281,14 @@ const UNIT_TESTS: [UnitTest] = [
           },
         ],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"int32\"\n  },\n  \"records\": []\n}",
-      },
+      |},
     },
   },
   {
     test_number: 1005,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int32",
           value: -1,
@@ -311,16 +308,14 @@ const UNIT_TESTS: [UnitTest] = [
             value: "\"-1\"",
           },
         ],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1006,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int32",
           value: 231,
@@ -334,17 +329,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961e7",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1007,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int32",
           value: 232,
@@ -358,17 +350,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961e8e800",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1008,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int32",
           value: 65535,
@@ -382,17 +371,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961e8ffff",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1009,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int32",
           value: 65536,
@@ -406,17 +392,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961e900000100",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1010,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int32",
           value: 2147483647,
@@ -430,17 +413,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961e9ffffff7f",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1011,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int32",
           value: -255,
@@ -454,17 +434,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961eb01",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1012,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int32",
           value: -256,
@@ -478,17 +455,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961eb00",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1013,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int32",
           value: -257,
@@ -502,17 +476,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961ecfffe",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1014,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int32",
           value: -65536,
@@ -526,17 +497,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961ec0000",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1015,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int32",
           value: -65537,
@@ -550,17 +518,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961edfffffeff",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1016,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int32",
           value: -2147483648,
@@ -574,17 +539,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961ed00000080",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1017,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int64",
           value: 888888888888,
@@ -598,17 +560,15 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961ee380ee8f5ce000000",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"int64\"\n  },\n  \"records\": []\n}",
-      },
+      |},
     },
   },
   {
     test_number: 1018,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int64",
           value: 9223372036854775807,
@@ -622,17 +582,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961eeffffffffffffff7f",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1019,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int64",
           value: -9223372036854775808,
@@ -646,17 +603,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961ee0000000000000080",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1020,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int64",
           value: 9007199254740991,
@@ -670,17 +624,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961eeffffffffffff1f00",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1021,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int64",
           value: 9007199254740992,
@@ -694,17 +645,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961ee0000000000002000",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1022,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int64",
           value: -9007199254740991,
@@ -718,17 +666,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961ee010000000000e0ff",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1023,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "int64",
           value: -9007199254740992,
@@ -742,17 +687,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961ee000000000000e0ff",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1024,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "uint64",
           value: 255,
@@ -766,17 +708,15 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961e8ff00",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"uint64\"\n  },\n  \"records\": []\n}",
-      },
+      |},
     },
   },
   {
     test_number: 1025,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "uint64",
           value: 65535,
@@ -790,17 +730,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961e8ffff",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1026,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "uint64",
           value: 4294967295,
@@ -814,17 +751,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961e9ffffffff",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1027,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "uint64",
           value: 18446744073709551615,
@@ -838,17 +772,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961eaffffffffffffffff",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1028,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "float32",
           value: 3.14,
@@ -862,17 +793,15 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961f0c3f54840",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"float32\"\n  },\n  \"records\": []\n}",
-      },
+      |},
     },
   },
   {
     test_number: 1029,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "float64",
           value: 3.14,
@@ -886,17 +815,15 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961f11f85eb51b81e0940",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"float64\"\n  },\n  \"records\": []\n}",
-      },
+      |},
     },
   },
   {
     test_number: 1030,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "float64",
           value: -3.14,
@@ -910,17 +837,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961f11f85eb51b81e09c0",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1031,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "float32",
           value: 0.0,
@@ -936,17 +860,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f696100",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1032,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "string",
           value: "",
@@ -966,16 +887,24 @@ const UNIT_TESTS: [UnitTest] = [
             value: "0",
           },
         ],
-        alternative_bytes: [],
+        alternative_bytes: [
+          {
+            kind: "to_bytes",
+            value: {
+              kind: "int32",
+              value: 0,
+            },
+          },
+        ],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"string\"\n  },\n  \"records\": []\n}",
-      },
+      |},
     },
   },
   {
     test_number: 1033,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "string",
           value: "Foôbar",
@@ -991,17 +920,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961f307466fc3b4626172",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1034,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "string",
           value: 'Foo\n"bar"',
@@ -1015,17 +941,14 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961f309466f6f0a2262617222",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1035,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "bytes",
           value: "hex:f50469b735",
@@ -1039,17 +962,15 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961f505f50469b735",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"bytes\"\n  },\n  \"records\": []\n}",
-      },
+      |},
     },
   },
   {
     test_number: 1036,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "bytes",
           value: "hex:",
@@ -1069,16 +990,23 @@ const UNIT_TESTS: [UnitTest] = [
             value: "0",
           },
         ],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+        alternative_bytes: [
+          {
+            kind: "to_bytes",
+            value: {
+              kind: "int32",
+              value: 0,
+            },
+          },
+        ],
+      |},
     },
   },
   {
     test_number: 1037,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "bool_optional",
           value: null,
@@ -1092,17 +1020,15 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961ff",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"optional\",\n    \"value\": {\n      \"kind\": \"primitive\",\n      \"value\": \"bool\"\n    }\n  },\n  \"records\": []\n}",
-      },
+      |},
     },
   },
   {
     test_number: 1038,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "bool_optional",
           value: null,
@@ -1116,17 +1042,15 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961ff",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"optional\",\n    \"value\": {\n      \"kind\": \"primitive\",\n      \"value\": \"bool\"\n    }\n  },\n  \"records\": []\n}",
-      },
+      |},
     },
   },
   {
     test_number: 1039,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "ints",
           value: [],
@@ -1140,17 +1064,30 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961f6",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
+        alternative_jsons: [
+          {
+            kind: "literal",
+            value: "0",
+          },
+        ],
+        alternative_bytes: [
+          {
+            kind: "to_bytes",
+            value: {
+              kind: "int32",
+              value: 0,
+            },
+          },
+        ],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"array\",\n    \"value\": {\n      \"item\": {\n        \"kind\": \"primitive\",\n        \"value\": \"int32\"\n      }\n    }\n  },\n  \"records\": []\n}",
-      },
+      |},
     },
   },
   {
     test_number: 1040,
     assertion: {
       kind: "reserialize_value",
-      value: {
+      value: {|
         value: {
           kind: "ints",
           value: [
@@ -1168,70 +1105,133 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961f9010203",
         ],
-        alternative_jsons: [],
-        alternative_bytes: [],
-        expected_type_descriptor: null,
-      },
+      |},
     },
   },
   {
     test_number: 1041,
     assertion: {
       kind: "reserialize_large_string",
-      value: {
+      value: {|
         num_chars: 231,
         expected_byte_prefix: "hex:736f6961",
-      },
+      |},
     },
   },
   {
     test_number: 1042,
     assertion: {
       kind: "reserialize_large_string",
-      value: {
+      value: {|
         num_chars: 65536,
         expected_byte_prefix: "hex:736f6961",
-      },
+      |},
     },
   },
   {
     test_number: 1043,
     assertion: {
       kind: "reserialize_large_array",
-      value: {
+      value: {|
         num_items: 231,
         expected_byte_prefix: "hex:736f6961fae7",
-      },
+      |},
     },
   },
   {
     test_number: 1044,
     assertion: {
       kind: "reserialize_large_array",
-      value: {
+      value: {|
         num_items: 232,
         expected_byte_prefix: "hex:736f6961fae8e800",
-      },
+      |},
     },
   },
   {
     test_number: 1045,
     assertion: {
       kind: "reserialize_large_array",
-      value: {
+      value: {|
         num_items: 65535,
         expected_byte_prefix: "hex:736f6961fae8",
-      },
+      |},
     },
   },
   {
     test_number: 1046,
     assertion: {
       kind: "reserialize_large_array",
-      value: {
+      value: {|
         num_items: 65536,
         expected_byte_prefix: "hex:736f6961fae9",
-      },
+      |},
+    },
+  },
+  {
+    test_number: 1047,
+    assertion: {
+      kind: "reserialize_value",
+      value: {|
+        value: {
+          kind: "point",
+          value: {||},
+        },
+        expected_dense_json: [
+          "[]",
+        ],
+        expected_readable_json: [
+          "{}",
+        ],
+        expected_bytes: [
+          "hex:736f6961f6",
+        ],
+        alternative_jsons: [
+          {
+            kind: "literal",
+            value: "0",
+          },
+        ],
+        alternative_bytes: [
+          {
+            kind: "to_bytes",
+            value: {
+              kind: "int32",
+              value: 0,
+            },
+          },
+        ],
+      |},
+    },
+  },
+  {
+    test_number: 1048,
+    assertion: {
+      kind: "reserialize_value",
+      value: {|
+        value: {
+          kind: "point",
+          value: {
+            x: 10,
+            y: 20,
+            color: {
+              r: 255,
+              g: 128,
+              b: 0,
+            },
+          },
+        },
+        expected_dense_json: [
+          "[0,10,0,0,20,0,[255,128]]",
+        ],
+        expected_readable_json: [
+          '{\n  "x": 10,\n  "y": 20,\n  "color": {\n    "r": 255,\n    "g": 128\n  }\n}',
+        ],
+        expected_bytes: [
+          "hex:736f6961fa07000a00001400f8e8ff0080",
+        ],
+        expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"record\",\n    \"value\": \"goldens.soia:Point\"\n  },\n  \"records\": [\n    {\n      \"kind\": \"struct\",\n      \"id\": \"goldens.soia:Point\",\n      \"fields\": [\n        {\n          \"name\": \"x\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 1\n        },\n        {\n          \"name\": \"y\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 4\n        },\n        {\n          \"name\": \"color\",\n          \"type\": {\n            \"kind\": \"record\",\n            \"value\": \"goldens.soia:Color\"\n          },\n          \"number\": 6\n        }\n      ],\n      \"removed_fields\": [\n        0,\n        2,\n        3,\n        5\n      ]\n    },\n    {\n      \"kind\": \"struct\",\n      \"id\": \"goldens.soia:Color\",\n      \"fields\": [\n        {\n          \"name\": \"r\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 0\n        },\n        {\n          \"name\": \"g\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 1\n        },\n        {\n          \"name\": \"b\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 2\n        }\n      ],\n      \"removed_fields\": [\n        3\n      ]\n    }\n  ]\n}",
+      |},
     },
   },
 ];
