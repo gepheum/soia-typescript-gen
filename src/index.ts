@@ -485,7 +485,7 @@ class TsModuleCodeGenerator {
       const reqSerializer = this.getSerializerExpr(requestType!);
       const respSerializer = this.getSerializerExpr(responseType!);
       this.push(`
-        export const ${varName} = {
+        export const ${varName} = /*@__PURE__*/ {
           name: "${name}",
           number: ${number},
           requestSerializer: ${reqSerializer},
@@ -651,7 +651,7 @@ class TsModuleCodeGenerator {
       const type = typeSpeller.getTsType(constant.type!, "frozen");
       this.push(`export const ${name}: ${type};\n\n`);
     } else {
-      this.push(`export const ${name} = `);
+      this.push(`export const ${name} = /*@__PURE__*/ `);
       this.push(this.getSerializerExpr(constant.type!));
       this.push(".fromJson(");
       this.push(JSON.stringify(constant.valueAsDenseJson));
