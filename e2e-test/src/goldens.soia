@@ -10,11 +10,25 @@ enum Assertion {
   }
   bytes_equal: BytesEqual;
 
+  struct BytesIn {
+    actual: BytesExpression;
+    // The assertion is satisfied if this array contains the actual value.
+    expected: [bytes];
+  }
+  bytes_in: BytesIn;
+
   struct StringEqual {
     actual: StringExpression;
     expected: StringExpression;
   }
   string_equal: StringEqual;
+
+  struct StringIn {
+    actual: StringExpression;
+    // The assertion is satisfied if this array contains the actual value.
+    expected: [string];
+  }
+  string_in: StringIn;
 
   struct ReserializeValue {
     value: TypedValue;

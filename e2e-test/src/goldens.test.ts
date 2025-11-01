@@ -52,6 +52,22 @@ function verifyAssertion(assertion: Assertion): void {
       }
       break;
     }
+    case "bytes_in": {
+      const actual = evaluateBytes(assertion.union.value.actual);
+      const actualHex = actual.toBase16();
+      const found = assertion.union.value.expected.some((expectedBytes) => {
+        return expectedBytes.toBase16() === actualHex;
+      });
+      if (!found) {
+        throw new AssertionError({
+          actual: "hex:" + actualHex,
+          expected: assertion.union.value.expected
+            .map((b) => "hex:" + b.toBase16())
+            .join(" or "),
+        });
+      }
+      break;
+    }
     case "string_equal": {
       const actual = evaluateString(assertion.union.value.actual);
       const expected = evaluateString(assertion.union.value.expected);
@@ -60,6 +76,16 @@ function verifyAssertion(assertion: Assertion): void {
           actual: actual,
           expected: expected,
           message: `Actual: ${JSON.stringify(actual)}`,
+        });
+      }
+      break;
+    }
+    case "string_in": {
+      const actual = evaluateString(assertion.union.value.actual);
+      if (!assertion.union.value.expected.includes(actual)) {
+        throw new AssertionError({
+          actual: actual,
+          expected: assertion.union.value.expected.join(" or "),
         });
       }
       break;
@@ -101,57 +127,46 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
   for (const inputValue of typedValues) {
     try {
       // Verify bytes - check if actual matches any of the expected values
-      const actualBytes = evaluateBytes(
-        BytesExpression.create({
-          kind: "to_bytes",
-          value: input.value,
+      verifyAssertion(
+        Assertion.create({
+          kind: "bytes_in",
+          value: {
+            actual: BytesExpression.create({
+              kind: "to_bytes",
+              value: input.value,
+            }),
+            expected: input.expectedBytes,
+          },
         }),
       );
-      const bytesMatch = input.expectedBytes.some((expectedBytes) => {
-        const expected = evaluateBytes(
-          BytesExpression.create({
-            kind: "literal",
-            value: expectedBytes,
-          }),
-        );
-        return actualBytes.toBase16() === expected.toBase16();
-      });
-      if (!bytesMatch) {
-        throw new AssertionError({
-          actual: "hex:" + actualBytes.toBase16(),
-          expected: input.expectedBytes
-            .map((b) => "hex:" + b.toBase16())
-            .join(" or "),
-        });
-      }
 
       // Verify dense JSON - check if actual matches any of the expected values
-      const actualDenseJson = evaluateString(
-        StringExpression.create({
-          kind: "to_dense_json",
-          value: input.value,
+      verifyAssertion(
+        Assertion.create({
+          kind: "string_in",
+          value: {
+            actual: StringExpression.create({
+              kind: "to_dense_json",
+              value: input.value,
+            }),
+            expected: input.expectedDenseJson,
+          },
         }),
       );
-      if (!input.expectedDenseJson.includes(actualDenseJson)) {
-        throw new AssertionError({
-          actual: actualDenseJson,
-          expected: input.expectedDenseJson.join(" or "),
-        });
-      }
 
       // Verify readable JSON - check if actual matches any of the expected values
-      const actualReadableJson = evaluateString(
-        StringExpression.create({
-          kind: "to_readable_json",
-          value: input.value,
+      verifyAssertion(
+        Assertion.create({
+          kind: "string_in",
+          value: {
+            actual: StringExpression.create({
+              kind: "to_readable_json",
+              value: input.value,
+            }),
+            expected: input.expectedReadableJson,
+          },
         }),
       );
-      if (!input.expectedReadableJson.includes(actualReadableJson)) {
-        throw new AssertionError({
-          actual: actualReadableJson,
-          expected: input.expectedReadableJson.join(" or "),
-        });
-      }
     } catch (e) {
       if (e instanceof AssertionError) {
         e.addContext(`input value: ${inputValue}`);
@@ -170,12 +185,18 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
         ),
       );
       // Check if roundTripJson matches any of the expected values
-      if (!input.expectedDenseJson.includes(roundTripJson)) {
-        throw new AssertionError({
-          actual: roundTripJson,
-          expected: input.expectedDenseJson.join(" or "),
-        });
-      }
+      verifyAssertion(
+        Assertion.create({
+          kind: "string_in",
+          value: {
+            actual: StringExpression.create({
+              kind: "literal",
+              value: roundTripJson,
+            }),
+            expected: input.expectedDenseJson,
+          },
+        }),
+      );
     } catch (e) {
       if (e instanceof AssertionError) {
         e.addContext(
@@ -195,18 +216,18 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
         ),
       );
       // Check if roundTripBytes matches any of the expected values
-      const roundTripBytesHex = roundTripBytes.toBase16();
-      const bytesMatch = input.expectedBytes.some((expectedBytes) => {
-        return expectedBytes.toBase16() === roundTripBytesHex;
-      });
-      if (!bytesMatch) {
-        throw new AssertionError({
-          actual: "hex:" + roundTripBytesHex,
-          expected: input.expectedBytes
-            .map((b) => "hex:" + b.toBase16())
-            .join(" or "),
-        });
-      }
+      verifyAssertion(
+        Assertion.create({
+          kind: "bytes_in",
+          value: {
+            actual: BytesExpression.create({
+              kind: "literal",
+              value: roundTripBytes,
+            }),
+            expected: input.expectedBytes,
+          },
+        }),
+      );
     } catch (e) {
       if (e instanceof AssertionError) {
         e.addContext(
