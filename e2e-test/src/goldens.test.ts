@@ -5,6 +5,7 @@ import {
   Assertion,
   BytesExpression,
   Color,
+  MyEnum,
   Point,
   PointExpression,
   StringExpression,
@@ -496,6 +497,12 @@ function evaluteTypedValue<T>(literal: TypedValue): TypedValueType<unknown> {
       return {
         value: literal.union.value,
         serializer: Color.SERIALIZER,
+      };
+    }
+    case "my_enum": {
+      return {
+        value: literal.union.value,
+        serializer: MyEnum.SERIALIZER,
       };
     }
     case "round_trip_dense_json": {

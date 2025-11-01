@@ -82,6 +82,7 @@ enum TypedValue {
   ints: [int32];
   point: Point;
   color: Color;
+  my_enum: MyEnum;
   round_trip_dense_json: TypedValue;
   round_trip_readable_json: TypedValue;
   round_trip_bytes: TypedValue;
@@ -106,10 +107,17 @@ struct Point {
 }
 
 struct Color {
-  r: int32;
-  g: int32;
-  b: int32;
-  removed;
+  r: int32 = 0;
+  g: int32 = 1;
+  b: int32 = 2;
+  removed 3;
+}
+
+enum MyEnum {
+  OK = 1;
+  color: Color = 4;
+  bool: bool = 5;
+  removed 2;
 }
 
 const UNIT_TESTS: [UnitTest] = [
@@ -1215,6 +1223,7 @@ const UNIT_TESTS: [UnitTest] = [
             },
           },
         ],
+        expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"record\",\n    \"value\": \"goldens.soia:Point\"\n  },\n  \"records\": [\n    {\n      \"kind\": \"struct\",\n      \"id\": \"goldens.soia:Point\",\n      \"fields\": [\n        {\n          \"name\": \"x\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 1\n        },\n        {\n          \"name\": \"y\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 4\n        },\n        {\n          \"name\": \"color\",\n          \"type\": {\n            \"kind\": \"record\",\n            \"value\": \"goldens.soia:Color\"\n          },\n          \"number\": 6\n        }\n      ],\n      \"removed_fields\": [\n        0,\n        2,\n        3,\n        5\n      ]\n    },\n    {\n      \"kind\": \"struct\",\n      \"id\": \"goldens.soia:Color\",\n      \"fields\": [\n        {\n          \"name\": \"r\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 0\n        },\n        {\n          \"name\": \"g\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 1\n        },\n        {\n          \"name\": \"b\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 2\n        }\n      ],\n      \"removed_fields\": [\n        3\n      ]\n    }\n  ]\n}",
       |},
     },
   },
@@ -1244,7 +1253,99 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f6961fa07000a00001400f8e8ff0080",
         ],
-        expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"record\",\n    \"value\": \"goldens.soia:Point\"\n  },\n  \"records\": [\n    {\n      \"kind\": \"struct\",\n      \"id\": \"goldens.soia:Point\",\n      \"fields\": [\n        {\n          \"name\": \"x\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 1\n        },\n        {\n          \"name\": \"y\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 4\n        },\n        {\n          \"name\": \"color\",\n          \"type\": {\n            \"kind\": \"record\",\n            \"value\": \"goldens.soia:Color\"\n          },\n          \"number\": 6\n        }\n      ],\n      \"removed_fields\": [\n        0,\n        2,\n        3,\n        5\n      ]\n    },\n    {\n      \"kind\": \"struct\",\n      \"id\": \"goldens.soia:Color\",\n      \"fields\": [\n        {\n          \"name\": \"r\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 0\n        },\n        {\n          \"name\": \"g\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 1\n        },\n        {\n          \"name\": \"b\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 2\n        }\n      ],\n      \"removed_fields\": [\n        3\n      ]\n    }\n  ]\n}",
+      |},
+    },
+  },
+  {
+    test_number: 1049,
+    assertion: {
+      kind: "reserialize_value",
+      value: {|
+        value: {
+          kind: "my_enum",
+          value: "?",
+        },
+        expected_dense_json: [
+          "0",
+        ],
+        expected_readable_json: [
+          '"?"',
+        ],
+        expected_bytes: [
+          "hex:736f696100",
+        ],
+        expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"record\",\n    \"value\": \"goldens.soia:MyEnum\"\n  },\n  \"records\": [\n    {\n      \"kind\": \"enum\",\n      \"id\": \"goldens.soia:MyEnum\",\n      \"fields\": [\n        {\n          \"name\": \"OK\",\n          \"number\": 1\n        },\n        {\n          \"name\": \"color\",\n          \"number\": 4,\n          \"type\": {\n            \"kind\": \"record\",\n            \"value\": \"goldens.soia:Color\"\n          }\n        },\n        {\n          \"name\": \"bool\",\n          \"number\": 5,\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"bool\"\n          }\n        }\n      ],\n      \"removed_fields\": [\n        2\n      ]\n    },\n    {\n      \"kind\": \"struct\",\n      \"id\": \"goldens.soia:Color\",\n      \"fields\": [\n        {\n          \"name\": \"r\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 0\n        },\n        {\n          \"name\": \"g\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 1\n        },\n        {\n          \"name\": \"b\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 2\n        }\n      ],\n      \"removed_fields\": [\n        3\n      ]\n    }\n  ]\n}",
+      |},
+    },
+  },
+  {
+    test_number: 1050,
+    assertion: {
+      kind: "reserialize_value",
+      value: {|
+        value: {
+          kind: "my_enum",
+          value: "OK",
+        },
+        expected_dense_json: [
+          "1",
+        ],
+        expected_readable_json: [
+          '"OK"',
+        ],
+        expected_bytes: [
+          "hex:736f696101",
+        ],
+      |},
+    },
+  },
+  {
+    test_number: 1051,
+    assertion: {
+      kind: "reserialize_value",
+      value: {|
+        value: {
+          kind: "my_enum",
+          value: {
+            kind: "color",
+            value: {|
+              r: 10,
+            |},
+          },
+        },
+        expected_dense_json: [
+          "[4,[10]]",
+        ],
+        expected_readable_json: [
+          '{\n  "kind": "color",\n  "value": {\n    "r": 10\n  }\n}',
+        ],
+        expected_bytes: [
+          "hex:736f6961fef70a",
+        ],
+      |},
+    },
+  },
+  {
+    test_number: 1052,
+    assertion: {
+      kind: "reserialize_value",
+      value: {|
+        value: {
+          kind: "my_enum",
+          value: {
+            kind: "bool",
+            value: true,
+          },
+        },
+        expected_dense_json: [
+          "[5,1]",
+        ],
+        expected_readable_json: [
+          '{\n  "kind": "bool",\n  "value": true\n}',
+        ],
+        expected_bytes: [
+          "hex:736f6961f80501",
+        ],
       |},
     },
   },
