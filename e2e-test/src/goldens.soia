@@ -58,14 +58,11 @@ enum StringExpression {
   literal: string;
   to_dense_json: TypedValue;
   to_readable_json: TypedValue;
-  point_to_dense_json: PointExpression;
-  point_to_readable_json: PointExpression;
 }
 
 enum BytesExpression {
   literal: bytes;
   to_bytes: TypedValue;
-  point_to_bytes: PointExpression;
 }
 
 enum TypedValue {
@@ -86,14 +83,10 @@ enum TypedValue {
   round_trip_dense_json: TypedValue;
   round_trip_readable_json: TypedValue;
   round_trip_bytes: TypedValue;
-}
-
-enum PointExpression {
-  literal: Point;
-  from_json_keep_unrecognized: StringExpression;
-  from_json_drop_unrecognized: StringExpression;
-  from_bytes_keep_unrecognized: BytesExpression;
-  from_bytes_drop_unrecognized: BytesExpression;
+  point_from_json_keep_unrecognized: StringExpression;
+  point_from_json_drop_unrecognized: StringExpression;
+  point_from_bytes_keep_unrecognized: BytesExpression;
+  point_from_bytes_drop_unrecognized: BytesExpression;
 }
 
 struct Point {
@@ -1355,9 +1348,9 @@ const UNIT_TESTS: [UnitTest] = [
       kind: "string_equal",
       value: {
         actual: {
-          kind: "point_to_dense_json",
+          kind: "to_dense_json",
           value: {
-            kind: "from_json_keep_unrecognized",
+            kind: "point_from_json_keep_unrecognized",
             value: {
               kind: "to_dense_json",
               value: {
@@ -1389,9 +1382,9 @@ const UNIT_TESTS: [UnitTest] = [
       kind: "string_equal",
       value: {
         actual: {
-          kind: "point_to_dense_json",
+          kind: "to_dense_json",
           value: {
-            kind: "from_json_drop_unrecognized",
+            kind: "point_from_json_drop_unrecognized",
             value: {
               kind: "to_dense_json",
               value: {
@@ -1423,9 +1416,9 @@ const UNIT_TESTS: [UnitTest] = [
       kind: "bytes_equal",
       value: {
         actual: {
-          kind: "point_to_bytes",
+          kind: "to_bytes",
           value: {
-            kind: "from_bytes_keep_unrecognized",
+            kind: "point_from_bytes_keep_unrecognized",
             value: {
               kind: "to_bytes",
               value: {
@@ -1457,9 +1450,9 @@ const UNIT_TESTS: [UnitTest] = [
       kind: "bytes_equal",
       value: {
         actual: {
-          kind: "point_to_bytes",
+          kind: "to_bytes",
           value: {
-            kind: "from_bytes_drop_unrecognized",
+            kind: "point_from_bytes_drop_unrecognized",
             value: {
               kind: "to_bytes",
               value: {

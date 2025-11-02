@@ -7,7 +7,6 @@ import {
   Color,
   MyEnum,
   Point,
-  PointExpression,
   StringExpression,
   TypedValue,
   UNIT_TESTS,
@@ -180,7 +179,7 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
     try {
       const roundTripJson = toDenseJson(
         typedValue.serializer,
-        fromJsonKeepUnrecognizedFields(
+        fromJsonKeepUnrecognized(
           typedValue.serializer,
           evaluateString(alternativeJson),
         ),
@@ -268,7 +267,7 @@ function reserializeLargeStringAndVerify(
   const str = "a".repeat(input.numChars);
   {
     const json = toDenseJson(soia.primitiveSerializer("string"), str);
-    const roundTrip = fromJsonDropUnrecognizedFields(
+    const roundTrip = fromJsonDropUnrecognized(
       soia.primitiveSerializer("string"),
       json,
     );
@@ -281,7 +280,7 @@ function reserializeLargeStringAndVerify(
   }
   {
     const json = toReadableJson(soia.primitiveSerializer("string"), str);
-    const roundTrip = fromJsonDropUnrecognizedFields(
+    const roundTrip = fromJsonDropUnrecognized(
       soia.primitiveSerializer("string"),
       json,
     );
@@ -323,7 +322,7 @@ function reserializeLargeArrayAndVerify(
   };
   {
     const json = toDenseJson(serializer, array);
-    const roundTrip = fromJsonDropUnrecognizedFields(serializer, json);
+    const roundTrip = fromJsonDropUnrecognized(serializer, json);
     if (!isArray(roundTrip)) {
       throw new AssertionError({
         actual: roundTrip,
@@ -333,7 +332,7 @@ function reserializeLargeArrayAndVerify(
   }
   {
     const json = toReadableJson(serializer, array);
-    const roundTrip = fromJsonDropUnrecognizedFields(serializer, json);
+    const roundTrip = fromJsonDropUnrecognized(serializer, json);
     if (!isArray(roundTrip)) {
       throw new AssertionError({
         actual: roundTrip,
@@ -363,8 +362,6 @@ function evaluateBytes(expr: BytesExpression): soia.ByteString {
   switch (expr.union.kind) {
     case "literal":
       return expr.union.value;
-    case "point_to_bytes":
-      return toBytes(Point.SERIALIZER, evaluatePoint(expr.union.value));
     case "to_bytes": {
       const literal = evaluteTypedValue(expr.union.value);
       return toBytes(literal.serializer, literal.value);
@@ -378,10 +375,6 @@ function evaluateString(expr: StringExpression): string {
   switch (expr.union.kind) {
     case "literal":
       return expr.union.value;
-    case "point_to_dense_json":
-      return toDenseJson(Point.SERIALIZER, evaluatePoint(expr.union.value));
-    case "point_to_readable_json":
-      return toReadableJson(Point.SERIALIZER, evaluatePoint(expr.union.value));
     case "to_dense_json": {
       const literal = evaluteTypedValue(expr.union.value);
       return toDenseJson(literal.serializer, literal.value);
@@ -390,35 +383,6 @@ function evaluateString(expr: StringExpression): string {
       const literal = evaluteTypedValue(expr.union.value);
       return toReadableJson(literal.serializer, literal.value);
     }
-    case "?":
-      throw new Error();
-  }
-}
-
-function evaluatePoint(point: PointExpression): Point {
-  switch (point.union.kind) {
-    case "literal":
-      return point.union.value;
-    case "from_json_keep_unrecognized":
-      return fromJsonKeepUnrecognizedFields(
-        Point.SERIALIZER,
-        evaluateString(point.union.value),
-      );
-    case "from_json_drop_unrecognized":
-      return fromJsonDropUnrecognizedFields(
-        Point.SERIALIZER,
-        evaluateString(point.union.value),
-      );
-    case "from_bytes_keep_unrecognized":
-      return fromBytesKeepUnrecognized(
-        Point.SERIALIZER,
-        evaluateBytes(point.union.value),
-      );
-    case "from_bytes_drop_unrecognized":
-      return fromBytesDropUnrecognizedFields(
-        Point.SERIALIZER,
-        evaluateBytes(point.union.value),
-      );
     case "?":
       throw new Error();
   }
@@ -533,6 +497,38 @@ function evaluteTypedValue<T>(literal: TypedValue): TypedValueType<unknown> {
         serializer: other.serializer,
       };
     }
+    case "point_from_json_keep_unrecognized":
+      return {
+        value: fromJsonKeepUnrecognized(
+          Point.SERIALIZER,
+          evaluateString(literal.union.value),
+        ),
+        serializer: Point.SERIALIZER,
+      };
+    case "point_from_json_drop_unrecognized":
+      return {
+        value: fromJsonDropUnrecognized(
+          Point.SERIALIZER,
+          evaluateString(literal.union.value),
+        ),
+        serializer: Point.SERIALIZER,
+      };
+    case "point_from_bytes_keep_unrecognized":
+      return {
+        value: fromBytesKeepUnrecognized(
+          Point.SERIALIZER,
+          evaluateBytes(literal.union.value),
+        ),
+        serializer: Point.SERIALIZER,
+      };
+    case "point_from_bytes_drop_unrecognized":
+      return {
+        value: fromBytesDropUnrecognizedFields(
+          Point.SERIALIZER,
+          evaluateBytes(literal.union.value),
+        ),
+        serializer: Point.SERIALIZER,
+      };
     case "?":
       throw new Error();
   }
@@ -562,7 +558,7 @@ function toBytes<T>(serializer: soia.Serializer<T>, input: T): soia.ByteString {
   }
 }
 
-function fromJsonKeepUnrecognizedFields<T>(
+function fromJsonKeepUnrecognized<T>(
   serializer: soia.Serializer<T>,
   json: string,
 ): T {
@@ -573,7 +569,7 @@ function fromJsonKeepUnrecognizedFields<T>(
   }
 }
 
-function fromJsonDropUnrecognizedFields<T>(
+function fromJsonDropUnrecognized<T>(
   serializer: soia.Serializer<T>,
   json: string,
 ): T {
