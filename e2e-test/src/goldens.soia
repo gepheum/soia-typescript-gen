@@ -1760,4 +1760,116 @@ const UNIT_TESTS: [UnitTest] = [
       },
     },
   },
+  {
+    test_number: 1067,
+    assertion: {
+      kind: "string_equal",
+      value: {
+        actual: {
+          kind: "to_dense_json",
+          value: {
+            kind: "color_from_bytes_keep_unrecognized",
+            value: {
+              kind: "to_bytes",
+              value: {
+                kind: "ints",
+                value: [
+                  1,
+                  1,
+                  1,
+                  2,
+                  2,
+                ],
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "[1,1,1]",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1068,
+    assertion: {
+      kind: "bytes_equal",
+      value: {
+        actual: {
+          kind: "to_bytes",
+          value: {
+            kind: "color_from_json_keep_unrecognized",
+            value: {
+              kind: "to_dense_json",
+              value: {
+                kind: "ints",
+                value: [
+                  1,
+                  1,
+                  1,
+                  2,
+                  2,
+                ],
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "hex:736f6961f9010101",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1069,
+    assertion: {
+      kind: "string_equal",
+      value: {
+        actual: {
+          kind: "to_dense_json",
+          value: {
+            kind: "my_enum_from_bytes_keep_unrecognized",
+            value: {
+              kind: "to_bytes",
+              value: {
+                kind: "int32",
+                value: 500,
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "0",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1070,
+    assertion: {
+      kind: "bytes_equal",
+      value: {
+        actual: {
+          kind: "to_bytes",
+          value: {
+            kind: "my_enum_from_json_keep_unrecognized",
+            value: {
+              kind: "to_dense_json",
+              value: {
+                kind: "int32",
+                value: 500,
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "hex:736f696100",
+        },
+      },
+    },
+  },
 ];
