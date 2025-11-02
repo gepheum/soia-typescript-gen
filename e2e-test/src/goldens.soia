@@ -1349,4 +1349,140 @@ const UNIT_TESTS: [UnitTest] = [
       |},
     },
   },
+  {
+    test_number: 1053,
+    assertion: {
+      kind: "string_equal",
+      value: {
+        actual: {
+          kind: "point_to_dense_json",
+          value: {
+            kind: "from_json_keep_unrecognized",
+            value: {
+              kind: "to_dense_json",
+              value: {
+                kind: "ints",
+                value: [
+                  2,
+                  1,
+                  2,
+                  2,
+                  1,
+                  2,
+                  0,
+                  2,
+                ],
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "[0,1,0,0,1,0,[],2]",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1054,
+    assertion: {
+      kind: "string_equal",
+      value: {
+        actual: {
+          kind: "point_to_dense_json",
+          value: {
+            kind: "from_json_drop_unrecognized",
+            value: {
+              kind: "to_dense_json",
+              value: {
+                kind: "ints",
+                value: [
+                  2,
+                  1,
+                  2,
+                  2,
+                  1,
+                  2,
+                  0,
+                  2,
+                ],
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "[0,1,0,0,1]",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1055,
+    assertion: {
+      kind: "bytes_equal",
+      value: {
+        actual: {
+          kind: "point_to_bytes",
+          value: {
+            kind: "from_bytes_keep_unrecognized",
+            value: {
+              kind: "to_bytes",
+              value: {
+                kind: "ints",
+                value: [
+                  2,
+                  1,
+                  2,
+                  2,
+                  1,
+                  2,
+                  0,
+                  2,
+                ],
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "hex:736f6961fa08000100000100f602",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1056,
+    assertion: {
+      kind: "bytes_equal",
+      value: {
+        actual: {
+          kind: "point_to_bytes",
+          value: {
+            kind: "from_bytes_drop_unrecognized",
+            value: {
+              kind: "to_bytes",
+              value: {
+                kind: "ints",
+                value: [
+                  2,
+                  1,
+                  2,
+                  2,
+                  1,
+                  2,
+                  0,
+                  2,
+                ],
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "hex:736f6961fa050001000001",
+        },
+      },
+    },
+  },
 ];
