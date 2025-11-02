@@ -87,6 +87,14 @@ enum TypedValue {
   point_from_json_drop_unrecognized: StringExpression;
   point_from_bytes_keep_unrecognized: BytesExpression;
   point_from_bytes_drop_unrecognized: BytesExpression;
+  color_from_json_keep_unrecognized: StringExpression;
+  color_from_json_drop_unrecognized: StringExpression;
+  color_from_bytes_keep_unrecognized: BytesExpression;
+  color_from_bytes_drop_unrecognized: BytesExpression;
+  my_enum_from_json_keep_unrecognized: StringExpression;
+  my_enum_from_json_drop_unrecognized: StringExpression;
+  my_enum_from_bytes_keep_unrecognized: BytesExpression;
+  my_enum_from_bytes_drop_unrecognized: BytesExpression;
 }
 
 struct Point {
@@ -1474,6 +1482,280 @@ const UNIT_TESTS: [UnitTest] = [
         expected: {
           kind: "literal",
           value: "hex:736f6961fa050001000001",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1057,
+    assertion: {
+      kind: "string_equal",
+      value: {
+        actual: {
+          kind: "to_dense_json",
+          value: {
+            kind: "color_from_json_keep_unrecognized",
+            value: {
+              kind: "to_dense_json",
+              value: {
+                kind: "ints",
+                value: [
+                  1,
+                  1,
+                  1,
+                  2,
+                  2,
+                ],
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "[1,1,1,0,2]",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1058,
+    assertion: {
+      kind: "bytes_equal",
+      value: {
+        actual: {
+          kind: "to_bytes",
+          value: {
+            kind: "color_from_bytes_keep_unrecognized",
+            value: {
+              kind: "to_bytes",
+              value: {
+                kind: "ints",
+                value: [
+                  1,
+                  1,
+                  1,
+                  2,
+                  2,
+                ],
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "hex:736f6961fa050101010002",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1059,
+    assertion: {
+      kind: "string_equal",
+      value: {
+        actual: {
+          kind: "to_dense_json",
+          value: {
+            kind: "my_enum_from_json_keep_unrecognized",
+            value: {
+              kind: "to_dense_json",
+              value: {
+                kind: "int32",
+                value: 500,
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "500",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1060,
+    assertion: {
+      kind: "string_equal",
+      value: {
+        actual: {
+          kind: "to_dense_json",
+          value: {
+            kind: "my_enum_from_json_drop_unrecognized",
+            value: {
+              kind: "to_dense_json",
+              value: {
+                kind: "int32",
+                value: 500,
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "0",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1061,
+    assertion: {
+      kind: "string_equal",
+      value: {
+        actual: {
+          kind: "to_dense_json",
+          value: {
+            kind: "my_enum_from_json_keep_unrecognized",
+            value: {
+              kind: "to_dense_json",
+              value: {
+                kind: "ints",
+                value: [
+                  500,
+                  10,
+                ],
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "[500,10]",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1062,
+    assertion: {
+      kind: "string_equal",
+      value: {
+        actual: {
+          kind: "to_dense_json",
+          value: {
+            kind: "my_enum_from_json_drop_unrecognized",
+            value: {
+              kind: "to_dense_json",
+              value: {
+                kind: "ints",
+                value: [
+                  500,
+                  10,
+                ],
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "0",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1063,
+    assertion: {
+      kind: "bytes_equal",
+      value: {
+        actual: {
+          kind: "to_bytes",
+          value: {
+            kind: "my_enum_from_bytes_keep_unrecognized",
+            value: {
+              kind: "to_bytes",
+              value: {
+                kind: "int32",
+                value: 500,
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "hex:736f6961e8f401",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1064,
+    assertion: {
+      kind: "bytes_equal",
+      value: {
+        actual: {
+          kind: "to_bytes",
+          value: {
+            kind: "my_enum_from_bytes_drop_unrecognized",
+            value: {
+              kind: "to_bytes",
+              value: {
+                kind: "int32",
+                value: 500,
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "hex:736f696100",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1065,
+    assertion: {
+      kind: "bytes_equal",
+      value: {
+        actual: {
+          kind: "to_bytes",
+          value: {
+            kind: "my_enum_from_bytes_keep_unrecognized",
+            value: {
+              kind: "to_bytes",
+              value: {
+                kind: "ints",
+                value: [
+                  500,
+                  10,
+                ],
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "hex:736f6961f8e8f4010a",
+        },
+      },
+    },
+  },
+  {
+    test_number: 1066,
+    assertion: {
+      kind: "bytes_equal",
+      value: {
+        actual: {
+          kind: "to_bytes",
+          value: {
+            kind: "my_enum_from_bytes_drop_unrecognized",
+            value: {
+              kind: "to_bytes",
+              value: {
+                kind: "ints",
+                value: [
+                  500,
+                  10,
+                ],
+              },
+            },
+          },
+        },
+        expected: {
+          kind: "literal",
+          value: "hex:736f696100",
         },
       },
     },

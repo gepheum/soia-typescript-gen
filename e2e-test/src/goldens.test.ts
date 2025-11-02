@@ -529,6 +529,70 @@ function evaluteTypedValue<T>(literal: TypedValue): TypedValueType<unknown> {
         ),
         serializer: Point.SERIALIZER,
       };
+    case "color_from_json_keep_unrecognized":
+      return {
+        value: fromJsonKeepUnrecognized(
+          Color.SERIALIZER,
+          evaluateString(literal.union.value),
+        ),
+        serializer: Color.SERIALIZER,
+      };
+    case "color_from_json_drop_unrecognized":
+      return {
+        value: fromJsonDropUnrecognized(
+          Color.SERIALIZER,
+          evaluateString(literal.union.value),
+        ),
+        serializer: Color.SERIALIZER,
+      };
+    case "color_from_bytes_keep_unrecognized":
+      return {
+        value: fromBytesKeepUnrecognized(
+          Color.SERIALIZER,
+          evaluateBytes(literal.union.value),
+        ),
+        serializer: Color.SERIALIZER,
+      };
+    case "color_from_bytes_drop_unrecognized":
+      return {
+        value: fromBytesDropUnrecognizedFields(
+          Color.SERIALIZER,
+          evaluateBytes(literal.union.value),
+        ),
+        serializer: Color.SERIALIZER,
+      };
+    case "my_enum_from_json_keep_unrecognized":
+      return {
+        value: fromJsonKeepUnrecognized(
+          MyEnum.SERIALIZER,
+          evaluateString(literal.union.value),
+        ),
+        serializer: MyEnum.SERIALIZER,
+      };
+    case "my_enum_from_json_drop_unrecognized":
+      return {
+        value: fromJsonDropUnrecognized(
+          MyEnum.SERIALIZER,
+          evaluateString(literal.union.value),
+        ),
+        serializer: MyEnum.SERIALIZER,
+      };
+    case "my_enum_from_bytes_keep_unrecognized":
+      return {
+        value: fromBytesKeepUnrecognized(
+          MyEnum.SERIALIZER,
+          evaluateBytes(literal.union.value),
+        ),
+        serializer: MyEnum.SERIALIZER,
+      };
+    case "my_enum_from_bytes_drop_unrecognized":
+      return {
+        value: fromBytesDropUnrecognizedFields(
+          MyEnum.SERIALIZER,
+          evaluateBytes(literal.union.value),
+        ),
+        serializer: MyEnum.SERIALIZER,
+      };
     case "?":
       throw new Error();
   }
