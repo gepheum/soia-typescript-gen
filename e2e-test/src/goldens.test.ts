@@ -15,8 +15,8 @@ class AssertionError {
   message = "";
 
   constructor(params: {
-    actual: unknown;
-    expected: unknown;
+    actual?: unknown;
+    expected?: unknown;
     message?: string;
   }) {
     this.message =
@@ -189,6 +189,26 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
       throw e;
     }
   }
+
+  // Make sure the encoded value can be skipped.
+  for (const expectedBytes of input.expectedBytes) {
+    const buffer = new ArrayBuffer(expectedBytes.byteLength + 2);
+    const dataView = new DataView(buffer);
+    const prefix = "soia";
+    new TextEncoder().encodeInto(prefix, new Uint8Array(buffer, 0));
+    dataView.setUint8(4, 248);
+    new Uint8Array(buffer, 5).set(
+      new Uint8Array(expectedBytes.toBuffer().slice(prefix.length)),
+    );
+    dataView.setUint8(expectedBytes.byteLength + 1, 1);
+    const point = Point.SERIALIZER.fromBytes(buffer);
+    if (point.x !== 1) {
+      throw new AssertionError({
+        message: `Failed to skip value: got point.x=${point.x}, expected 1; input: ${input}`,
+      });
+    }
+  }
+
   const typedValue = evaluteTypedValue(input.value);
   for (const alternativeJson of input.alternativeJsons) {
     try {
