@@ -1,4 +1,3 @@
-import * as assert from "assert";
 import { describe } from "mocha";
 import * as soia from "soia";
 import {
@@ -12,7 +11,21 @@ import {
   UNIT_TESTS,
 } from "../soiagen/goldens.js";
 
-class AssertionError extends assert.AssertionError {
+class AssertionError {
+  message = "";
+
+  constructor(params: {
+    actual: unknown;
+    expected: unknown;
+    message?: string;
+  }) {
+    this.message =
+      (params.message ?? "") +
+      "\n" +
+      `Expected: ${JSON.stringify(params.expected)}\n` +
+      `Actual: ${JSON.stringify(params.actual)}\n`;
+  }
+
   addContext(context: string): void {
     this.message = this.message ? `${this.message}\n${context}` : context;
   }
@@ -33,6 +46,8 @@ describe("goldens", () => {
     } catch (e) {
       if (e instanceof AssertionError) {
         e.addContext(`While evaluating test #${unitTest.testNumber}`);
+        console.error(e.message);
+        console.error("\n\n");
       }
       throw e;
     }
@@ -133,7 +148,7 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
           value: {
             actual: BytesExpression.create({
               kind: "to_bytes",
-              value: input.value,
+              value: inputValue,
             }),
             expected: input.expectedBytes,
           },
@@ -147,7 +162,7 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
           value: {
             actual: StringExpression.create({
               kind: "to_dense_json",
-              value: input.value,
+              value: inputValue,
             }),
             expected: input.expectedDenseJson,
           },
@@ -161,7 +176,7 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
           value: {
             actual: StringExpression.create({
               kind: "to_readable_json",
-              value: input.value,
+              value: inputValue,
             }),
             expected: input.expectedReadableJson,
           },
@@ -472,7 +487,8 @@ function evaluteTypedValue<T>(literal: TypedValue): TypedValueType<unknown> {
     case "round_trip_dense_json": {
       const other = evaluteTypedValue(literal.union.value);
       return {
-        value: other.serializer.fromJson(
+        value: fromJsonDropUnrecognized(
+          other.serializer,
           toDenseJson(other.serializer, other.value),
         ),
         serializer: other.serializer,
@@ -481,7 +497,8 @@ function evaluteTypedValue<T>(literal: TypedValue): TypedValueType<unknown> {
     case "round_trip_readable_json": {
       const other = evaluteTypedValue(literal.union.value);
       return {
-        value: other.serializer.fromJson(
+        value: fromJsonDropUnrecognized(
+          other.serializer,
           toReadableJson(other.serializer, other.value),
         ),
         serializer: other.serializer,

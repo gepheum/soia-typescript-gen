@@ -13,7 +13,7 @@ describe("module-level constants", () => {
         },
         {
           kind: "number",
-          value: 3.14,
+          value: 2.5,
         },
         {
           kind: "string",

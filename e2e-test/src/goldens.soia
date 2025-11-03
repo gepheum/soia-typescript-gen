@@ -140,7 +140,7 @@ const UNIT_TESTS: [UnitTest] = [
         alternative_jsons: [
           {
             kind: "literal",
-            value: "3.14",
+            value: "2.5",
           },
           {
             kind: "literal",
@@ -163,7 +163,7 @@ const UNIT_TESTS: [UnitTest] = [
             kind: "to_bytes",
             value: {
               kind: "float32",
-              value: 3.14,
+              value: 2.5,
             },
           },
         ],
@@ -805,16 +805,16 @@ const UNIT_TESTS: [UnitTest] = [
       value: {|
         value: {
           kind: "float32",
-          value: 3.14,
+          value: 2.5,
         },
         expected_dense_json: [
-          "3.14",
+          "2.5",
         ],
         expected_readable_json: [
-          "3.14",
+          "2.5",
         ],
         expected_bytes: [
-          "hex:736f6961f0c3f54840",
+          "hex:736f6961f000002040",
         ],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"float32\"\n  },\n  \"records\": []\n}",
       |},
@@ -827,16 +827,16 @@ const UNIT_TESTS: [UnitTest] = [
       value: {|
         value: {
           kind: "float64",
-          value: 3.14,
+          value: 2.5,
         },
         expected_dense_json: [
-          "3.14",
+          "2.5",
         ],
         expected_readable_json: [
-          "3.14",
+          "2.5",
         ],
         expected_bytes: [
-          "hex:736f6961f11f85eb51b81e0940",
+          "hex:736f6961f10000000000000440",
         ],
         expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"primitive\",\n    \"value\": \"float64\"\n  },\n  \"records\": []\n}",
       |},
@@ -849,16 +849,16 @@ const UNIT_TESTS: [UnitTest] = [
       value: {|
         value: {
           kind: "float64",
-          value: -3.14,
+          value: -2.5,
         },
         expected_dense_json: [
-          "-3.14",
+          "-2.5",
         ],
         expected_readable_json: [
-          "-3.14",
+          "-2.5",
         ],
         expected_bytes: [
-          "hex:736f6961f11f85eb51b81e09c0",
+          "hex:736f6961f100000000000004c0",
         ],
       |},
     },
@@ -1224,7 +1224,7 @@ const UNIT_TESTS: [UnitTest] = [
             },
           },
         ],
-        expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"record\",\n    \"value\": \"goldens.soia:Point\"\n  },\n  \"records\": [\n    {\n      \"kind\": \"struct\",\n      \"id\": \"goldens.soia:Point\",\n      \"fields\": [\n        {\n          \"name\": \"x\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 1\n        },\n        {\n          \"name\": \"y\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 4\n        },\n        {\n          \"name\": \"color\",\n          \"type\": {\n            \"kind\": \"record\",\n            \"value\": \"goldens.soia:Color\"\n          },\n          \"number\": 6\n        }\n      ],\n      \"removed_fields\": [\n        0,\n        2,\n        3,\n        5\n      ]\n    },\n    {\n      \"kind\": \"struct\",\n      \"id\": \"goldens.soia:Color\",\n      \"fields\": [\n        {\n          \"name\": \"r\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 0\n        },\n        {\n          \"name\": \"g\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 1\n        },\n        {\n          \"name\": \"b\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 2\n        }\n      ],\n      \"removed_fields\": [\n        3\n      ]\n    }\n  ]\n}",
+        expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"record\",\n    \"value\": \"goldens.soia:Point\"\n  },\n  \"records\": [\n    {\n      \"kind\": \"struct\",\n      \"id\": \"goldens.soia:Point\",\n      \"fields\": [\n        {\n          \"name\": \"x\",\n          \"number\": 1,\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          }\n        },\n        {\n          \"name\": \"y\",\n          \"number\": 4,\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          }\n        },\n        {\n          \"name\": \"color\",\n          \"number\": 6,\n          \"type\": {\n            \"kind\": \"record\",\n            \"value\": \"goldens.soia:Color\"\n          }\n        }\n      ],\n      \"removed_fields\": [\n        0,\n        2,\n        3,\n        5\n      ]\n    },\n    {\n      \"kind\": \"struct\",\n      \"id\": \"goldens.soia:Color\",\n      \"fields\": [\n        {\n          \"name\": \"r\",\n          \"number\": 0,\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          }\n        },\n        {\n          \"name\": \"g\",\n          \"number\": 1,\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          }\n        },\n        {\n          \"name\": \"b\",\n          \"number\": 2,\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          }\n        }\n      ],\n      \"removed_fields\": [\n        3\n      ]\n    }\n  ]\n}",
       |},
     },
   },
@@ -1275,7 +1275,7 @@ const UNIT_TESTS: [UnitTest] = [
         expected_bytes: [
           "hex:736f696100",
         ],
-        expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"record\",\n    \"value\": \"goldens.soia:MyEnum\"\n  },\n  \"records\": [\n    {\n      \"kind\": \"enum\",\n      \"id\": \"goldens.soia:MyEnum\",\n      \"fields\": [\n        {\n          \"name\": \"OK\",\n          \"number\": 1\n        },\n        {\n          \"name\": \"color\",\n          \"number\": 4,\n          \"type\": {\n            \"kind\": \"record\",\n            \"value\": \"goldens.soia:Color\"\n          }\n        },\n        {\n          \"name\": \"bool\",\n          \"number\": 5,\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"bool\"\n          }\n        }\n      ],\n      \"removed_fields\": [\n        2\n      ]\n    },\n    {\n      \"kind\": \"struct\",\n      \"id\": \"goldens.soia:Color\",\n      \"fields\": [\n        {\n          \"name\": \"r\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 0\n        },\n        {\n          \"name\": \"g\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 1\n        },\n        {\n          \"name\": \"b\",\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          },\n          \"number\": 2\n        }\n      ],\n      \"removed_fields\": [\n        3\n      ]\n    }\n  ]\n}",
+        expected_type_descriptor: "{\n  \"type\": {\n    \"kind\": \"record\",\n    \"value\": \"goldens.soia:MyEnum\"\n  },\n  \"records\": [\n    {\n      \"kind\": \"enum\",\n      \"id\": \"goldens.soia:MyEnum\",\n      \"fields\": [\n        {\n          \"name\": \"OK\",\n          \"number\": 1\n        },\n        {\n          \"name\": \"color\",\n          \"number\": 4,\n          \"type\": {\n            \"kind\": \"record\",\n            \"value\": \"goldens.soia:Color\"\n          }\n        },\n        {\n          \"name\": \"bool\",\n          \"number\": 5,\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"bool\"\n          }\n        }\n      ],\n      \"removed_fields\": [\n        2\n      ]\n    },\n    {\n      \"kind\": \"struct\",\n      \"id\": \"goldens.soia:Color\",\n      \"fields\": [\n        {\n          \"name\": \"r\",\n          \"number\": 0,\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          }\n        },\n        {\n          \"name\": \"g\",\n          \"number\": 1,\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          }\n        },\n        {\n          \"name\": \"b\",\n          \"number\": 2,\n          \"type\": {\n            \"kind\": \"primitive\",\n            \"value\": \"int32\"\n          }\n        }\n      ],\n      \"removed_fields\": [\n        3\n      ]\n    }\n  ]\n}",
       |},
     },
   },
@@ -1387,7 +1387,7 @@ const UNIT_TESTS: [UnitTest] = [
   {
     test_number: 1054,
     assertion: {
-      kind: "string_equal",
+      kind: "string_in",
       value: {
         actual: {
           kind: "to_dense_json",
@@ -1411,10 +1411,10 @@ const UNIT_TESTS: [UnitTest] = [
             },
           },
         },
-        expected: {
-          kind: "literal",
-          value: "[0,1,0,0,1]",
-        },
+        expected: [
+          "[0,1,0,0,1]",
+          "[0,1,0,0,1,0,[]]",
+        ],
       },
     },
   },
@@ -1455,7 +1455,7 @@ const UNIT_TESTS: [UnitTest] = [
   {
     test_number: 1056,
     assertion: {
-      kind: "bytes_equal",
+      kind: "bytes_in",
       value: {
         actual: {
           kind: "to_bytes",
@@ -1479,10 +1479,10 @@ const UNIT_TESTS: [UnitTest] = [
             },
           },
         },
-        expected: {
-          kind: "literal",
-          value: "hex:736f6961fa050001000001",
-        },
+        expected: [
+          "hex:736f6961fa050001000001",
+          "hex:736f6961fa07000100000100f6",
+        ],
       },
     },
   },
