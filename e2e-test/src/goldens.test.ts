@@ -241,6 +241,34 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
       throw e;
     }
   }
+  for (const alternativeJson of input.expectedDenseJson.concat(
+    input.expectedReadableJson,
+  )) {
+    try {
+      const roundTripJson = toDenseJson(
+        typedValue.serializer,
+        fromJsonKeepUnrecognized(typedValue.serializer, alternativeJson),
+      );
+      // Check if roundTripJson matches any of the expected values
+      verifyAssertion(
+        Assertion.create({
+          kind: "string_in",
+          value: {
+            actual: StringExpression.create({
+              kind: "literal",
+              value: roundTripJson,
+            }),
+            expected: input.expectedDenseJson,
+          },
+        }),
+      );
+    } catch (e) {
+      if (e instanceof AssertionError) {
+        e.addContext(`while processing alternative JSON: ${alternativeJson}`);
+      }
+      throw e;
+    }
+  }
   for (const alternativeBytes of input.alternativeBytes) {
     try {
       const roundTripBytes = toBytes(
@@ -267,6 +295,37 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
       if (e instanceof AssertionError) {
         e.addContext(
           `while processing alternative bytes: ${evaluateBytes(alternativeBytes).toBase16()}`,
+        );
+      }
+      throw e;
+    }
+  }
+  for (const alternativeBytes of input.expectedBytes) {
+    try {
+      const roundTripBytes = toBytes(
+        typedValue.serializer,
+        fromBytesDropUnrecognizedFields(
+          typedValue.serializer,
+          alternativeBytes,
+        ),
+      );
+      // Check if roundTripBytes matches any of the expected values
+      verifyAssertion(
+        Assertion.create({
+          kind: "bytes_in",
+          value: {
+            actual: BytesExpression.create({
+              kind: "literal",
+              value: roundTripBytes,
+            }),
+            expected: input.expectedBytes,
+          },
+        }),
+      );
+    } catch (e) {
+      if (e instanceof AssertionError) {
+        e.addContext(
+          `while processing alternative bytes: ${alternativeBytes.toBase16()}`,
         );
       }
       throw e;
