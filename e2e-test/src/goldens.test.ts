@@ -4,6 +4,7 @@ import {
   Assertion,
   BytesExpression,
   Color,
+  KeyedArrays,
   MyEnum,
   Point,
   StringExpression,
@@ -352,6 +353,27 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
         },
       }),
     );
+    verifyAssertion(
+      Assertion.create({
+        kind: "string_equal",
+        value: {
+          actual: {
+            kind: "literal",
+            value: JSON.stringify(
+              soia
+                .parseTypeDescriptor(JSON.parse(input.expectedTypeDescriptor))
+                .asJson(),
+              null,
+              2,
+            ),
+          },
+          expected: {
+            kind: "literal",
+            value: input.expectedTypeDescriptor,
+          },
+        },
+      }),
+    );
   }
 }
 
@@ -561,6 +583,12 @@ function evaluteTypedValue<T>(literal: TypedValue): TypedValueType<unknown> {
       return {
         value: literal.union.value,
         serializer: MyEnum.SERIALIZER,
+      };
+    }
+    case "keyed_arrays": {
+      return {
+        value: literal.union.value,
+        serializer: KeyedArrays.SERIALIZER,
       };
     }
     case "round_trip_dense_json": {
