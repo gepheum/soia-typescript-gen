@@ -361,7 +361,7 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
             kind: "literal",
             value: JSON.stringify(
               soia
-                .parseTypeDescriptor(JSON.parse(input.expectedTypeDescriptor))
+                .parseTypeDescriptorFromJsonCode(input.expectedTypeDescriptor)
                 .asJson(),
               null,
               2,

@@ -363,7 +363,7 @@ describe("struct reflection", () => {
               number: 3,
             },
           ],
-          removed_fields: [1],
+          removed_numbers: [1],
         },
       ],
     });
@@ -485,7 +485,7 @@ describe("struct with indexed arrays", () => {
                 name: "array_with_bool_key",
                 type: {
                   value: {
-                    key_chain: "bool",
+                    key_extractor: "bool",
                   },
                 },
               },
@@ -493,7 +493,7 @@ describe("struct with indexed arrays", () => {
                 name: "array_with_string_key",
                 type: {
                   value: {
-                    key_chain: "string",
+                    key_extractor: "string",
                   },
                 },
               },
@@ -501,7 +501,7 @@ describe("struct with indexed arrays", () => {
                 name: "array_with_int32_key",
                 type: {
                   value: {
-                    key_chain: "int32",
+                    key_extractor: "int32",
                   },
                 },
               },
@@ -509,7 +509,7 @@ describe("struct with indexed arrays", () => {
                 name: "array_with_int64_key",
                 type: {
                   value: {
-                    key_chain: "int64",
+                    key_extractor: "int64",
                   },
                 },
               },
@@ -518,7 +518,7 @@ describe("struct with indexed arrays", () => {
                 type: {
                   kind: "array",
                   value: {
-                    key_chain: "user.id",
+                    key_extractor: "user.id",
                   },
                 },
               },
@@ -526,7 +526,7 @@ describe("struct with indexed arrays", () => {
                 name: "array_with_enum_key",
                 type: {
                   value: {
-                    key_chain: "weekday.kind",
+                    key_extractor: "weekday.kind",
                   },
                 },
               },
@@ -534,7 +534,7 @@ describe("struct with indexed arrays", () => {
                 name: "array_with_bytes_key",
                 type: {
                   value: {
-                    key_chain: "bytes",
+                    key_extractor: "bytes",
                   },
                 },
               },
@@ -542,7 +542,7 @@ describe("struct with indexed arrays", () => {
                 name: "array_with_timestamp_key",
                 type: {
                   value: {
-                    key_chain: "timestamp",
+                    key_extractor: "timestamp",
                   },
                 },
               },
