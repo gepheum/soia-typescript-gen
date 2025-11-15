@@ -45,9 +45,9 @@ export interface EnumInfo {
   /** True if all the fields of the enum are constant fields. */
   readonly onlyConstants: boolean;
   readonly constantFields: readonly EnumConstantField[];
-  readonly valueFields: readonly EnumValueField[];
+  readonly wrapperFields: readonly EnumWrapperField[];
   readonly kindType: TsType;
-  /** Union of `undefined` and the frozen type of all the value fields */
+  /** Union of `undefined` and the frozen type of all the wrapper fields */
   readonly valueType: TsType;
   readonly initializerType: TsType;
   readonly valueOnlyInitializerType: TsType;
@@ -99,11 +99,11 @@ export interface Indexable {
   readonly searchMethodParamName: string;
 }
 
-export type EnumField = EnumConstantField | EnumValueField;
+export type EnumField = EnumConstantField | EnumWrapperField;
 
 // Information about a constant field within an enum.
 export interface EnumConstantField {
-  // To distinguish from EnumValueField.
+  // To distinguish from EnumWrapperField.
   readonly isConstant: true;
 
   // Name of the field as it appears in the `.soia` file, in UPPER_CASE format.
@@ -119,7 +119,7 @@ export interface EnumConstantField {
   readonly number: number;
 }
 
-export interface EnumValueField {
+export interface EnumWrapperField {
   // To distinguish from EnumConstantField.
   readonly isConstant: false;
 
@@ -271,7 +271,7 @@ class RecordInfoCreator {
     const { className } = this;
     const { record } = this.record;
     const constantFields: EnumConstantField[] = [];
-    const valueFields: EnumValueField[] = [];
+    const wrapperFields: EnumWrapperField[] = [];
     const typesInKindTypeUnion: TsType[] = [];
     const typesInValueTypeUnion: TsType[] = [TsType.UNDEFINED];
     const typesInInitializerUnion: TsType[] = [];
@@ -307,12 +307,12 @@ class RecordInfoCreator {
         // A constant field.
         registerConstantField(this.createEnumConstantField(field));
       } else {
-        // A value field.
-        const enumField = this.createEnumValueField(field);
+        // A wrapper field.
+        const enumField = this.createEnumWrapperField(field);
         const { name } = enumField;
         const nameLiteral = TsType.literal(name);
         const { frozen, initializer } = enumField.tsTypes;
-        valueFields.push(enumField);
+        wrapperFields.push(enumField);
         typesInValueTypeUnion.push(frozen);
         typesInKindTypeUnion.push(nameLiteral);
         typesInInitializerUnion.push(
@@ -341,9 +341,9 @@ class RecordInfoCreator {
       className: className,
       nestedRecords: record.nestedRecords.map((r) => r.key),
       removedNumbers: record.removedNumbers.slice(),
-      onlyConstants: !valueFields.length,
+      onlyConstants: !wrapperFields.length,
       constantFields: constantFields,
-      valueFields: valueFields,
+      wrapperFields: wrapperFields,
       kindType: TsType.union(typesInKindTypeUnion),
       valueType: TsType.union(typesInValueTypeUnion),
       initializerType: TsType.union(typesInInitializerUnion),
@@ -365,7 +365,7 @@ class RecordInfoCreator {
     };
   }
 
-  private createEnumValueField(field: Field): EnumValueField {
+  private createEnumWrapperField(field: Field): EnumWrapperField {
     const { type } = field;
     if (!type) {
       throw new TypeError();

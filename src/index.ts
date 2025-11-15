@@ -355,7 +355,7 @@ class TsModuleCodeGenerator {
 
   private defineCreateValueFunctionForEnum(enumInfo: EnumInfo): void {
     const { typeSpeller } = this;
-    const { className, onlyConstants, valueFields } = enumInfo;
+    const { className, onlyConstants, wrapperFields } = enumInfo;
     if (onlyConstants) {
       return;
     }
@@ -363,7 +363,7 @@ class TsModuleCodeGenerator {
         function createValueOf${className.value}(initializer) {
           const { kind, value } = initializer;
           switch (kind) {\n`);
-    for (const field of valueFields) {
+    for (const field of wrapperFields) {
       const returnValue = toFrozenExpression({
         type: field.type,
         inExpr: "value",
@@ -576,7 +576,7 @@ class TsModuleCodeGenerator {
       constantFields,
       onlyConstants,
       removedNumbers,
-      valueFields,
+      wrapperFields,
     } = enumInfo;
     const { parentClassValue } = className;
     this.push(`
@@ -602,7 +602,7 @@ class TsModuleCodeGenerator {
           number: ${field.number},
         },\n`);
     }
-    for (const field of valueFields) {
+    for (const field of wrapperFields) {
       this.push(`
         {
           name: "${field.name}",
