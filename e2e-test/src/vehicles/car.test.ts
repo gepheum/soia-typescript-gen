@@ -6,7 +6,7 @@ import { Car } from "../../soiagen/vehicles/car.js";
 
 describe("Car", () => {
   it("TypeDescriptor#asJson()", () => {
-    expect(Car.SERIALIZER.typeDescriptor.asJson()).toMatch({
+    expect(Car.serializer.typeDescriptor.asJson()).toMatch({
       type: {
         kind: "record",
         value: "vehicles/car.soia:Car",
@@ -70,12 +70,12 @@ describe("Car", () => {
       ],
     });
     new SerializerTester(
-      Car.SERIALIZER,
+      Car.serializer,
     ).reserializeTypeAdapterAndAssertNoLoss();
   });
 
   it("reserialize", () => {
-    const serializer = Car.SERIALIZER;
+    const serializer = Car.serializer;
     const serializerTester = new SerializerTester(serializer);
     serializerTester.reserializeAndAssert(
       Car.create<"partial">({

@@ -20,7 +20,7 @@ import {
 
 describe("structs", () => {
   it("reserialize", () => {
-    const serializer = Point.SERIALIZER;
+    const serializer = Point.serializer;
     const serializerTester = new SerializerTester(serializer);
     serializerTester.reserializeAndAssert(
       Point.create({
@@ -184,7 +184,7 @@ describe("structs", () => {
   });
 
   describe("floats", () => {
-    const serializerTester = new SerializerTester(Floats.SERIALIZER);
+    const serializerTester = new SerializerTester(Floats.serializer);
     serializerTester.reserializeAndAssert(
       Floats.create<"partial">({ x: 0 / 0 }),
       {
@@ -220,25 +220,25 @@ describe("structs", () => {
 
 describe("struct reflection", () => {
   it("get module path", () => {
-    expect(FullName.SERIALIZER.typeDescriptor.modulePath).toBe("structs.soia");
+    expect(FullName.serializer.typeDescriptor.modulePath).toBe("structs.soia");
   });
 
   it("get record name", () => {
-    expect(FullName.SERIALIZER.typeDescriptor.name).toBe("FullName");
-    expect(FullName.SERIALIZER.typeDescriptor.qualifiedName).toBe("FullName");
-    expect(Item.User.SERIALIZER.typeDescriptor.name).toBe("User");
-    expect(Item.User.SERIALIZER.typeDescriptor.qualifiedName).toBe("Item.User");
+    expect(FullName.serializer.typeDescriptor.name).toBe("FullName");
+    expect(FullName.serializer.typeDescriptor.qualifiedName).toBe("FullName");
+    expect(Item.User.serializer.typeDescriptor.name).toBe("User");
+    expect(Item.User.serializer.typeDescriptor.qualifiedName).toBe("Item.User");
   });
 
   it("get parent type", () => {
-    expect(Item.User.SERIALIZER.typeDescriptor.parentType).toBe(
-      Item.SERIALIZER.typeDescriptor,
+    expect(Item.User.serializer.typeDescriptor.parentType).toBe(
+      Item.serializer.typeDescriptor,
     );
-    expect(Item.SERIALIZER.typeDescriptor.parentType).toBe(undefined);
+    expect(Item.serializer.typeDescriptor.parentType).toBe(undefined);
   });
 
   it("get field", () => {
-    const typeDescriptor = FullName.SERIALIZER.typeDescriptor;
+    const typeDescriptor = FullName.serializer.typeDescriptor;
     expect(typeDescriptor.kind).toBe("struct");
 
     const firstName: StructField<FullName> =
@@ -276,7 +276,7 @@ describe("struct reflection", () => {
   });
 
   it("get and set field", () => {
-    const typeDescriptor = FullName.SERIALIZER.typeDescriptor;
+    const typeDescriptor = FullName.serializer.typeDescriptor;
     const firstName: StructField<FullName> =
       typeDescriptor.getField("firstName");
 
@@ -320,15 +320,15 @@ describe("struct reflection", () => {
       lastName: "Doe",
     });
     const copy = copyAllFieldsButOne(
-      FullName.SERIALIZER.typeDescriptor,
+      FullName.serializer.typeDescriptor,
       fullName,
       "first_name",
     );
-    expect(FullName.SERIALIZER.toJson(copy)).toMatch(["", 0, "Doe"]);
+    expect(FullName.serializer.toJson(copy)).toMatch(["", 0, "Doe"]);
   });
 
   it("TypeDescriptor#asJson()", () => {
-    expect(FullName.SERIALIZER.typeDescriptor.asJson()).toMatch({
+    expect(FullName.serializer.typeDescriptor.asJson()).toMatch({
       type: {
         kind: "record",
         value: "structs.soia:FullName",
@@ -369,7 +369,7 @@ describe("struct reflection", () => {
     });
   });
   new SerializerTester(
-    FullName.SERIALIZER,
+    FullName.serializer,
   ).reserializeTypeAdapterAndAssertNoLoss();
 });
 
@@ -461,19 +461,19 @@ describe("struct with indexed arrays", () => {
     it("11", () => {
       expect(mutableItems.arrayWithEnumKey).toMatch(array);
     });
-    Items.SERIALIZER.toJson(items);
-    Items.SERIALIZER.toJson(items.toMutable());
+    Items.serializer.toJson(items);
+    Items.serializer.toJson(items.toMutable());
     it("#12", () => {
       expect(mutableItems.toString()).toBe(items.toString());
     });
     it("#13", () => {
       expect(mutableItems.toString()).toMatch(
-        Items.SERIALIZER.toJsonCode(items, "readable"),
+        Items.serializer.toJsonCode(items, "readable"),
       );
     });
 
     it("TypeDescriptor#asJson()", () => {
-      expect(Items.SERIALIZER.typeDescriptor.asJson()).toMatch({
+      expect(Items.serializer.typeDescriptor.asJson()).toMatch({
         type: {
           kind: "record",
           value: "structs.soia:Items",

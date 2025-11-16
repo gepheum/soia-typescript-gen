@@ -202,7 +202,7 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
       new Uint8Array(expectedBytes.toBuffer().slice(prefix.length)),
     );
     dataView.setUint8(expectedBytes.byteLength + 1, 1);
-    const point = Point.SERIALIZER.fromBytes(buffer);
+    const point = Point.serializer.fromBytes(buffer);
     if (point.x !== 1) {
       throw new AssertionError({
         message: `Failed to skip value: got point.x=${point.x}, expected 1; input: ${input}`,
@@ -570,25 +570,25 @@ function evaluteTypedValue<T>(literal: TypedValue): TypedValueType<unknown> {
     case "point": {
       return {
         value: literal.union.value,
-        serializer: Point.SERIALIZER,
+        serializer: Point.serializer,
       };
     }
     case "color": {
       return {
         value: literal.union.value,
-        serializer: Color.SERIALIZER,
+        serializer: Color.serializer,
       };
     }
     case "my_enum": {
       return {
         value: literal.union.value,
-        serializer: MyEnum.SERIALIZER,
+        serializer: MyEnum.serializer,
       };
     }
     case "keyed_arrays": {
       return {
         value: literal.union.value,
-        serializer: KeyedArrays.SERIALIZER,
+        serializer: KeyedArrays.serializer,
       };
     }
     case "round_trip_dense_json": {
@@ -624,98 +624,98 @@ function evaluteTypedValue<T>(literal: TypedValue): TypedValueType<unknown> {
     case "point_from_json_keep_unrecognized":
       return {
         value: fromJsonKeepUnrecognized(
-          Point.SERIALIZER,
+          Point.serializer,
           evaluateString(literal.union.value),
         ),
-        serializer: Point.SERIALIZER,
+        serializer: Point.serializer,
       };
     case "point_from_json_drop_unrecognized":
       return {
         value: fromJsonDropUnrecognized(
-          Point.SERIALIZER,
+          Point.serializer,
           evaluateString(literal.union.value),
         ),
-        serializer: Point.SERIALIZER,
+        serializer: Point.serializer,
       };
     case "point_from_bytes_keep_unrecognized":
       return {
         value: fromBytesKeepUnrecognized(
-          Point.SERIALIZER,
+          Point.serializer,
           evaluateBytes(literal.union.value),
         ),
-        serializer: Point.SERIALIZER,
+        serializer: Point.serializer,
       };
     case "point_from_bytes_drop_unrecognized":
       return {
         value: fromBytesDropUnrecognizedFields(
-          Point.SERIALIZER,
+          Point.serializer,
           evaluateBytes(literal.union.value),
         ),
-        serializer: Point.SERIALIZER,
+        serializer: Point.serializer,
       };
     case "color_from_json_keep_unrecognized":
       return {
         value: fromJsonKeepUnrecognized(
-          Color.SERIALIZER,
+          Color.serializer,
           evaluateString(literal.union.value),
         ),
-        serializer: Color.SERIALIZER,
+        serializer: Color.serializer,
       };
     case "color_from_json_drop_unrecognized":
       return {
         value: fromJsonDropUnrecognized(
-          Color.SERIALIZER,
+          Color.serializer,
           evaluateString(literal.union.value),
         ),
-        serializer: Color.SERIALIZER,
+        serializer: Color.serializer,
       };
     case "color_from_bytes_keep_unrecognized":
       return {
         value: fromBytesKeepUnrecognized(
-          Color.SERIALIZER,
+          Color.serializer,
           evaluateBytes(literal.union.value),
         ),
-        serializer: Color.SERIALIZER,
+        serializer: Color.serializer,
       };
     case "color_from_bytes_drop_unrecognized":
       return {
         value: fromBytesDropUnrecognizedFields(
-          Color.SERIALIZER,
+          Color.serializer,
           evaluateBytes(literal.union.value),
         ),
-        serializer: Color.SERIALIZER,
+        serializer: Color.serializer,
       };
     case "my_enum_from_json_keep_unrecognized":
       return {
         value: fromJsonKeepUnrecognized(
-          MyEnum.SERIALIZER,
+          MyEnum.serializer,
           evaluateString(literal.union.value),
         ),
-        serializer: MyEnum.SERIALIZER,
+        serializer: MyEnum.serializer,
       };
     case "my_enum_from_json_drop_unrecognized":
       return {
         value: fromJsonDropUnrecognized(
-          MyEnum.SERIALIZER,
+          MyEnum.serializer,
           evaluateString(literal.union.value),
         ),
-        serializer: MyEnum.SERIALIZER,
+        serializer: MyEnum.serializer,
       };
     case "my_enum_from_bytes_keep_unrecognized":
       return {
         value: fromBytesKeepUnrecognized(
-          MyEnum.SERIALIZER,
+          MyEnum.serializer,
           evaluateBytes(literal.union.value),
         ),
-        serializer: MyEnum.SERIALIZER,
+        serializer: MyEnum.serializer,
       };
     case "my_enum_from_bytes_drop_unrecognized":
       return {
         value: fromBytesDropUnrecognizedFields(
-          MyEnum.SERIALIZER,
+          MyEnum.serializer,
           evaluateBytes(literal.union.value),
         ),
-        serializer: MyEnum.SERIALIZER,
+        serializer: MyEnum.serializer,
       };
     case "?":
       throw new Error();

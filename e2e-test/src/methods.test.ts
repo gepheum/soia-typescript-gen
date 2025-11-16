@@ -18,13 +18,13 @@ describe("methods", () => {
       expect(MyProcedure).toMatch({
         name: "MyProcedure",
         number: 1974132327,
-        requestSerializer: is(Point.SERIALIZER),
-        responseSerializer: is(JsonValue.SERIALIZER),
+        requestSerializer: is(Point.serializer),
+        responseSerializer: is(JsonValue.serializer),
       });
       expect(MyMethod).toMatch({
         name: "MyMethod",
-        requestSerializer: is(MyRequest.SERIALIZER),
-        responseSerializer: is(MyResponse.SERIALIZER),
+        requestSerializer: is(MyRequest.serializer),
+        responseSerializer: is(MyResponse.serializer),
       });
     });
     it("#1", () => {

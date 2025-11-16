@@ -250,7 +250,7 @@ class TsModuleCodeGenerator {
       toMutable(): ${className.type}.Mutable;
 
       static readonly DEFAULT: ${className.type};
-      static readonly SERIALIZER: $.Serializer<${className.type}>;
+      static readonly serializer: $.Serializer<${className.type}>;
 
       static readonly Mutable: typeof ${className.value}_Mutable;\n`);
     this.declareNestedClasses(struct.nestedRecords);
@@ -349,7 +349,7 @@ class TsModuleCodeGenerator {
     }
     this.pushEol();
 
-    this.push(`static readonly SERIALIZER: $.Serializer<${className.type}>;\n`);
+    this.push(`static readonly serializer: $.Serializer<${className.type}>;\n`);
     this.declareNestedClasses(enumInfo.nestedRecords);
   }
 
@@ -498,7 +498,7 @@ class TsModuleCodeGenerator {
     switch (type.kind) {
       case "record": {
         const className = this.typeSpeller.getClassName(type.key);
-        return `${className.value}.SERIALIZER`;
+        return `${className.value}.serializer`;
       }
       case "array": {
         const item = this.getSerializerExpr(type.item);

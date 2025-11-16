@@ -440,7 +440,6 @@ const STRUCT_COMMON_GENERATED_PROPERTIES: ReadonlySet<string> = new Set([
 
 // Only care about properties in UPPER_CASE format.
 const ENUM_COMMON_GENERATED_PROPERTIES: ReadonlySet<string> = new Set([
-  "SERIALIZER",
   "UNKNOWN",
 ]);
 

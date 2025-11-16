@@ -43,36 +43,36 @@ describe("schema change", () => {
     });
 
     it("are kept in JSON format", () => {
-      const fooBefore = FooBefore.SERIALIZER.fromJson(
-        FooAfter.SERIALIZER.toJson(foo),
+      const fooBefore = FooBefore.serializer.fromJson(
+        FooAfter.serializer.toJson(foo),
         "keep-unrecognized-fields",
       );
-      const reserialized = FooAfter.SERIALIZER.fromJson(
-        FooBefore.SERIALIZER.toJson(fooBefore),
+      const reserialized = FooAfter.serializer.fromJson(
+        FooBefore.serializer.toJson(fooBefore),
         "keep-unrecognized-fields",
       );
       expect(reserialized).toMatch(foo);
     });
 
     it("are kept in JSON format even when made mutable", () => {
-      const fooBefore = FooBefore.SERIALIZER.fromJson(
-        FooAfter.SERIALIZER.toJson(foo.toMutable()),
+      const fooBefore = FooBefore.serializer.fromJson(
+        FooAfter.serializer.toJson(foo.toMutable()),
         "keep-unrecognized-fields",
       );
-      const reserialized = FooAfter.SERIALIZER.fromJson(
-        FooBefore.SERIALIZER.toJson(fooBefore.toMutable()),
+      const reserialized = FooAfter.serializer.fromJson(
+        FooBefore.serializer.toJson(fooBefore.toMutable()),
         "keep-unrecognized-fields",
       );
       expect(reserialized).toMatch(foo);
     });
 
     it("are kept in binary format", () => {
-      const fooBefore = FooBefore.SERIALIZER.fromBytes(
-        FooAfter.SERIALIZER.toBytes(foo).toBuffer(),
+      const fooBefore = FooBefore.serializer.fromBytes(
+        FooAfter.serializer.toBytes(foo).toBuffer(),
         "keep-unrecognized-fields",
       );
-      const reserialized = FooAfter.SERIALIZER.fromBytes(
-        FooBefore.SERIALIZER.toBytes(fooBefore).toBuffer(),
+      const reserialized = FooAfter.serializer.fromBytes(
+        FooBefore.serializer.toBytes(fooBefore).toBuffer(),
         "keep-unrecognized-fields",
       );
       expect(reserialized).toMatch(foo);
@@ -84,15 +84,15 @@ describe("schema change", () => {
           a: 3,
         }),
       });
-      const structHolderBefore = Zelda.StructHolderBefore.SERIALIZER.fromBytes(
-        Zelda.StructHolder.SERIALIZER.toBytes(structHolder).toBuffer(),
+      const structHolderBefore = Zelda.StructHolderBefore.serializer.fromBytes(
+        Zelda.StructHolder.serializer.toBytes(structHolder).toBuffer(),
         "keep-unrecognized-fields",
       );
       expect(
         toBase16(
-          Zelda.StructHolderBefore.SERIALIZER.toBytes(
-            structHolderBefore,
-          ).toBuffer(),
+          Zelda.StructHolderBefore.serializer
+            .toBytes(structHolderBefore)
+            .toBuffer(),
         ),
       ).toMatch("f7f703");
     });
@@ -101,15 +101,15 @@ describe("schema change", () => {
       const enumHolder = Zelda.EnumHolder.create({
         e: Zelda.Enum.A,
       });
-      const enumHolderBefore = Zelda.EnumHolderBefore.SERIALIZER.fromBytes(
-        Zelda.EnumHolder.SERIALIZER.toBytes(enumHolder).toBuffer(),
+      const enumHolderBefore = Zelda.EnumHolderBefore.serializer.fromBytes(
+        Zelda.EnumHolder.serializer.toBytes(enumHolder).toBuffer(),
         "keep-unrecognized-fields",
       );
       expect(
         toBase16(
-          Zelda.EnumHolderBefore.SERIALIZER.toBytes(
-            enumHolderBefore,
-          ).toBuffer(),
+          Zelda.EnumHolderBefore.serializer
+            .toBytes(enumHolderBefore)
+            .toBuffer(),
         ),
       ).toMatch("f701");
     });
@@ -132,10 +132,10 @@ describe("schema change", () => {
     });
 
     it("are removed when deserializing from JSON", () => {
-      const reserialized = RemovalBefore.SERIALIZER.fromJson(
-        RemovalAfter.SERIALIZER.toJson(
-          RemovalAfter.SERIALIZER.fromJson(
-            RemovalBefore.SERIALIZER.toJson(before),
+      const reserialized = RemovalBefore.serializer.fromJson(
+        RemovalAfter.serializer.toJson(
+          RemovalAfter.serializer.fromJson(
+            RemovalBefore.serializer.toJson(before),
             "keep-unrecognized-fields",
           ),
         ),
@@ -145,13 +145,15 @@ describe("schema change", () => {
     });
 
     it("are removed when deserializing from bytes", () => {
-      const reserialized = RemovalBefore.SERIALIZER.fromBytes(
-        RemovalAfter.SERIALIZER.toBytes(
-          RemovalAfter.SERIALIZER.fromBytes(
-            RemovalBefore.SERIALIZER.toBytes(before).toBuffer(),
-            "keep-unrecognized-fields",
-          ),
-        ).toBuffer(),
+      const reserialized = RemovalBefore.serializer.fromBytes(
+        RemovalAfter.serializer
+          .toBytes(
+            RemovalAfter.serializer.fromBytes(
+              RemovalBefore.serializer.toBytes(before).toBuffer(),
+              "keep-unrecognized-fields",
+            ),
+          )
+          .toBuffer(),
         "keep-unrecognized-fields",
       );
       expect(reserialized).toMatch(expected);

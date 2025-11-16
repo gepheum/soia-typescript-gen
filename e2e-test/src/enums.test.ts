@@ -33,11 +33,11 @@ describe("simple enum", () => {
 
   describe("#typeDescriptor", () => {
     it("#kind", () => {
-      expect(Weekday.SERIALIZER.typeDescriptor.kind).toBe("enum");
+      expect(Weekday.serializer.typeDescriptor.kind).toBe("enum");
     });
 
     it("#asJson()", () => {
-      expect(JsonValue.SERIALIZER.typeDescriptor.asJson()).toMatch({
+      expect(JsonValue.serializer.typeDescriptor.asJson()).toMatch({
         type: {
           kind: "record",
           value: "enums.soia:JsonValue",
@@ -127,20 +127,20 @@ describe("simple enum", () => {
           },
         ],
       });
-      expect(JsonValue.Pair.SERIALIZER.typeDescriptor.asJson()).toMatch({
+      expect(JsonValue.Pair.serializer.typeDescriptor.asJson()).toMatch({
         type: {
           kind: "record",
           value: "enums.soia:JsonValue.Pair",
         },
       });
       new SerializerTester(
-        JsonValue.SERIALIZER,
+        JsonValue.serializer,
       ).reserializeTypeAdapterAndAssertNoLoss();
     });
   });
 
   describe("serializer", () => {
-    const serializerTester = new SerializerTester(Weekday.SERIALIZER);
+    const serializerTester = new SerializerTester(Weekday.serializer);
     serializerTester.reserializeAndAssert(Weekday.UNKNOWN, {
       denseJson: 0,
       readableJson: "?",
@@ -217,7 +217,7 @@ describe("recursive enum", () => {
     ],
   });
 
-  const serializerTester = new SerializerTester(JsonValue.SERIALIZER);
+  const serializerTester = new SerializerTester(JsonValue.serializer);
   serializerTester.reserializeAndAssert(JsonValue.NULL, {
     denseJson: 1,
     readableJson: "NULL",
@@ -317,23 +317,23 @@ describe("recursive enum", () => {
 
 describe("enum reflection", () => {
   it("get module path", () => {
-    expect(Car.SERIALIZER.typeDescriptor.modulePath).toBe("vehicles/car.soia");
+    expect(Car.serializer.typeDescriptor.modulePath).toBe("vehicles/car.soia");
   });
 
   describe("get record name", () => {
     it("#0", () => {
-      expect(JsonValue.SERIALIZER.typeDescriptor.name).toBe("JsonValue");
+      expect(JsonValue.serializer.typeDescriptor.name).toBe("JsonValue");
     });
     it("#1", () => {
-      expect(JsonValue.SERIALIZER.typeDescriptor.qualifiedName).toBe(
+      expect(JsonValue.serializer.typeDescriptor.qualifiedName).toBe(
         "JsonValue",
       );
     });
     it("#2", () => {
-      expect(JsonValue.Pair.SERIALIZER.typeDescriptor.name).toBe("Pair");
+      expect(JsonValue.Pair.serializer.typeDescriptor.name).toBe("Pair");
     });
     it("#3", () => {
-      expect(JsonValue.Pair.SERIALIZER.typeDescriptor.qualifiedName).toBe(
+      expect(JsonValue.Pair.serializer.typeDescriptor.qualifiedName).toBe(
         "JsonValue.Pair",
       );
     });
@@ -341,17 +341,17 @@ describe("enum reflection", () => {
 
   describe("get parent type", () => {
     it("#0", () => {
-      expect(JsonValue.Pair.SERIALIZER.typeDescriptor.parentType).toBe(
-        JsonValue.SERIALIZER.typeDescriptor,
+      expect(JsonValue.Pair.serializer.typeDescriptor.parentType).toBe(
+        JsonValue.serializer.typeDescriptor,
       );
     });
     it("#1", () => {
-      expect(JsonValue.SERIALIZER.typeDescriptor.parentType).toBe(undefined);
+      expect(JsonValue.serializer.typeDescriptor.parentType).toBe(undefined);
     });
   });
 
   describe("get field", () => {
-    const typeDescriptor = JsonValue.SERIALIZER.typeDescriptor;
+    const typeDescriptor = JsonValue.serializer.typeDescriptor;
     it("#0", () => {
       expect(typeDescriptor.kind).toBe("enum");
     });
