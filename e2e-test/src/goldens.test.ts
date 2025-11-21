@@ -7,6 +7,8 @@ import {
   KeyedArrays,
   MyEnum,
   Point,
+  RecEnum,
+  RecStruct,
   StringExpression,
   TypedValue,
   UNIT_TESTS,
@@ -589,6 +591,18 @@ function evaluteTypedValue<T>(literal: TypedValue): TypedValueType<unknown> {
       return {
         value: literal.union.value,
         serializer: KeyedArrays.serializer,
+      };
+    }
+    case "rec_struct": {
+      return {
+        value: literal.union.value,
+        serializer: RecStruct.serializer,
+      };
+    }
+    case "rec_enum": {
+      return {
+        value: literal.union.value,
+        serializer: RecEnum.serializer,
       };
     }
     case "round_trip_dense_json": {
