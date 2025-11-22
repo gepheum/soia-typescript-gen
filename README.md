@@ -59,6 +59,9 @@ const john = User.create({
 
 assert(john.name === "John Doe");
 
+// john.name = "John Smith";
+// ^ Does not compile: all the properties are read-only
+
 // With create<"partial">({...}), you don't need to specify all the fields of
 // the struct.
 const jane = User.create<"partial">({
