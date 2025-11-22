@@ -279,7 +279,7 @@ class TsModuleCodeGenerator {
     }
     this.push(`class ${className.value}_Mutable {\n`);
     this.push(`
-      constructor(initializer?: ${className.type}.Initializer);\n\n`);
+      constructor(initializer?: ${className.type}.Initializer<"partial">);\n\n`);
 
     // Declare the fields.
     for (const field of fields) {
