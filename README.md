@@ -35,29 +35,40 @@ import { TARZAN, User, UserHistory, UserRegistry } from "../soiagen/user";
 
 ### Struct classes
 
-For every struct `S` in the .soia file, soia generates a frozen/deeply immutable class `S` and a mutable class `S.Mutable`.
+For every struct `S` in the .soia file, soia generates a frozen (deeply immutable) class `S` and a mutable class `S.Mutable`.
 
 #### Frozen struct classes
 
 ```typescript
-// User.create({...}) consructs a frozen/deeply immutable User
+// Construct a frozen User with User.create({...})
 const john = User.create({
   userId: 42,
   name: "John Doe",
+  quote: "Coffee is just a socially acceptable form of rage.",
+  pets: [
+    {
+      name: "Dumbo",
+      heightInMeters: 1.0,
+      picture: "🐘",
+    },
+  ],
+  subscriptionStatus: "FREE",
+  // foo: "bar",
+  // ^ Does not compile: 'foo' is not a field of User
 });
 
 assert(john.name === "John Doe");
-assert(john.quote === "");
 
-// create<"whole">({...}) forces you to initialize all the fields of the struct.
-// You will get a TypeScript compile-time error if you miss one.
-const jane = User.create<"whole">({
+// With create<"partial">({...}), you don't need to specify all the fields of
+// the struct.
+const jane = User.create<"partial">({
   userId: 43,
   name: "Jane Doe",
-  quote: "I am Jane.",
   pets: [{ name: "Fluffy" }, { name: "Fido" }],
-  subscriptionStatus: "PREMIUM",
 });
+
+// Missing fields are initialized to their default values.
+assert(jane.quote === "");
 
 const janeHistory = UserHistory.create({
   user: jane,
@@ -72,7 +83,7 @@ const janeHistory = UserHistory.create({
 
 const defaultUser = User.DEFAULT;
 assert(defaultUser.name === "");
-// User.DEFAULT is same as User.create({});
+// User.DEFAULT is same as User.create<"partial">({});
 ```
 
 #### Mutable struct classes
@@ -87,13 +98,13 @@ lylaMut.name = "Lyla Doe";
 const jolyMut = new User.Mutable({ userId: 45 });
 jolyMut.name = "Joly Doe";
 
+// jolyHistoryMut.user.quote = "I am Joly.";
+// ^ Does not compile: quote is readonly because jolyHistoryMut.user might be
+// a frozen struct
+
 const jolyHistoryMut = new UserHistory.Mutable();
 jolyHistoryMut.user = jolyMut;
 // ^ The right-hand side of the assignment can be either frozen or mutable.
-
-// jolyHistoryMut.user.quote = "I am Joly.";
-// ^ Does not compile: quote is readonly because jolyHistoryMut.user is possibly
-// frozen
 
 // The mutableUser() getter first checks if 'user' is already a mutable struct,
 // and if so, returns it. Otherwise, it assigns to 'user' a mutable shallow copy
@@ -103,7 +114,7 @@ jolyHistoryMut.mutableUser.quote = "I am Joly.";
 // Similarly, mutablePets() first checks if 'pets' is already a mutable array,
 // and if so, returns it. Otherwise, it assigns to 'pets' a mutable shallow copy
 // of itself and returns it.
-lylaMut.mutablePets.push(User.Pet.create({ name: "Cupcake" }));
+lylaMut.mutablePets.push(User.Pet.create<"partial">({ name: "Cupcake" }));
 lylaMut.mutablePets.push(new User.Pet.Mutable({ name: "Simba" }));
 ```
 
@@ -177,7 +188,7 @@ assert(roniStatus.kind === "trial");
 assert(roniStatus.value!.startTime.unixMillis === 1234);
 
 function getSubscriptionInfoText(status: User.SubscriptionStatus): string {
-  // Use the union() getter for typesafe switches on enums.
+  // Use the 'union' getter for typesafe switches on enums.
   switch (status.union.kind) {
     case "?":
       return "Unknown subscription status";
@@ -186,7 +197,7 @@ function getSubscriptionInfoText(status: User.SubscriptionStatus): string {
     case "PREMIUM":
       return "Premium user";
     case "trial":
-      // Here he compiler knows that the type of union.value is 'User.Trial'.
+      // Here the compiler knows that the type of union.value is 'User.Trial'.
       return "On trial since " + status.union.value.startTime;
   }
 }
@@ -194,11 +205,11 @@ function getSubscriptionInfoText(status: User.SubscriptionStatus): string {
 
 ### Serialization
 
-Every frozen struct class and enum class has a static readonly `SERIALIZER` property which can be used for serializing and deserializing instances of the class.
+Every frozen struct class and enum class has a static readonly `serializer` property which can be used for serializing and deserializing instances of the class.
 
 ```typescript
 
-const serializer = User.SERIALIZER;
+const serializer = User.serializer;
 
 // Serialize 'john' to dense JSON.
 console.log(serializer.toJsonCode(john));
@@ -220,7 +231,7 @@ console.log(serializer.toJsonCode(john, "readable"));
 // Serialize 'john' to binary format.
 console.log(serializer.toBytes(john));
 
-// The binary format is not human readable, but it is a bit more compact than
+// The binary format is not human readable, but it is slightly more compact than
 // JSON, and serialization/deserialization can be a bit faster in languages like
 // C++. Only use it when this small performance gain is likely to matter, which
 // should be rare.
@@ -229,6 +240,8 @@ console.log(serializer.toBytes(john));
 ### Deserialization
 
 ```typescript
+// Use fromJson(), fromJsonCode() and fromBytes() to deserialize.
+
 const reserializedJohn = serializer.fromJsonCode(serializer.toJsonCode(john));
 assert(reserializedJohn.name === "John Doe");
 
@@ -247,11 +260,11 @@ assert(reserializedLyla.name === "Lyla Doe");
 
 ```typescript
 const pets = [
-  User.Pet.create({ name: "Fluffy" }),
-  User.Pet.create({ name: "Fido" }),
+  User.Pet.create<"partial">({ name: "Fluffy" }),
+  User.Pet.create<"partial">({ name: "Fido" }),
 ];
 
-const jade = User.create({
+const jade = User.create<"partial">({
   pets: pets,
   // ^ makes a copy of 'pets' because 'pets' is mutable
 });
@@ -261,7 +274,7 @@ const jade = User.create({
 
 assert(jade.pets !== pets);
 
-const jack = User.create({
+const jack = User.create<"partial">({
   pets: jade.pets,
   // ^ doesn't make a copy because 'jade.pets' is frozen
 });
@@ -276,8 +289,10 @@ const userRegistry = UserRegistry.create({
   users: [john, jane, lylaMut],
 });
 
-// searchUsers() returns the user with the given key, specified in the .soia
-// file. In this example, the key is the user id. Runs in O(1).
+// searchUsers() returns the user with the given key (specified in the .soia
+// file). In this example, the key is the user id.
+// The first lookup runs in O(N) time, and the following lookups run in O(1)
+// time.
 assert(userRegistry.searchUsers(42) === john);
 assert(userRegistry.searchUsers(100) === undefined);
 ```
@@ -314,7 +329,7 @@ Reflection allows you to inspect a soia type at runtime.
 
 ```typescript
 const fieldNames: string[] = [];
-for (const field of User.SERIALIZER.typeDescriptor.fields) {
+for (const field of User.serializer.typeDescriptor.fields) {
   const { name, number, property, type } = field;
   fieldNames.push(name);
 }
@@ -322,8 +337,8 @@ console.log(fieldNames);
 // [ 'user_id', 'name', 'quote', 'pets', 'subscription_status' ]
 
 // A type descriptor can be serialized to JSON and deserialized later.
-const typeDescriptor = parseTypeDescriptor(
-  User.SERIALIZER.typeDescriptor.asJson(),
+const typeDescriptor = parseTypeDescriptorFromJson(
+  User.serializer.typeDescriptor.asJson(),
 );
 ```
 
