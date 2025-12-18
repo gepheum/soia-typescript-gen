@@ -1,7 +1,10 @@
+// TODO: option to generate .ts code
+
 import * as paths from "path";
 import type {
   CodeGenerator,
   Constant,
+  Doc,
   Method,
   Module,
   RecordKey,
@@ -108,7 +111,7 @@ class TsModuleCodeGenerator {
             "${this.inModule.path}",
             [\n`);
         for (const recordLocation of this.inModule.records) {
-          this.writeJsonLike(this.getRecordSpec(recordLocation));
+          this.pushJsonLike(this.getRecordSpec(recordLocation));
           this.push(",\n");
         }
         this.push(`
@@ -209,9 +212,14 @@ class TsModuleCodeGenerator {
   private writeFrozenClassForStruct(struct: StructInfo): void {
     const { fileType } = this;
     const { className } = struct;
-    this.push(
-      className.isNested ? `// Exported as '${className.type}'\n` : "export ",
-    );
+    this.pushDocstring([
+      this.getDocTextForDocstring(struct.doc),
+      `Deeply immutable. If you need mutability, use \`${className.type}.Mutable\`.`,
+      className.isNested
+        ? `The preferred way to refer to this class is \`${className.type}\`.`
+        : "",
+    ]);
+    this.push(!className.isNested ? "export " : "");
     if (fileType === ".d.ts") {
       this.push("declare ");
     }
@@ -227,19 +235,38 @@ class TsModuleCodeGenerator {
   private declarePropertiesOfFrozenClass(struct: StructInfo): void {
     const { className, fields, indexableFields } = struct;
     this.push(`
+      /**
+       * Creates a new instance of \`${className.type}\`.
+       *
+       * You must specify all the fields unless you use \`create<"partial">({...})>\`,
+       * in which case missing fields will be set to their default values.
+       */
       static create<_Wholeness extends "whole" | "partial" = "whole">(
         initializer: ${className.type}.Initializer<_Wholeness>
       ): ${className.type};\n\n`);
     this.push("private constructor();\n\n");
     for (const field of fields) {
+      this.pushDocstring(this.getDocTextForDocstring(field.doc));
       this.push(`readonly ${field.property}: ${field.tsTypes.frozen};\n`);
     }
     this.pushEol();
     if (indexableFields.length) {
       for (const indexableField of indexableFields) {
         const { searchMethodName } = indexableField;
-        const { keyType, frozenValueType, searchMethodParamName } =
-          indexableField.indexable!;
+        const {
+          keyExpression,
+          keyType,
+          frozenValueType,
+          searchMethodParamName,
+        } = indexableField.indexable!;
+        this.pushDocstring(
+          [
+            `Searches for an item of \`${indexableField.property}\` by its key.`,
+            `The key of an item \`v\` is \`${keyExpression}\`.`,
+            "If multiple items share the same key, the last occurrence is returned.",
+            "Returns `undefined` if the key was not found.",
+          ].join("\n"),
+        );
         this.push(`${searchMethodName}(`);
         this.push(`${searchMethodParamName}: ${keyType}`);
         this.push(`): ${frozenValueType} | undefined;\n`);
@@ -247,12 +274,19 @@ class TsModuleCodeGenerator {
       this.pushEol();
     }
     this.push(`
+      /** Returns this instance (no-op). */
       toFrozen(): this;
+
+      /** Returns a mutable shallow copy of this instance. */
       toMutable(): ${className.type}.Mutable;
 
+      /** Default instance with all fields set to their default values. */
       static readonly DEFAULT: ${className.type};
+
+      /** Serializer for \`${className.type}\` instances. */
       static readonly serializer: $.Serializer<${className.type}>;
 
+      /** Mutable version of this class. */
       static readonly Mutable: typeof ${className.value}_Mutable;\n`);
     this.declareNestedClasses(struct.nestedRecords);
     this.pushEol();
@@ -274,16 +308,25 @@ class TsModuleCodeGenerator {
   private declareMutableClassForStruct(struct: StructInfo): void {
     const { fileType } = this;
     const { className, fields, fieldsWithMutableGetter } = struct;
-    this.push(`// Exported as '${className.type}.Mutable'\n`);
+    this.pushDocstring([
+      `Mutable version of \`${className.type}\`.`,
+      `The preferred way to refer to this class is \`${className.type}.Mutable\`.`,
+    ]);
     if (fileType === ".d.ts") {
       this.push("declare ");
     }
     this.push(`class ${className.value}_Mutable {\n`);
     this.push(`
+      /**
+       * Creates a new mutable instance.
+       *
+       * Fields not specified in \`initializer\` will be set to their default values.
+       */
       constructor(initializer?: ${className.type}.Initializer<"partial">);\n\n`);
 
     // Declare the fields.
     for (const field of fields) {
+      this.pushDocstring(this.getDocTextForDocstring(field.doc));
       const type = field.tsTypes["maybe-mutable"];
       this.push(`${field.property}: ${type};\n`);
     }
@@ -298,7 +341,10 @@ class TsModuleCodeGenerator {
     }
 
     this.push(`
+      /** Returns a deeply-immutable copy of this instance. */
       toFrozen(): ${className.type};
+
+      /** Returns a mutable shallow copy of this instance. */
       toMutable(): this;\n`);
     this.pushEol();
     this.push("readonly [$._INITIALIZER]: ");
@@ -388,8 +434,15 @@ class TsModuleCodeGenerator {
   }
 
   private declareMutableGetter(field: StructField): void {
+    this.pushDocstring(
+      [
+        `If the value of \`${field.property}\` is already mutable, returns it as-is.`,
+        `Otherwise, makes a mutable copy, assigns it back to \`${field.property}\` and returns it.`,
+      ].join("\n"),
+    );
     const { mutable } = field.tsTypes;
     this.push(`get ${field.mutableGetterName}(): ${mutable};\n`);
+    this.pushEol();
   }
 
   private defineInitFunctionForStruct(record: StructInfo): void {
@@ -443,6 +496,7 @@ class TsModuleCodeGenerator {
       );
       for (const field of fields) {
         const type = field.tsTypes.initializer;
+        this.pushDocstring(this.getDocTextForDocstring(field.doc));
         this.push(`readonly ${field.property}: ${type};\n`);
       }
       this.push("}\n\n");
@@ -461,6 +515,7 @@ class TsModuleCodeGenerator {
 
     // Declare the Mutable and OrMutable types.
     this.push(`
+      /** Mutable version of ${className.type}. */
       export type Mutable = ${className.value}_Mutable;
       export type OrMutable = ${className.name} | Mutable;\n\n`);
   }
@@ -649,7 +704,7 @@ class TsModuleCodeGenerator {
     throw TypeError();
   }
 
-  private writeJsonLike(jsonLike: JsonLike): void {
+  private pushJsonLike(jsonLike: JsonLike): void {
     if (jsonLike instanceof JavascriptIdentifier) {
       this.push(jsonLike.identifier);
     } else if (typeof jsonLike === "string" || typeof jsonLike === "number") {
@@ -657,7 +712,7 @@ class TsModuleCodeGenerator {
     } else if (Array.isArray(jsonLike)) {
       this.push("[\n");
       for (const item of jsonLike) {
-        this.writeJsonLike(item);
+        this.pushJsonLike(item);
         this.push(",\n");
       }
       this.push("]");
@@ -668,7 +723,7 @@ class TsModuleCodeGenerator {
           continue;
         }
         this.push(`${name}: `);
-        this.writeJsonLike(value);
+        this.pushJsonLike(value);
         this.push(",\n");
       }
       this.push("}");
@@ -691,6 +746,41 @@ class TsModuleCodeGenerator {
   }
 
   private static readonly SEPARATOR = `// ${"-".repeat(80 - "// ".length)}`;
+
+  private getDocTextForDocstring(doc: Doc): string {
+    return doc.pieces
+      .map((p) => {
+        switch (p.kind) {
+          case "text":
+            return p.text;
+          case "reference":
+            return `\`${p.referenceRange.text.slice(1, -1)}\``;
+        }
+      })
+      .join("");
+  }
+
+  private pushDocstring(textOrParagraphs: string | readonly string[]): void {
+    const text =
+      typeof textOrParagraphs === "string"
+        ? textOrParagraphs
+        : textOrParagraphs.filter((t) => t.length).join("\n\n");
+    if (text.length <= 0) {
+      return;
+    }
+    const lines = text.split("\n");
+    const escape = (line: string): string => line.replace(/\*\//g, "* /");
+    if (lines.length === 1) {
+      const line = escape(lines[0]!);
+      this.push(`/** ${line} */\n`);
+    } else {
+      this.push("/**\n");
+      for (const line of lines.map(escape)) {
+        this.push(` * ${line}\n`);
+      }
+      this.push(" */\n");
+    }
+  }
 
   private push(code: string): void {
     this.code += code.trimStart();
@@ -749,9 +839,17 @@ class TsModuleCodeGenerator {
           break;
         }
       }
-      const indent = indentUnit.repeat(contextStack.length);
-      result += `${indent}${line.trimEnd()}\n`;
-      if (line.startsWith("//")) {
+      let indent = indentUnit.repeat(contextStack.length);
+      if (line.startsWith("*")) {
+        // Docstring: make sure the stars are aligned.
+        indent += " ";
+      }
+      result += `${indent}${line}\n`;
+      if (
+        line.startsWith("//") ||
+        line.startsWith("/*") ||
+        line.startsWith("*")
+      ) {
         continue;
       }
       const lastChar = line.slice(-1);

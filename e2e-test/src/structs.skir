@@ -13,8 +13,12 @@ struct Color {
   b: int32;
 }
 
+/// A colored triangle.
 struct Triangle {
+  /// The color of the triangle
   color: Color;
+  /// The corners of the triangle.
+  /// There must be exactly 3 points.
   points: [Point];
 }
 
