@@ -108,7 +108,8 @@ class TsModuleCodeGenerator {
             "${this.inModule.path}",
             [\n`);
         for (const recordLocation of this.inModule.records) {
-          this.writeRecordSpec(recordLocation);
+          this.writeJsonLike(this.getRecordSpec(recordLocation));
+          this.push(",\n");
         }
         this.push(`
             ]
@@ -524,68 +525,58 @@ class TsModuleCodeGenerator {
     throw TypeError();
   }
 
-  private writeRecordSpec(record: RecordLocation): void {
+  private getRecordSpec(record: RecordLocation): JsonLike {
     const { typeSpeller } = this;
     const recordInfo = createRecordInfo(record, typeSpeller);
 
     if (recordInfo.recordType === "struct") {
-      this.writeStructSpec(recordInfo);
+      return this.getStructSpec(recordInfo);
     } else {
-      this.writeEnumSpec(recordInfo);
+      return this.getEnumSpec(recordInfo);
     }
   }
 
-  private writeStructSpec(struct: StructInfo): void {
+  private getStructSpec(struct: StructInfo): JsonLike {
     const { className, fields, removedNumbers } = struct;
     const { parentClassValue } = className;
-    this.push(`
-      {
-        kind: "struct",
-        ctor: ${className.value},
-        initFn: init${className.value},
-        name: "${className.recordName}",\n`);
-    if (parentClassValue) {
-      this.push(`parentCtor: ${parentClassValue},\n`);
-    }
-    if (struct.doc.text) {
-      this.push(`doc: ${JSON.stringify(struct.doc.text)},\n`);
-    }
-    this.push("fields: [\n");
-    for (const field of fields) {
-      this.push(`
-        {
-          name: "${field.originalName}",
-          property: "${field.property}",
-          number: ${field.number},
-          type: ${this.getTypeSpecExpr(field.type)},\n`);
-      if (field.doc.text) {
-        this.push(`doc: ${JSON.stringify(field.doc.text)},\n`);
-      }
-      if (field.hasMutableGetter) {
-        this.push(`mutableGetter: "${field.mutableGetterName}",\n`);
-      }
-      if (field.indexable) {
-        this.push(`
-          indexable: {
-            searchMethod: "${field.searchMethodName}",
-            keyFn: (v) => ${field.indexable.keyExpression},\n`);
-        const { hashableExpression } = field.indexable;
-        if (hashableExpression !== "k") {
-          this.push(`keyToHashable: (k) => ${hashableExpression},\n`);
-        }
-        this.push("},\n");
-      }
-      this.push("},\n");
-    }
-    this.push("],\n");
-    if (removedNumbers.length) {
-      const numbers = struct.removedNumbers.join(", ");
-      this.push(`removedNumbers: [${numbers}],\n`);
-    }
-    this.push("},\n");
+    return {
+      kind: "struct",
+      ctor: new JavascriptIdentifier(className.value),
+      initFn: new JavascriptIdentifier(`init${className.value}`),
+      name: className.recordName,
+      parentCtor: parentClassValue
+        ? new JavascriptIdentifier(parentClassValue)
+        : undefined,
+      doc: struct.doc.text ? struct.doc.text : undefined,
+      fields: fields.map((field) => ({
+        name: field.originalName,
+        property: field.property,
+        number: field.number,
+        type: this.getTypeSpec(field.type),
+        doc: field.doc.text ? field.doc.text : undefined,
+        mutableGetter: field.hasMutableGetter
+          ? field.mutableGetterName
+          : undefined,
+        indexable: field.indexable
+          ? {
+              searchMethod: field.searchMethodName,
+              keyFn: new JavascriptIdentifier(
+                `(v) => ${field.indexable.keyExpression}`,
+              ),
+              keyToHashable:
+                field.indexable.hashableExpression !== "k"
+                  ? new JavascriptIdentifier(
+                      `(k) => ${field.indexable.hashableExpression}`,
+                    )
+                  : undefined,
+            }
+          : undefined,
+      })),
+      removedNumbers: removedNumbers.length ? removedNumbers : undefined,
+    };
   }
 
-  private writeEnumSpec(enumInfo: EnumInfo): void {
+  private getEnumSpec(enumInfo: EnumInfo): JsonLike {
     const {
       className,
       constantVariants,
@@ -594,78 +585,94 @@ class TsModuleCodeGenerator {
       wrapperVariants,
     } = enumInfo;
     const { parentClassValue } = className;
-    this.push(`
-      {
-         kind: "enum",
-         ctor: ${className.value},\n`);
-    if (!onlyConstants) {
-      this.push(`createValueFn: createValueOf${className.value},\n`);
-    }
-    this.push(`name: "${className.recordName}",\n`);
-    if (parentClassValue) {
-      this.push(`parentCtor: ${parentClassValue},\n`);
-    }
-    if (enumInfo.doc.text) {
-      this.push(`doc: ${JSON.stringify(enumInfo.doc.text)},\n`);
-    }
-    this.push("variants: [\n");
-    for (const variant of constantVariants) {
-      if (variant.name === "?") {
-        // Since it is common to all enums, we don't need to specify it here.
-        continue;
-      }
-      this.push(`
-        {
-          name: "${variant.name}",
-          number: ${variant.number},`);
-      if (variant.doc.text) {
-        this.push(`doc: ${JSON.stringify(variant.doc.text)},\n`);
-      }
-      this.push("},\n");
-    }
-    for (const variant of wrapperVariants) {
-      this.push(`
-        {
-          name: "${variant.name}",
-          number: ${variant.number},
-          type: ${this.getTypeSpecExpr(variant.type)},`);
-      if (variant.doc.text) {
-        this.push(`doc: ${JSON.stringify(variant.doc.text)},\n`);
-      }
-      this.push("},\n");
-    }
-    this.push("],\n");
-    if (removedNumbers.length) {
-      const numbers = enumInfo.removedNumbers.join(", ");
-      this.push(`removedNumbers: [${numbers}],\n`);
-    }
-    this.push("},\n");
+    return {
+      kind: "enum",
+      ctor: new JavascriptIdentifier(className.value),
+      createValueFn: onlyConstants
+        ? undefined
+        : new JavascriptIdentifier(`createValueOf${className.value}`),
+      name: className.recordName,
+      parentCtor: parentClassValue
+        ? new JavascriptIdentifier(parentClassValue)
+        : undefined,
+      doc: enumInfo.doc.text ? enumInfo.doc.text : undefined,
+      variants: constantVariants
+        .map(
+          (variant) =>
+            ({
+              name: variant.name,
+              number: variant.number,
+              doc: variant.doc.text ? variant.doc.text : undefined,
+            }) as JsonLike,
+        )
+        .concat(
+          wrapperVariants.map(
+            (variant) =>
+              ({
+                name: variant.name,
+                number: variant.number,
+                doc: variant.doc.text ? variant.doc.text : undefined,
+                type: this.getTypeSpec(variant.type),
+              }) as JsonLike,
+          ),
+        ),
+      removedNumbers: removedNumbers.length ? removedNumbers : undefined,
+    };
   }
 
-  private getTypeSpecExpr(type: ResolvedType): string {
+  private getTypeSpec(type: ResolvedType): JsonLike {
     switch (type.kind) {
       case "record": {
         const className = this.typeSpeller.getClassName(type.key);
-        return `{ kind: "record", ctor: ${className.value} }`;
+        return {
+          kind: "record",
+          ctor: new JavascriptIdentifier(className.value),
+        };
       }
       case "array": {
-        const item = this.getTypeSpecExpr(type.item);
+        const item = this.getTypeSpec(type.item);
         if (type.key) {
           const keyChain = type.key.path.map((n) => n.name.text).join(".");
-          return `{ kind: "array", item: ${item}, keyChain: "${keyChain}" }`;
+          return { kind: "array", item: item, keyChain: keyChain };
         } else {
-          return `{ kind: "array", item: ${item} }`;
+          return { kind: "array", item: item };
         }
       }
       case "optional": {
-        const other = this.getTypeSpecExpr(type.other);
-        return `{ kind: "optional", other: ${other} }`;
+        const other = this.getTypeSpec(type.other);
+        return { kind: "optional", other: other };
       }
       case "primitive": {
-        return `{ kind: "primitive", primitive: "${type.primitive}" }`;
+        return { kind: "primitive", primitive: type.primitive };
       }
     }
     throw TypeError();
+  }
+
+  private writeJsonLike(jsonLike: JsonLike): void {
+    if (jsonLike instanceof JavascriptIdentifier) {
+      this.push(jsonLike.identifier);
+    } else if (typeof jsonLike === "string" || typeof jsonLike === "number") {
+      this.push(JSON.stringify(jsonLike));
+    } else if (Array.isArray(jsonLike)) {
+      this.push("[\n");
+      for (const item of jsonLike) {
+        this.writeJsonLike(item);
+        this.push(",\n");
+      }
+      this.push("]");
+    } else {
+      this.push("{\n");
+      for (const [name, value] of Object.entries(jsonLike)) {
+        if (value === undefined) {
+          continue;
+        }
+        this.push(`${name}: `);
+        this.writeJsonLike(value);
+        this.push(",\n");
+      }
+      this.push("}");
+    }
   }
 
   private writeConstant(constant: Constant): void {
@@ -794,5 +801,18 @@ class TsModuleCodeGenerator {
   private readonly typeSpeller: TypeSpeller;
   private code = "";
 }
+
+class JavascriptIdentifier {
+  constructor(readonly identifier: string) {}
+}
+
+type JsonLike =
+  | string
+  | number
+  | JavascriptIdentifier
+  | {
+      [name: string]: JsonLike | undefined;
+    }
+  | readonly JsonLike[];
 
 export const GENERATOR = new TypescriptCodeGenerator();
