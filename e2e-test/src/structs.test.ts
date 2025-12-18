@@ -6,8 +6,8 @@ import {
   StructDescriptor,
   StructField,
   Timestamp,
-} from "soia";
-import { SerializerTester } from "../../node_modules/soia/dist/esm/serializer_tester.js";
+} from "skir-client";
+import { SerializerTester } from "../../node_modules/skir-client/dist/esm/serializer_tester.js";
 import {
   CarOwner,
   Floats,
@@ -16,7 +16,7 @@ import {
   Items,
   Point,
   Triangle,
-} from "../soiagen/structs.js";
+} from "../skirout/structs.js";
 
 describe("structs", () => {
   it("reserialize", () => {
@@ -220,7 +220,7 @@ describe("structs", () => {
 
 describe("struct reflection", () => {
   it("get module path", () => {
-    expect(FullName.serializer.typeDescriptor.modulePath).toBe("structs.soia");
+    expect(FullName.serializer.typeDescriptor.modulePath).toBe("structs.skir");
   });
 
   it("get record name", () => {
@@ -331,12 +331,12 @@ describe("struct reflection", () => {
     expect(FullName.serializer.typeDescriptor.asJson()).toMatch({
       type: {
         kind: "record",
-        value: "structs.soia:FullName",
+        value: "structs.skir:FullName",
       },
       records: [
         {
           kind: "struct",
-          id: "structs.soia:FullName",
+          id: "structs.skir:FullName",
           fields: [
             {
               name: "first_name",
@@ -476,7 +476,7 @@ describe("struct with indexed arrays", () => {
       expect(Items.serializer.typeDescriptor.asJson()).toMatch({
         type: {
           kind: "record",
-          value: "structs.soia:Items",
+          value: "structs.skir:Items",
         },
         records: [
           {

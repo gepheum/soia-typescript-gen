@@ -7,7 +7,7 @@ import type {
   RecordKey,
   RecordLocation,
   ResolvedType,
-} from "soiac";
+} from "skir-internal";
 import { z } from "zod";
 import { maybeEscapeTopLevelUpperCaseName } from "./class_speller.js";
 import { toFrozenExpression } from "./expression_maker.js";
@@ -41,7 +41,7 @@ class TypescriptCodeGenerator implements CodeGenerator<Config> {
     const outputFiles: CodeGenerator.OutputFile[] = [];
     for (const module of input.modules) {
       outputFiles.push({
-        path: module.path.replace(/\.soia$/, ".js"),
+        path: module.path.replace(/\.skir$/, ".js"),
         code: new TsModuleCodeGenerator(
           module,
           recordMap,
@@ -50,7 +50,7 @@ class TypescriptCodeGenerator implements CodeGenerator<Config> {
         ).generate(),
       });
       outputFiles.push({
-        path: module.path.replace(/\.soia$/, ".d.ts"),
+        path: module.path.replace(/\.skir$/, ".d.ts"),
         code: new TsModuleCodeGenerator(
           module,
           recordMap,
@@ -85,8 +85,8 @@ class TsModuleCodeGenerator {
       //  |___/   \\___/  |_| |_| \\___/  \\__|  \\___| \\__,_||_| \\__|
       //
 
-      // To install the Soia client library:
-      //   npm i soia
+      // To install the Skir client library:
+      //   npm i skir
       import * as $ from "${this.resolveClientModulePath()}";
       \n`);
 
@@ -143,7 +143,7 @@ class TsModuleCodeGenerator {
     const { config, inModule } = this;
     const { clientModulePath } = config;
     if (clientModulePath === undefined) {
-      return "soia";
+      return "skir-client";
     }
     if (clientModulePath.startsWith("../")) {
       // The path to the client module is relative.
@@ -160,7 +160,7 @@ class TsModuleCodeGenerator {
       const [path, importedNames] = entry;
       const { importPathExtension } = this.config;
       let tsPath =
-        paths.relative(thisPath, path).replace(/\.soia/, "") +
+        paths.relative(thisPath, path).replace(/\.skir/, "") +
         importPathExtension;
       if (!tsPath.startsWith(".")) {
         tsPath = `./${tsPath}`;
@@ -326,7 +326,11 @@ class TsModuleCodeGenerator {
   }
 
   private declarePropertiesOfClassForEnum(enumInfo: EnumInfo): void {
-    const { className, constantFields, onlyConstants } = enumInfo;
+    const {
+      className,
+      constantVariants: constantFields,
+      onlyConstants,
+    } = enumInfo;
 
     // Declare the enum constants.
     for (const field of constantFields) {
@@ -355,7 +359,11 @@ class TsModuleCodeGenerator {
 
   private defineCreateValueFunctionForEnum(enumInfo: EnumInfo): void {
     const { typeSpeller } = this;
-    const { className, onlyConstants, wrapperFields } = enumInfo;
+    const {
+      className,
+      onlyConstants,
+      wrapperVariants: wrapperFields,
+    } = enumInfo;
     if (onlyConstants) {
       return;
     }
@@ -490,7 +498,8 @@ class TsModuleCodeGenerator {
           number: ${number},
           requestSerializer: ${reqSerializer},
           responseSerializer: ${respSerializer},
-      };\n\n`);
+          doc: ${JSON.stringify(method.doc.text)},
+        };\n\n`);
     }
   }
 
@@ -531,12 +540,15 @@ class TsModuleCodeGenerator {
     const { parentClassValue } = className;
     this.push(`
       {
-         kind: "struct",
-         ctor: ${className.value},
-         initFn: init${className.value},
-         name: "${className.recordName}",\n`);
+        kind: "struct",
+        ctor: ${className.value},
+        initFn: init${className.value},
+        name: "${className.recordName}",\n`);
     if (parentClassValue) {
       this.push(`parentCtor: ${parentClassValue},\n`);
+    }
+    if (struct.doc.text) {
+      this.push(`doc: ${JSON.stringify(struct.doc.text)},\n`);
     }
     this.push("fields: [\n");
     for (const field of fields) {
@@ -546,6 +558,9 @@ class TsModuleCodeGenerator {
           property: "${field.property}",
           number: ${field.number},
           type: ${this.getTypeSpecExpr(field.type)},\n`);
+      if (field.doc.text) {
+        this.push(`doc: ${JSON.stringify(field.doc.text)},\n`);
+      }
       if (field.hasMutableGetter) {
         this.push(`mutableGetter: "${field.mutableGetterName}",\n`);
       }
@@ -573,10 +588,10 @@ class TsModuleCodeGenerator {
   private writeEnumSpec(enumInfo: EnumInfo): void {
     const {
       className,
-      constantFields,
+      constantVariants,
       onlyConstants,
       removedNumbers,
-      wrapperFields,
+      wrapperVariants,
     } = enumInfo;
     const { parentClassValue } = className;
     this.push(`
@@ -590,25 +605,34 @@ class TsModuleCodeGenerator {
     if (parentClassValue) {
       this.push(`parentCtor: ${parentClassValue},\n`);
     }
-    this.push("fields: [\n");
-    for (const field of constantFields) {
-      if (field.name === "?") {
+    if (enumInfo.doc.text) {
+      this.push(`doc: ${JSON.stringify(enumInfo.doc.text)},\n`);
+    }
+    this.push("variants: [\n");
+    for (const variant of constantVariants) {
+      if (variant.name === "?") {
         // Since it is common to all enums, we don't need to specify it here.
         continue;
       }
       this.push(`
         {
-          name: "${field.name}",
-          number: ${field.number},
-        },\n`);
+          name: "${variant.name}",
+          number: ${variant.number},`);
+      if (variant.doc.text) {
+        this.push(`doc: ${JSON.stringify(variant.doc.text)},\n`);
+      }
+      this.push("},\n");
     }
-    for (const field of wrapperFields) {
+    for (const variant of wrapperVariants) {
       this.push(`
         {
-          name: "${field.name}",
-          number: ${field.number},
-          type: ${this.getTypeSpecExpr(field.type)},
-        },\n`);
+          name: "${variant.name}",
+          number: ${variant.number},
+          type: ${this.getTypeSpecExpr(variant.type)},`);
+      if (variant.doc.text) {
+        this.push(`doc: ${JSON.stringify(variant.doc.text)},\n`);
+      }
+      this.push("},\n");
     }
     this.push("],\n");
     if (removedNumbers.length) {

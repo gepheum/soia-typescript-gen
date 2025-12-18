@@ -1,20 +1,20 @@
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
-import { Timestamp } from "soia";
-import { SerializerTester } from "../../../node_modules/soia/dist/esm/serializer_tester.js";
-import { Car } from "../../soiagen/vehicles/car.js";
+import { Timestamp } from "skir-client";
+import { SerializerTester } from "../../../node_modules/skir-client/dist/esm/serializer_tester.js";
+import { Car } from "../../skirout/vehicles/car.js";
 
 describe("Car", () => {
   it("TypeDescriptor#asJson()", () => {
     expect(Car.serializer.typeDescriptor.asJson()).toMatch({
       type: {
         kind: "record",
-        value: "vehicles/car.soia:Car",
+        value: "vehicles/car.skir:Car",
       },
       records: [
         {
           kind: "struct",
-          id: "vehicles/car.soia:Car",
+          id: "vehicles/car.skir:Car",
           fields: [
             {
               name: "model",
@@ -36,7 +36,7 @@ describe("Car", () => {
               name: "owner",
               type: {
                 kind: "record",
-                value: "user.soia:User",
+                value: "user.skir:User",
               },
               number: 2,
             },
@@ -46,7 +46,7 @@ describe("Car", () => {
                 kind: "optional",
                 value: {
                   kind: "record",
-                  value: "user.soia:User",
+                  value: "user.skir:User",
                 },
               },
               number: 3,
@@ -55,7 +55,7 @@ describe("Car", () => {
         },
         {
           kind: "struct",
-          id: "user.soia:User",
+          id: "user.skir:User",
           fields: [
             {
               name: "user_id",

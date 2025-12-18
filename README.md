@@ -1,41 +1,41 @@
-[![npm](https://img.shields.io/npm/v/soia-typescript-gen)](https://www.npmjs.com/package/soia-typescript-gen)
-[![build](https://github.com/gepheum/soia-typescript-gen/workflows/Build/badge.svg)](https://github.com/gepheum/soia-typescript-gen/actions)
+[![npm](https://img.shields.io/npm/v/skir-typescript-gen)](https://www.npmjs.com/package/skir-typescript-gen)
+[![build](https://github.com/gepheum/skir-typescript-gen/workflows/Build/badge.svg)](https://github.com/gepheum/skir-typescript-gen/actions)
 
-# Soia's TypeScript code generator
+# Skir's TypeScript code generator
 
-Official plugin for generating TypeScript/JavaScript code from [.soia](https://github.com/gepheum/soia) files.
+Official plugin for generating TypeScript/JavaScript code from [.skir](https://github.com/gepheum/skir) files.
 
 Generated code can run Node, Deno or in the browser.
 
 ## Installation
 
-From your project's root directory, run `npm i --save-dev soia-typescript-gen`.
+From your project's root directory, run `npm i --save-dev skir-typescript-gen`.
 
-In your `soia.yml` file, add the following snippet under `generators`:
+In your `skir.yml` file, add the following snippet under `generators`:
 ```yaml
-  - mod: soia-typescript-gen
+  - mod: skir-typescript-gen
     config:
       # Possible values: "" (CommonJS), ".js" (ES Modules), ".ts" (Deno)
       importPathExtension: ""
 ```
 
-The `npm run soiac` command will now generate .js and .t.ts files within the `soiagen` directory.
+The `npm run skirc` command will now generate .js and .t.ts files within the `skirout` directory.
 
-For more information, see this TypeScript project [example](https://github.com/gepheum/soia-typescript-example).
+For more information, see this TypeScript project [example](https://github.com/gepheum/skir-typescript-example).
 
 ## TypeScript generated code guide
 
-The examples below are for the code generated from [this](https://github.com/gepheum/soia-typescript-example/blob/main/soia_src/user.soia) .soia file.
+The examples below are for the code generated from [this](https://github.com/gepheum/skir-typescript-example/blob/main/skir_src/user.skir) .skir file.
 
 ### Referring to generated symbols
 
 ```typescript
-import { TARZAN, User, UserHistory, UserRegistry } from "../soiagen/user";
+import { TARZAN, User, UserHistory, UserRegistry } from "../skirout/user";
 ```
 
 ### Struct classes
 
-For every struct `S` in the .soia file, soia generates a frozen (deeply immutable) class `S` and a mutable class `S.Mutable`.
+For every struct `S` in the .skir file, skir generates a frozen (deeply immutable) class `S` and a mutable class `S.Mutable`.
 
 #### Frozen struct classes
 
@@ -150,7 +150,7 @@ greet(lylaMut);
 
 ### Enum classes
 
-The definition of the `SubscriptionStatus` enum in the .soia file is:
+The definition of the `SubscriptionStatus` enum in the .skir file is:
 ```rust
 enum SubscriptionStatus {
   FREE;
@@ -226,7 +226,7 @@ console.log(serializer.toJsonCode(john, "readable"));
 // }
 
 // The dense JSON flavor is the flavor you should pick if you intend to
-// deserialize the value in the future. Soia allows fields to be renamed, and
+// deserialize the value in the future. Skir allows fields to be renamed, and
 // because fields names are not part of the dense JSON, renaming a field does
 // not prevent you from deserializing the value.
 // You should pick the readable flavor mostly for debugging purposes.
@@ -292,7 +292,7 @@ const userRegistry = UserRegistry.create({
   users: [john, jane, lylaMut],
 });
 
-// searchUsers() returns the user with the given key (specified in the .soia
+// searchUsers() returns the user with the given key (specified in the .skir
 // file). In this example, the key is the user id.
 // The first lookup runs in O(N) time, and the following lookups run in O(1)
 // time.
@@ -316,19 +316,19 @@ console.log(TARZAN);
 // }
 ```
 
-### Soia services
+### Skir services
 
-#### Starting a soia service on an HTTP server
+#### Starting a skir service on an HTTP server
 
-Full example [here](https://github.com/gepheum/soia-typescript-example/blob/main/src/server.ts).
+Full example [here](https://github.com/gepheum/skir-typescript-example/blob/main/src/server.ts).
 
-#### Sending RPCs to a soia service
+#### Sending RPCs to a skir service
 
-Full example [here](https://github.com/gepheum/soia-typescript-example/blob/main/src/client.ts).
+Full example [here](https://github.com/gepheum/skir-typescript-example/blob/main/src/client.ts).
 
 ### Reflection
 
-Reflection allows you to inspect a soia type at runtime.
+Reflection allows you to inspect a skir type at runtime.
 
 ```typescript
 const fieldNames: string[] = [];

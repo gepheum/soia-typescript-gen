@@ -2,5 +2,6 @@ srcDir: ./src
 
 generators:
   - mod: ../../../dist/index.js
+    skiroutDir: ./skirout
     config:
       importPathExtension: .js

@@ -1,9 +1,9 @@
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
-import { EnumField } from "soia";
-import { SerializerTester } from "../../node_modules/soia/dist/esm/serializer_tester.js";
-import { JsonValue, Weekday } from "../soiagen/enums.js";
-import { Car } from "../soiagen/vehicles/car.js";
+import { EnumVariant } from "skir-client";
+import { SerializerTester } from "../../node_modules/skir-client/dist/esm/serializer_tester.js";
+import { JsonValue, Weekday } from "../skirout/enums.js";
+import { Car } from "../skirout/vehicles/car.js";
 
 describe("simple enum", () => {
   const monday = Weekday.MONDAY;
@@ -40,13 +40,13 @@ describe("simple enum", () => {
       expect(JsonValue.serializer.typeDescriptor.asJson()).toMatch({
         type: {
           kind: "record",
-          value: "enums.soia:JsonValue",
+          value: "enums.skir:JsonValue",
         },
         records: [
           {
             kind: "enum",
-            id: "enums.soia:JsonValue",
-            fields: [
+            id: "enums.skir:JsonValue",
+            variants: [
               {
                 name: "NULL",
                 number: 1,
@@ -83,7 +83,7 @@ describe("simple enum", () => {
                   value: {
                     item: {
                       kind: "record",
-                      value: "enums.soia:JsonValue",
+                      value: "enums.skir:JsonValue",
                     },
                   },
                 },
@@ -96,7 +96,7 @@ describe("simple enum", () => {
                   value: {
                     item: {
                       kind: "record",
-                      value: "enums.soia:JsonValue.Pair",
+                      value: "enums.skir:JsonValue.Pair",
                     },
                   },
                 },
@@ -105,7 +105,7 @@ describe("simple enum", () => {
           },
           {
             kind: "struct",
-            id: "enums.soia:JsonValue.Pair",
+            id: "enums.skir:JsonValue.Pair",
             fields: [
               {
                 name: "name",
@@ -119,7 +119,7 @@ describe("simple enum", () => {
                 name: "value",
                 type: {
                   kind: "record",
-                  value: "enums.soia:JsonValue",
+                  value: "enums.skir:JsonValue",
                 },
                 number: 1,
               },
@@ -130,7 +130,7 @@ describe("simple enum", () => {
       expect(JsonValue.Pair.serializer.typeDescriptor.asJson()).toMatch({
         type: {
           kind: "record",
-          value: "enums.soia:JsonValue.Pair",
+          value: "enums.skir:JsonValue.Pair",
         },
       });
       new SerializerTester(
@@ -317,7 +317,7 @@ describe("recursive enum", () => {
 
 describe("enum reflection", () => {
   it("get module path", () => {
-    expect(Car.serializer.typeDescriptor.modulePath).toBe("vehicles/car.soia");
+    expect(Car.serializer.typeDescriptor.modulePath).toBe("vehicles/car.skir");
   });
 
   describe("get record name", () => {
@@ -356,18 +356,19 @@ describe("enum reflection", () => {
       expect(typeDescriptor.kind).toBe("enum");
     });
 
-    const nullField: EnumField<JsonValue> = typeDescriptor.getField("NULL");
-    const arrayField: EnumField<JsonValue> = typeDescriptor.getField("array");
-    const unknownField: EnumField<JsonValue> = typeDescriptor.getField("?");
+    const nullField: EnumVariant<JsonValue> = typeDescriptor.getVariant("NULL");
+    const arrayField: EnumVariant<JsonValue> =
+      typeDescriptor.getVariant("array");
+    const unknownField: EnumVariant<JsonValue> = typeDescriptor.getVariant("?");
 
     it("#1", () => {
-      expect(nullField).toBe(typeDescriptor.getField(1)!);
+      expect(nullField).toBe(typeDescriptor.getVariant(1)!);
     });
     it("#2", () => {
-      expect(arrayField).toBe(typeDescriptor.getField(4)!);
+      expect(arrayField).toBe(typeDescriptor.getVariant(4)!);
     });
     it("#3", () => {
-      expect(unknownField).toBe(typeDescriptor.getField(0)!);
+      expect(unknownField).toBe(typeDescriptor.getVariant(0)!);
     });
 
     it("#4", () => {
@@ -400,19 +401,19 @@ describe("enum reflection", () => {
     }
 
     it("#12", () => {
-      expect(typeDescriptor.getField("foo")).toBe(undefined);
+      expect(typeDescriptor.getVariant("foo")).toBe(undefined);
     });
     it("#13", () => {
-      expect(typeDescriptor.getField(10)).toBe(undefined);
+      expect(typeDescriptor.getVariant(10)).toBe(undefined);
     });
 
     // Let's make sure that the return type is nullable.
     {
-      const absentField = typeDescriptor.getField("foo");
+      const absentField = typeDescriptor.getVariant("foo");
       const _: undefined extends typeof absentField ? true : never = true;
     }
     {
-      const absentField = typeDescriptor.getField(10);
+      const absentField = typeDescriptor.getVariant(10);
       const _: undefined extends typeof absentField ? true : never = true;
     }
   });

@@ -2,7 +2,7 @@
  * @fileoverview Returns a TypeScript expression transforming a value from a
  * `initializer` type into a `frozen` type.
  */
-import type { ResolvedType } from "soiac";
+import type { ResolvedType } from "skir-internal";
 import { TypeSpeller } from "./type_speller.js";
 
 export interface ToFrozenExpressionArg {

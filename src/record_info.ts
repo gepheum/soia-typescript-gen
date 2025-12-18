@@ -1,4 +1,5 @@
 import {
+  Doc,
   Field,
   PrimitiveType,
   RecordKey,
@@ -7,7 +8,7 @@ import {
   ResolvedType,
   capitalize,
   convertCase,
-} from "soiac";
+} from "skir-internal";
 import { ClassName } from "./class_speller.js";
 import { TsType } from "./ts_type.js";
 import { TYPE_FLAVORS, TypeFlavor, TypeSpeller } from "./type_speller.js";
@@ -21,6 +22,7 @@ export type RecordInfo = StructInfo | EnumInfo;
 export interface StructInfo {
   readonly recordType: "struct";
   readonly className: ClassName;
+  readonly doc: Doc;
   readonly nestedRecords: readonly RecordKey[];
   readonly removedNumbers: readonly number[];
 
@@ -39,15 +41,16 @@ export interface StructInfo {
 export interface EnumInfo {
   readonly recordType: "enum";
   readonly className: ClassName;
+  readonly doc: Doc;
   readonly nestedRecords: readonly RecordKey[];
   readonly removedNumbers: readonly number[];
 
-  /** True if all the fields of the enum are constant fields. */
+  /** True if all the variants of the enum are constant variants. */
   readonly onlyConstants: boolean;
-  readonly constantFields: readonly EnumConstantField[];
-  readonly wrapperFields: readonly EnumWrapperField[];
+  readonly constantVariants: readonly EnumConstantVariant[];
+  readonly wrapperVariants: readonly EnumWrapperVariant[];
   readonly kindType: TsType;
-  /** Union of `undefined` and the frozen type of all the wrapper fields */
+  /** Union of `undefined` and the frozen type of all the wrapper variants. */
   readonly valueType: TsType;
   readonly initializerType: TsType;
   readonly valueOnlyInitializerType: TsType;
@@ -62,7 +65,7 @@ export interface StructField {
    */
   readonly property: string;
   /**
-   * Name of the field as it appears in the `.soia` file, in lower_case format.
+   * Name of the field as it appears in the '.skir' file, in lower_case format.
    * You probably meant to use `property`.
    */
   readonly originalName: string;
@@ -75,6 +78,7 @@ export interface StructField {
   readonly number: number;
   /** Schema field type, e.g. `int32`. */
   readonly type: ResolvedType;
+  readonly doc: Doc;
   /**
    * True if the field type depends on the struct where the field is defined.
    */
@@ -99,39 +103,42 @@ export interface Indexable {
   readonly searchMethodParamName: string;
 }
 
-export type EnumField = EnumConstantField | EnumWrapperField;
+export type EnumVariant = EnumConstantVariant | EnumWrapperVariant;
 
-// Information about a constant field within an enum.
-export interface EnumConstantField {
-  // To distinguish from EnumWrapperField.
+// Information about a constant variant within an enum.
+export interface EnumConstantVariant {
+  // To distinguish from EnumWrapperVariant.
   readonly isConstant: true;
 
-  // Name of the field as it appears in the `.soia` file, in UPPER_CASE format.
+  // Name of the variant as it appears in the '.skir' file, in UPPER_CASE
+  // format.
   readonly name: string;
   // TypeScript string literal of `Kind` type.
   // Same as `"${name}"`.
   readonly quotedName: string;
-  // Name of the generated static readonly property for this field.
+  // Name of the generated static readonly property for this variant.
   // In UPPER_CASE format.
   // It is either the name as-is or the result of appending an underscore to the
   // name if the name conflicts with another generated property.
   readonly property: string;
   readonly number: number;
+  readonly doc: Doc;
 }
 
-export interface EnumWrapperField {
-  // To distinguish from EnumConstantField.
+export interface EnumWrapperVariant {
+  // To distinguish from EnumConstantVariant.
   readonly isConstant: false;
 
-  // Name of the field as it appears in the `.soia` file, in lower_case format.
+  // Name of the variant as it appears in the '.skir' file, in lower_case format.
   readonly name: string;
   // TypeScript string literal of `Kind` type.
   // Same as `"${name}"`.
   readonly quotedName: string;
   readonly number: number;
-  // Schema field type, e.g. `int32`.
+  // Value type, e.g. `int32`.
   readonly type: ResolvedType;
-  // True if the field type depends on the struct where the field is defined.
+  readonly doc: Doc;
+  // True if the value type depends on the enum where the variant is defined.
   readonly isRecursive: boolean;
   // Matching TypeScript type for each type flavor.
   readonly tsTypes: Readonly<Record<TypeFlavor, TsType>>;
@@ -178,6 +185,7 @@ class RecordInfoCreator {
     return {
       recordType: "struct",
       className: this.className,
+      doc: record.doc,
       nestedRecords: record.nestedRecords.map((r) => r.key),
       removedNumbers: record.removedNumbers.slice(),
       fields: fields,
@@ -193,16 +201,12 @@ class RecordInfoCreator {
       throw TypeError();
     }
     const originalName = field.name.text;
-    const desiredName = convertCase(
-      originalName,
-      "lower_underscore",
-      "lowerCamel",
-    );
+    const desiredName = convertCase(originalName, "lowerCamel");
     const property = getStructFieldProperty(desiredName);
     const mutableGetterName = `mutable${capitalize(desiredName)}`;
     const searchMethodName = `search${capitalize(desiredName)}`;
     const tsTypes = this.getTsTypes(field);
-    // If the Soia type of the field is recursice, the type of the corresponding
+    // If the Skir type of the field is recursice, the type of the corresponding
     // field in the Mutable class is frozen.
     const hasMutableGetter =
       !field.isRecursive &&
@@ -220,11 +224,7 @@ class RecordInfoCreator {
       const frozenValueType = typeSpeller.getTsType(type.item, "frozen");
       const propertiesChain = key.path
         .map((n) => {
-          const desiredName = convertCase(
-            n.name.text,
-            "lower_underscore",
-            "lowerCamel",
-          );
+          const desiredName = convertCase(n.name.text, "lowerCamel");
           return getStructFieldProperty(desiredName);
         })
         .join(".");
@@ -232,11 +232,7 @@ class RecordInfoCreator {
       const hashableExpression = this.getHashableExpression(key.keyType);
       let searchMethodParamName = key.path
         .map((token, i) =>
-          convertCase(
-            token.name.text,
-            "lower_underscore",
-            i == 0 ? "lowerCamel" : "UpperCamel",
-          ),
+          convertCase(token.name.text, i == 0 ? "lowerCamel" : "UpperCamel"),
         )
         .join("");
       if (
@@ -256,6 +252,7 @@ class RecordInfoCreator {
     return {
       property: property,
       originalName: originalName,
+      doc: field.doc,
       hasMutableGetter: hasMutableGetter,
       mutableGetterName: mutableGetterName,
       searchMethodName: searchMethodName,
@@ -270,8 +267,8 @@ class RecordInfoCreator {
   private createEnumInfo(): EnumInfo {
     const { className } = this;
     const { record } = this.record;
-    const constantFields: EnumConstantField[] = [];
-    const wrapperFields: EnumWrapperField[] = [];
+    const constantVariants: EnumConstantVariant[] = [];
+    const wrapperVariants: EnumWrapperVariant[] = [];
     const typesInKindTypeUnion: TsType[] = [];
     const typesInValueTypeUnion: TsType[] = [TsType.UNDEFINED];
     const typesInInitializerUnion: TsType[] = [];
@@ -280,8 +277,8 @@ class RecordInfoCreator {
 
     typesInInitializerUnion.push(TsType.simple(className.type));
 
-    const registerConstantField = (f: EnumConstantField): void => {
-      constantFields.push(f);
+    const registerConstantVariants = (f: EnumConstantVariant): void => {
+      constantVariants.push(f);
       const nameLiteral = TsType.literal(f.name);
       typesInKindTypeUnion.push(nameLiteral);
       typesInInitializerUnion.push(nameLiteral);
@@ -293,26 +290,27 @@ class RecordInfoCreator {
       );
     };
 
-    // Register the special UNKNOWN field.
-    registerConstantField({
+    // Register the special UNKNOWN variant.
+    registerConstantVariants({
       isConstant: true,
       name: "?",
       quotedName: '"?"',
       property: "UNKNOWN",
       number: 0,
+      doc: { text: "", pieces: [] },
     });
-    for (const field of record.fields) {
-      const { type } = field;
+    for (const variant of record.fields) {
+      const { type } = variant;
       if (type === undefined) {
-        // A constant field.
-        registerConstantField(this.createEnumConstantField(field));
+        // A constant variant.
+        registerConstantVariants(this.createEnumConstantVariant(variant));
       } else {
-        // A wrapper field.
-        const enumField = this.createEnumWrapperField(field);
-        const { name } = enumField;
+        // A wrapper variant.
+        const enumVariant = this.createEnumWrapperVariant(variant);
+        const { name } = enumVariant;
         const nameLiteral = TsType.literal(name);
-        const { frozen, initializer } = enumField.tsTypes;
-        wrapperFields.push(enumField);
+        const { frozen, initializer } = enumVariant.tsTypes;
+        wrapperVariants.push(enumVariant);
         typesInValueTypeUnion.push(frozen);
         typesInKindTypeUnion.push(nameLiteral);
         typesInInitializerUnion.push(
@@ -339,11 +337,12 @@ class RecordInfoCreator {
     return {
       recordType: "enum",
       className: className,
+      doc: record.doc,
       nestedRecords: record.nestedRecords.map((r) => r.key),
       removedNumbers: record.removedNumbers.slice(),
-      onlyConstants: !wrapperFields.length,
-      constantFields: constantFields,
-      wrapperFields: wrapperFields,
+      onlyConstants: !wrapperVariants.length,
+      constantVariants: constantVariants,
+      wrapperVariants: wrapperVariants,
       kindType: TsType.union(typesInKindTypeUnion),
       valueType: TsType.union(typesInValueTypeUnion),
       initializerType: TsType.union(typesInInitializerUnion),
@@ -352,43 +351,45 @@ class RecordInfoCreator {
     };
   }
 
-  private createEnumConstantField(field: Field): EnumConstantField {
-    const name = field.name.text;
+  private createEnumConstantVariant(variant: Field): EnumConstantVariant {
+    const name = variant.name.text;
     const quotedName = `"${name}"`;
-    const property = getEnumFieldProperty(name);
+    const property = getEnumVariantProperty(name);
     return {
       isConstant: true,
       name: name,
       quotedName: quotedName,
       property: property,
-      number: field.number,
+      number: variant.number,
+      doc: variant.doc,
     };
   }
 
-  private createEnumWrapperField(field: Field): EnumWrapperField {
-    const { type } = field;
+  private createEnumWrapperVariant(variant: Field): EnumWrapperVariant {
+    const { type } = variant;
     if (!type) {
       throw new TypeError();
     }
-    const name = field.name.text;
+    const name = variant.name.text;
     const quotedName = `"${name}"`;
     return {
       isConstant: false,
       name: name,
       quotedName: quotedName,
-      number: field.number,
+      number: variant.number,
       type: type,
-      isRecursive: !!field.isRecursive,
-      tsTypes: this.getTsTypes(field),
+      doc: variant.doc,
+      isRecursive: !!variant.isRecursive,
+      tsTypes: this.getTsTypes(variant),
     };
   }
 
-  private getTsTypes(field: Field): Record<TypeFlavor, TsType> {
-    const { type } = field;
+  private getTsTypes(fieldOrVariant: Field): Record<TypeFlavor, TsType> {
+    const { type } = fieldOrVariant;
     if (!type) {
       throw new TypeError();
     }
-    const allRecordsFrozen = !!field.isRecursive;
+    const allRecordsFrozen = !!fieldOrVariant.isRecursive;
     const tsTypes = {} as Record<TypeFlavor, TsType>;
     for (const flavor of TYPE_FLAVORS) {
       const tsType = this.typeSpeller.getTsType(type, flavor, allRecordsFrozen);
@@ -445,12 +446,10 @@ const ENUM_COMMON_GENERATED_PROPERTIES: ReadonlySet<string> = new Set([
 
 /**
  * Returns the name of the TypeScript property for the given struct field.
- * Expects a field name as it appears in the `.soia` file.
+ * Expects a field name as it appears in the '.skir' file.
  */
 export function structFieldNameToProperty(fieldName: string): string {
-  return getStructFieldProperty(
-    convertCase(fieldName, "lower_underscore", "lowerCamel"),
-  );
+  return getStructFieldProperty(convertCase(fieldName, "lowerCamel"));
 }
 
 // Returns the name of the TypeScript property for the given struct field.
@@ -468,7 +467,7 @@ function getStructFieldProperty(desiredName: string): string {
 // constant enum field.
 // Obtained by appending a "_" suffix to the desired name if it conflicts with a
 // common generated property.
-function getEnumFieldProperty(desiredName: string): string {
+function getEnumVariantProperty(desiredName: string): string {
   return ENUM_COMMON_GENERATED_PROPERTIES.has(desiredName)
     ? `${desiredName}_`
     : desiredName;

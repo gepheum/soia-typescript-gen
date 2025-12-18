@@ -1,6 +1,6 @@
 import { expect } from "buckwheat";
 import { describe, it } from "mocha";
-import { toBase16 } from "../../node_modules/soia/dist/esm/serializer_tester.js";
+import { toBase16 } from "../../node_modules/skir-client/dist/esm/serializer_tester.js";
 import {
   BarAfter,
   EnumAfter,
@@ -9,7 +9,7 @@ import {
   RemovalAfter,
   RemovalBefore,
   Zelda,
-} from "../soiagen/schema_change.js";
+} from "../skirout/schema_change.js";
 
 describe("schema change", () => {
   describe("unrecognized fields", () => {
@@ -45,11 +45,11 @@ describe("schema change", () => {
     it("are kept in JSON format", () => {
       const fooBefore = FooBefore.serializer.fromJson(
         FooAfter.serializer.toJson(foo),
-        "keep-unrecognized-fields",
+        "keep-unrecognized-values",
       );
       const reserialized = FooAfter.serializer.fromJson(
         FooBefore.serializer.toJson(fooBefore),
-        "keep-unrecognized-fields",
+        "keep-unrecognized-values",
       );
       expect(reserialized).toMatch(foo);
     });
@@ -57,11 +57,11 @@ describe("schema change", () => {
     it("are kept in JSON format even when made mutable", () => {
       const fooBefore = FooBefore.serializer.fromJson(
         FooAfter.serializer.toJson(foo.toMutable()),
-        "keep-unrecognized-fields",
+        "keep-unrecognized-values",
       );
       const reserialized = FooAfter.serializer.fromJson(
         FooBefore.serializer.toJson(fooBefore.toMutable()),
-        "keep-unrecognized-fields",
+        "keep-unrecognized-values",
       );
       expect(reserialized).toMatch(foo);
     });
@@ -69,11 +69,11 @@ describe("schema change", () => {
     it("are kept in binary format", () => {
       const fooBefore = FooBefore.serializer.fromBytes(
         FooAfter.serializer.toBytes(foo).toBuffer(),
-        "keep-unrecognized-fields",
+        "keep-unrecognized-values",
       );
       const reserialized = FooAfter.serializer.fromBytes(
         FooBefore.serializer.toBytes(fooBefore).toBuffer(),
-        "keep-unrecognized-fields",
+        "keep-unrecognized-values",
       );
       expect(reserialized).toMatch(foo);
     });
@@ -86,7 +86,7 @@ describe("schema change", () => {
       });
       const structHolderBefore = Zelda.StructHolderBefore.serializer.fromBytes(
         Zelda.StructHolder.serializer.toBytes(structHolder).toBuffer(),
-        "keep-unrecognized-fields",
+        "keep-unrecognized-values",
       );
       expect(
         toBase16(
@@ -103,7 +103,7 @@ describe("schema change", () => {
       });
       const enumHolderBefore = Zelda.EnumHolderBefore.serializer.fromBytes(
         Zelda.EnumHolder.serializer.toBytes(enumHolder).toBuffer(),
-        "keep-unrecognized-fields",
+        "keep-unrecognized-values",
       );
       expect(
         toBase16(
@@ -136,10 +136,10 @@ describe("schema change", () => {
         RemovalAfter.serializer.toJson(
           RemovalAfter.serializer.fromJson(
             RemovalBefore.serializer.toJson(before),
-            "keep-unrecognized-fields",
+            "keep-unrecognized-values",
           ),
         ),
-        "keep-unrecognized-fields",
+        "keep-unrecognized-values",
       );
       expect(reserialized).toMatch(expected);
     });
@@ -150,11 +150,11 @@ describe("schema change", () => {
           .toBytes(
             RemovalAfter.serializer.fromBytes(
               RemovalBefore.serializer.toBytes(before).toBuffer(),
-              "keep-unrecognized-fields",
+              "keep-unrecognized-values",
             ),
           )
           .toBuffer(),
-        "keep-unrecognized-fields",
+        "keep-unrecognized-values",
       );
       expect(reserialized).toMatch(expected);
     });

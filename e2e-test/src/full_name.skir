@@ -1,4 +1,4 @@
-import BigInt from "./structs.soia";
+import BigInt from "./structs.skir";
 
 struct FullName {
   first_name: string;

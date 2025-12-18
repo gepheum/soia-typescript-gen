@@ -1,23 +1,23 @@
 import { expect, is } from "buckwheat";
 import { describe, it } from "mocha";
-import * as soia from "soia";
-import { JsonValue } from "../soiagen/enums.js";
+import * as skir from "skir-client";
+import { JsonValue } from "../skirout/enums.js";
 import {
   MyMethod,
   MyProcedure,
   MyRequest,
   MyResponse,
   WithExplicitNumber,
-} from "../soiagen/methods.js";
-import { Point } from "../soiagen/structs.js";
+} from "../skirout/methods.js";
+import { Point } from "../skirout/structs.js";
 
 describe("methods", () => {
   describe("works", () => {
     it("#0", () => {
-      const _: soia.Method<Point, JsonValue> = MyProcedure;
+      const _: skir.Method<Point, JsonValue> = MyProcedure;
       expect(MyProcedure).toMatch({
         name: "MyProcedure",
-        number: 1974132327,
+        number: 674706602,
         requestSerializer: is(Point.serializer),
         responseSerializer: is(JsonValue.serializer),
       });
@@ -28,7 +28,7 @@ describe("methods", () => {
       });
     });
     it("#1", () => {
-      const _: soia.Method<
+      const _: skir.Method<
         ReadonlyArray<Point>,
         JsonValue | null
       > = WithExplicitNumber;

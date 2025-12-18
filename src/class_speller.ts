@@ -1,9 +1,9 @@
-import type { Module, RecordLocation } from "soiac";
+import type { Module, RecordLocation } from "skir-internal";
 
 export interface ClassName {
   /**
    * Name of the TypeScript class, e.g. "Bar". It is obtained by taking the
-   * record name, as specified in the `.soia` file, and appending one or
+   * record name, as specified in the '.skir' file, and appending one or
    * multiple underscores if there is a conflict with another name.
    * If the class is nested, the `name` does not include the name of the parent
    * classes.
@@ -27,7 +27,7 @@ export interface ClassName {
    */
   parentClassValue: string | undefined;
   /**
-   * Name of the record, as specified in the `.soia` file. This can be different
+   * Name of the record, as specified in the '.skir' file. This can be different
    * from `name` if for example the record name conflicts with a built-in class.
    * If the record is nested, the `recordName` does not include the name of the
    * parent records.

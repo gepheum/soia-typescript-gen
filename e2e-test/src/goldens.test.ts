@@ -1,5 +1,5 @@
 import { describe } from "mocha";
-import * as soia from "soia";
+import * as skir from "skir-client";
 import {
   Assertion,
   BytesExpression,
@@ -12,7 +12,7 @@ import {
   StringExpression,
   TypedValue,
   UNIT_TESTS,
-} from "../soiagen/goldens.js";
+} from "../skirout/goldens.js";
 
 class AssertionError {
   message = "";
@@ -197,7 +197,7 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
   for (const expectedBytes of input.expectedBytes) {
     const buffer = new ArrayBuffer(expectedBytes.byteLength + 2);
     const dataView = new DataView(buffer);
-    const prefix = "soia";
+    const prefix = "skir";
     new TextEncoder().encodeInto(prefix, new Uint8Array(buffer, 0));
     dataView.setUint8(4, 248);
     new Uint8Array(buffer, 5).set(
@@ -362,7 +362,7 @@ function reserializeValueAndVerify(input: Assertion.ReserializeValue): void {
           actual: {
             kind: "literal",
             value: JSON.stringify(
-              soia
+              skir
                 .parseTypeDescriptorFromJsonCode(input.expectedTypeDescriptor)
                 .asJson(),
               null,
@@ -384,9 +384,9 @@ function reserializeLargeStringAndVerify(
 ): void {
   const str = "a".repeat(input.numChars);
   {
-    const json = toDenseJson(soia.primitiveSerializer("string"), str);
+    const json = toDenseJson(skir.primitiveSerializer("string"), str);
     const roundTrip = fromJsonDropUnrecognized(
-      soia.primitiveSerializer("string"),
+      skir.primitiveSerializer("string"),
       json,
     );
     if (roundTrip !== str) {
@@ -397,9 +397,9 @@ function reserializeLargeStringAndVerify(
     }
   }
   {
-    const json = toReadableJson(soia.primitiveSerializer("string"), str);
+    const json = toReadableJson(skir.primitiveSerializer("string"), str);
     const roundTrip = fromJsonDropUnrecognized(
-      soia.primitiveSerializer("string"),
+      skir.primitiveSerializer("string"),
       json,
     );
     if (roundTrip !== str) {
@@ -410,7 +410,7 @@ function reserializeLargeStringAndVerify(
     }
   }
   {
-    const bytes = toBytes(soia.primitiveSerializer("string"), str);
+    const bytes = toBytes(skir.primitiveSerializer("string"), str);
     if (!bytes.toBase16().startsWith(input.expectedBytePrefix.toBase16())) {
       throw new AssertionError({
         actual: "hex:" + bytes.toBase16(),
@@ -418,7 +418,7 @@ function reserializeLargeStringAndVerify(
       });
     }
     const roundTrip = fromBytesDropUnrecognizedFields(
-      soia.primitiveSerializer("string"),
+      skir.primitiveSerializer("string"),
       bytes,
     );
     if (roundTrip !== str) {
@@ -434,7 +434,7 @@ function reserializeLargeArrayAndVerify(
   input: Assertion.ReserializeLargeArray,
 ): void {
   const array = Array<number>(input.numItems).fill(1);
-  const serializer = soia.arraySerializer(soia.primitiveSerializer("int32"));
+  const serializer = skir.arraySerializer(skir.primitiveSerializer("int32"));
   const isArray = (arr: readonly number[]): boolean => {
     return arr.length === input.numItems && arr.every((v) => v === 1);
   };
@@ -476,7 +476,7 @@ function reserializeLargeArrayAndVerify(
   }
 }
 
-function evaluateBytes(expr: BytesExpression): soia.ByteString {
+function evaluateBytes(expr: BytesExpression): skir.ByteString {
   switch (expr.union.kind) {
     case "literal":
       return expr.union.value;
@@ -508,7 +508,7 @@ function evaluateString(expr: StringExpression): string {
 
 interface TypedValueType<T> {
   value: T;
-  serializer: soia.Serializer<T>;
+  serializer: skir.Serializer<T>;
 }
 
 function evaluteTypedValue<T>(literal: TypedValue): TypedValueType<unknown> {
@@ -516,57 +516,57 @@ function evaluteTypedValue<T>(literal: TypedValue): TypedValueType<unknown> {
     case "bool":
       return {
         value: literal.union.value,
-        serializer: soia.primitiveSerializer("bool"),
+        serializer: skir.primitiveSerializer("bool"),
       };
     case "int32":
       return {
         value: literal.union.value,
-        serializer: soia.primitiveSerializer("int32"),
+        serializer: skir.primitiveSerializer("int32"),
       };
     case "int64":
       return {
         value: literal.union.value,
-        serializer: soia.primitiveSerializer("int64"),
+        serializer: skir.primitiveSerializer("int64"),
       };
     case "uint64":
       return {
         value: literal.union.value,
-        serializer: soia.primitiveSerializer("uint64"),
+        serializer: skir.primitiveSerializer("uint64"),
       };
     case "float32":
       return {
         value: literal.union.value,
-        serializer: soia.primitiveSerializer("float32"),
+        serializer: skir.primitiveSerializer("float32"),
       };
     case "float64":
       return {
         value: literal.union.value,
-        serializer: soia.primitiveSerializer("float64"),
+        serializer: skir.primitiveSerializer("float64"),
       };
     case "timestamp":
       return {
         value: literal.union.value,
-        serializer: soia.primitiveSerializer("timestamp"),
+        serializer: skir.primitiveSerializer("timestamp"),
       };
     case "string":
       return {
         value: literal.union.value,
-        serializer: soia.primitiveSerializer("string"),
+        serializer: skir.primitiveSerializer("string"),
       };
     case "bytes":
       return {
         value: literal.union.value,
-        serializer: soia.primitiveSerializer("bytes"),
+        serializer: skir.primitiveSerializer("bytes"),
       };
     case "bool_optional":
       return {
         value: literal.union.value,
-        serializer: soia.optionalSerializer(soia.primitiveSerializer("bool")),
+        serializer: skir.optionalSerializer(skir.primitiveSerializer("bool")),
       };
     case "ints": {
       return {
         value: literal.union.value,
-        serializer: soia.arraySerializer(soia.primitiveSerializer("int32")),
+        serializer: skir.arraySerializer(skir.primitiveSerializer("int32")),
       };
     }
     case "point": {
@@ -736,7 +736,7 @@ function evaluteTypedValue<T>(literal: TypedValue): TypedValueType<unknown> {
   }
 }
 
-function toDenseJson<T>(serializer: soia.Serializer<T>, input: T): string {
+function toDenseJson<T>(serializer: skir.Serializer<T>, input: T): string {
   try {
     return serializer.toJsonCode(input);
   } catch (e) {
@@ -744,7 +744,7 @@ function toDenseJson<T>(serializer: soia.Serializer<T>, input: T): string {
   }
 }
 
-function toReadableJson<T>(serializer: soia.Serializer<T>, input: T): string {
+function toReadableJson<T>(serializer: skir.Serializer<T>, input: T): string {
   try {
     return serializer.toJsonCode(input, "readable");
   } catch (e) {
@@ -752,27 +752,27 @@ function toReadableJson<T>(serializer: soia.Serializer<T>, input: T): string {
   }
 }
 
-function toBytes<T>(serializer: soia.Serializer<T>, input: T): soia.ByteString {
+function toBytes<T>(serializer: skir.Serializer<T>, input: T): skir.ByteString {
   try {
-    return soia.ByteString.sliceOf(serializer.toBytes(input).toBuffer());
+    return skir.ByteString.sliceOf(serializer.toBytes(input).toBuffer());
   } catch (e) {
     throw new Error(`Failed to serialize ${input} to bytes: ${e}`);
   }
 }
 
 function fromJsonKeepUnrecognized<T>(
-  serializer: soia.Serializer<T>,
+  serializer: skir.Serializer<T>,
   json: string,
 ): T {
   try {
-    return serializer.fromJsonCode(json, "keep-unrecognized-fields");
+    return serializer.fromJsonCode(json, "keep-unrecognized-values");
   } catch (e) {
     throw new Error(`Failed to deserialize ${json}: ${e}`);
   }
 }
 
 function fromJsonDropUnrecognized<T>(
-  serializer: soia.Serializer<T>,
+  serializer: skir.Serializer<T>,
   json: string,
 ): T {
   try {
@@ -783,8 +783,8 @@ function fromJsonDropUnrecognized<T>(
 }
 
 function fromBytesDropUnrecognizedFields<T>(
-  serializer: soia.Serializer<T>,
-  bytes: soia.ByteString,
+  serializer: skir.Serializer<T>,
+  bytes: skir.ByteString,
 ): T {
   try {
     return serializer.fromBytes(bytes.toBuffer());
@@ -794,11 +794,11 @@ function fromBytesDropUnrecognizedFields<T>(
 }
 
 function fromBytesKeepUnrecognized<T>(
-  serializer: soia.Serializer<T>,
-  bytes: soia.ByteString,
+  serializer: skir.Serializer<T>,
+  bytes: skir.ByteString,
 ): T {
   try {
-    return serializer.fromBytes(bytes.toBuffer(), "keep-unrecognized-fields");
+    return serializer.fromBytes(bytes.toBuffer(), "keep-unrecognized-values");
   } catch (e) {
     throw new Error(`Failed to deserialize ${bytes.toBase16()}: ${e}`);
   }

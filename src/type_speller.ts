@@ -1,11 +1,16 @@
-import type { Module, RecordKey, RecordLocation, ResolvedType } from "soiac";
+import type {
+  Module,
+  RecordKey,
+  RecordLocation,
+  ResolvedType,
+} from "skir-internal";
 import { ClassName, getClassName } from "./class_speller.js";
 import { TsType } from "./ts_type.js";
 
 export type TypeFlavor = "initializer" | "frozen" | "maybe-mutable" | "mutable";
 
 /**
- * Transforms a type found in a `.soia` file into a TypeScript type.
+ * Transforms a type found in a '.skir' file into a TypeScript type.
  *
  * The flavors are:
  *   · initializer
@@ -18,7 +23,7 @@ export type TypeFlavor = "initializer" | "frozen" | "maybe-mutable" | "mutable";
  *       Type union of the frozen type and the mutable type. All the fields of a
  *       mutable class are maybe-mutable.
  *   · mutable:
- *       A mutable value. Not all types found in `.soia` files support this, e.g.
+ *       A mutable value. Not all types found in '.skir' files support this, e.g.
  *       strings and numbers are always immutable.
  */
 export class TypeSpeller {
