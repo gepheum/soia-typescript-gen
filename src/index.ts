@@ -1,6 +1,3 @@
-// TODO: comment the types
-// TODO: skir-src
-
 import * as paths from "path";
 import type {
   CodeGenerator,
@@ -338,9 +335,8 @@ class TsModuleCodeGenerator {
       this.pushEol();
     }
 
-    this.push(`
-      /** Returns a deeply-immutable copy of this instance. */
-      toFrozen(): ${className.type};`);
+    this.pushDocstring("Returns a deeply-immutable copy of this instance.");
+    this.push(`toFrozen(): ${className.type};`);
     this.pushEol();
     this.push("readonly [$._INITIALIZER]: ");
     this.push(`${className.type}.Initializer | undefined;\n`);
@@ -422,7 +418,7 @@ class TsModuleCodeGenerator {
     this.pushEol();
     this.pushDocstring([
       "This instance as the union of all the variant types.\n",
-      "Use `union.kind` determine the variant held by this instance.",
+      "Use `union.kind` to determine the variant held by this instance.",
       onlyConstants
         ? ""
         : "If it's a wrapper variant, 'union.value' is the wrapped value.",
@@ -551,9 +547,13 @@ class TsModuleCodeGenerator {
 
   private declareEnumSpecificTypes(enumInfo: EnumInfo): void {
     const { initializerType, kindType, unionViewType } = enumInfo;
+    this.pushDocstring("Identifies a variant.");
     this.push(`export type Kind = ${kindType};\n\n`);
     this.push(
       `export type Initializer<_Wholeness extends "whole" | "partial" = "whole"> = ${initializerType};\n\n`,
+    );
+    this.pushDocstring(
+      `View of a \`${enumInfo.className.type}\` as a union type.`,
     );
     this.push(`export type UnionView = ${unionViewType};\n\n`);
   }
