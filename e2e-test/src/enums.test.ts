@@ -25,10 +25,10 @@ describe("simple enum", () => {
 
   describe("#kind", () => {
     it("constant", () => {
-      expect(monday.kind).toBe("MONDAY");
+      expect(monday.union.kind).toBe("MONDAY");
     });
     it("#UNKNOWN", () => {
-      expect(Weekday.UNKNOWN.kind).toBe("?");
+      expect(Weekday.UNKNOWN.union.kind).toBe("?");
     });
   });
 
@@ -191,7 +191,7 @@ describe("recursive enum", () => {
         },
       ],
     });
-    expect(partialValue.kind).toBe("object");
+    expect(partialValue.union.kind).toBe("object");
   });
 
   const complexValue = JsonValue.create({
@@ -253,15 +253,17 @@ describe("recursive enum", () => {
   });
 
   it("#kind", () => {
-    expect(complexValue.kind).toBe("array");
+    expect(complexValue.union.kind).toBe("array");
   });
 
   it("#value", () => {
-    expect(Array.isArray(complexValue.value)).toBe(true);
+    expect(Array.isArray(complexValue.union.value)).toBe(true);
   });
 
   it("#union", () => {
-    expect(complexValue.union).toBe(complexValue as JsonValue.UnionView);
+    expect(complexValue.union).toBe(
+      complexValue as unknown as JsonValue.UnionView,
+    );
   });
 
   it("switch", () => {

@@ -5,33 +5,45 @@ import { ONE_CONSTANT } from "../skirout/constants.js";
 describe("module-level constants", () => {
   it("work", () => {
     expect(ONE_CONSTANT).toMatch({
-      kind: "array",
-      value: [
-        {
-          kind: "boolean",
-          value: true,
-        },
-        {
-          kind: "number",
-          value: 2.5,
-        },
-        {
-          kind: "string",
-          value: ["", "        foo", "        bar"].join("\n"),
-        },
-        {
-          kind: "object",
-          value: [
-            {
-              name: "foo",
-              value: {
-                kind: "NULL",
-                value: undefined,
-              },
+      union: {
+        kind: "array",
+        value: [
+          {
+            union: {
+              kind: "boolean",
+              value: true,
             },
-          ],
-        },
-      ],
+          },
+          {
+            union: {
+              kind: "number",
+              value: 2.5,
+            },
+          },
+          {
+            union: {
+              kind: "string",
+              value: ["", "        foo", "        bar"].join("\n"),
+            },
+          },
+          {
+            union: {
+              kind: "object",
+              value: [
+                {
+                  name: "foo",
+                  value: {
+                    union: {
+                      kind: "NULL",
+                      value: undefined,
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
     });
   });
 });

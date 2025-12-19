@@ -1,3 +1,6 @@
+// TODO: comment the types
+// TODO: skir-src
+
 import * as paths from "path";
 import type {
   CodeGenerator,
@@ -212,8 +215,8 @@ class TsModuleCodeGenerator {
     const { className } = struct;
     this.pushDocstring([
       this.getDocTextForDocstring(struct.doc),
-      `Deeply immutable. If you need mutability, use \`${className.type}.Mutable\`.`,
-      className.isNested ? `@alias ${className.type}` : "",
+      `\nDeeply immutable. If you need mutability, use \`${className.type}.Mutable\`.`,
+      className.isNested ? `\n@alias ${className.type}` : "",
     ]);
     this.push(!className.isNested ? "export " : "");
     if (fileType === ".d.ts") {
@@ -255,14 +258,12 @@ class TsModuleCodeGenerator {
           frozenValueType,
           searchMethodParamName,
         } = indexableField.indexable!;
-        this.pushDocstring(
-          [
-            `Searches for an item of \`${indexableField.property}\` by its key.`,
-            `The key of an item \`v\` is \`${keyExpression}\`.`,
-            "If multiple items share the same key, the last occurrence is returned.",
-            "Returns `undefined` if the key was not found.",
-          ].join("\n"),
-        );
+        this.pushDocstring([
+          `Searches for an item of \`${indexableField.property}\` by its key.`,
+          `The key of an item \`v\` is \`${keyExpression}\`.`,
+          "If multiple items share the same key, the last occurrence is returned.",
+          "Returns `undefined` if the key was not found.",
+        ]);
         this.push(`${searchMethodName}(`);
         this.push(`${searchMethodParamName}: ${keyType}`);
         this.push(`): ${frozenValueType} | undefined;\n`);
@@ -306,7 +307,7 @@ class TsModuleCodeGenerator {
     const { fileType } = this;
     const { className, fields, fieldsWithMutableGetter } = struct;
     this.pushDocstring([
-      `Mutable version of \`${className.type}\`.`,
+      `Mutable version of \`${className.type}\`.\n`,
       `@alias ${className.type}.Mutable`,
     ]);
     if (fileType === ".d.ts") {
@@ -351,7 +352,7 @@ class TsModuleCodeGenerator {
     const { className } = enumInfo;
     this.pushDocstring([
       this.getDocTextForDocstring(enumInfo.doc),
-      "Deeply immutable.",
+      "\nDeeply immutable.\n",
       className.isNested ? `@alias ${className.type}` : "",
     ]);
     this.push(!className.isNested ? "export " : "");
@@ -375,24 +376,31 @@ class TsModuleCodeGenerator {
 
     // Declare the enum constants.
     for (const variant of constantVariants) {
-      this.pushDocstring(this.getDocTextForDocstring(variant.doc));
+      this.pushDocstring(
+        variant.number === 0
+          ? [
+              `Constant indicating an unknown \`${className.type}\` (kind: '?').\n`,
+              `Default value for fields of type \`${className.type}\`.`,
+            ]
+          : this.getDocTextForDocstring(variant.doc),
+      );
       this.push(`static readonly ${variant.property}:  ${className.type};\n`);
     }
     this.pushEol();
 
     // Declare the `create` function.
     {
-      const docParagraphs = [
+      const docLines = [
         `Gets or creates a \`${className.type}\` instance from the given initializer.`,
       ];
       if (!onlyConstants) {
-        docParagraphs.push(
-          [
-            "To create wrapper variants, use `create({kind: ..., value: ...})`.\n",
-            "Possible values for `kind` are: ",
-            wrapperVariants.map((v) => `'${v.name}'`).join(", "),
+        docLines.push(
+          "To create wrapper variants, use `create({kind: ..., value: ...})`.",
+        );
+        docLines.push(
+          "Possible values for `kind` are: " +
+            wrapperVariants.map((v) => `'${v.name}'`).join(", ") +
             ".",
-          ].join(""),
         );
       }
       for (const variant of wrapperVariants) {
@@ -400,9 +408,9 @@ class TsModuleCodeGenerator {
           continue;
         }
         const variantDoc = this.getDocTextForDocstring(variant.doc);
-        docParagraphs.push(`Doc for '${variant.name}': ${variantDoc}`);
+        docLines.push(`Doc for '${variant.name}': ${variantDoc}`);
       }
-      this.pushDocstring(docParagraphs);
+      this.pushDocstring(docLines);
     }
     this.push(
       `static create<_Wholeness extends "whole" | "partial" = "whole">(
@@ -410,31 +418,16 @@ class TsModuleCodeGenerator {
       ): ${className.type};\n\n`,
     );
 
-    // Declare the `kind`, `value` and `union` properties.
-    {
-      let docText = "Identifies the enum variant for this instance.";
-      if (!onlyConstants) {
-        docText +=
-          "\n\n" +
-          "If you want to access the value held by the wrapper variants (`union.value`),\n" +
-          "using `union.kind` will give you more type safety.";
-      }
-      this.pushDocstring(docText);
-    }
-    this.push(`readonly kind: ${className.type}.Kind;\n`);
-    if (!onlyConstants) {
-      this.pushEol();
-      {
-        let docText = "This instance as the union of all the variant types.";
-        if (!onlyConstants) {
-          docText +=
-            "\n\nUse `union.kind` to identify the variant for this instance." +
-            "\nIf it's a wrapper variant, `union.value` is the value held by this instance.";
-        }
-        this.pushDocstring(docText);
-      }
-      this.push(`declare readonly union: ${className.type}.UnionView;\n`);
-    }
+    // Declare the `union`.
+    this.pushEol();
+    this.pushDocstring([
+      "This instance as the union of all the variant types.\n",
+      "Use `union.kind` determine the variant held by this instance.",
+      onlyConstants
+        ? ""
+        : "If it's a wrapper variant, 'union.value' is the wrapped value.",
+    ]);
+    this.push(`declare readonly union: ${className.type}.UnionView;\n`);
     this.pushEol();
 
     this.pushDocstring(`Serializer for \`${className.type}\` instances.`);
@@ -472,12 +465,10 @@ class TsModuleCodeGenerator {
   }
 
   private declareMutableGetter(field: StructField): void {
-    this.pushDocstring(
-      [
-        `If the value of \`${field.property}\` is already mutable, returns it as-is.`,
-        `Otherwise, makes a mutable copy, assigns it back to \`${field.property}\` and returns it.`,
-      ].join("\n"),
-    );
+    this.pushDocstring([
+      `If the value of \`${field.property}\` is already mutable, returns it as-is.`,
+      `Otherwise, makes a mutable copy, assigns it back to \`${field.property}\` and returns it.`,
+    ]);
     const { mutable } = field.tsTypes;
     this.push(`get ${field.mutableGetterName}(): ${mutable};\n`);
     this.pushEol();
@@ -559,28 +550,23 @@ class TsModuleCodeGenerator {
   }
 
   private declareEnumSpecificTypes(enumInfo: EnumInfo): void {
-    const { initializerType, kindType, onlyConstants, unionViewType } =
-      enumInfo;
+    const { initializerType, kindType, unionViewType } = enumInfo;
     this.push(`export type Kind = ${kindType};\n\n`);
-    if (!onlyConstants) {
-      this.push(`export type Value = ${enumInfo.valueType};\n\n`);
-    }
     this.push(
       `export type Initializer<_Wholeness extends "whole" | "partial" = "whole"> = ${initializerType};\n\n`,
     );
-    if (!onlyConstants) {
-      this.push(`export type UnionView = ${unionViewType};\n\n`);
-    }
+    this.push(`export type UnionView = ${unionViewType};\n\n`);
   }
 
   private writeMethod(method: Method): void {
     const { fileType, typeSpeller } = this;
-    const { number, requestType, responseType } = method;
+    const { doc, number, requestType, responseType } = method;
     const name = method.name.text;
     const varName = maybeEscapeTopLevelUpperCaseName(name);
     if (fileType === ".d.ts") {
       const reqTsType = typeSpeller.getTsType(requestType!, "frozen");
       const respTsType = typeSpeller.getTsType(responseType!, "frozen");
+      this.pushDocstring(this.getDocTextForDocstring(doc));
       this.push(`
         export const ${varName}: $.Method<${reqTsType}, ${respTsType}>;\n\n`);
     } else {
@@ -592,7 +578,7 @@ class TsModuleCodeGenerator {
           number: ${number},
           requestSerializer: ${reqSerializer},
           responseSerializer: ${respSerializer},
-          doc: ${JSON.stringify(method.doc.text)},
+          doc: ${JSON.stringify(doc.text)},
         };\n\n`);
     }
   }
@@ -773,6 +759,7 @@ class TsModuleCodeGenerator {
     const name = constant.name.text;
     if (fileType === ".d.ts") {
       const type = typeSpeller.getTsType(constant.type!, "frozen");
+      this.pushDocstring(this.getDocTextForDocstring(constant.doc));
       this.push(`export const ${name}: ${type};\n\n`);
     } else {
       this.push(`export const ${name} = /*@__PURE__*/ `);
@@ -798,14 +785,18 @@ class TsModuleCodeGenerator {
       .join("");
   }
 
-  private pushDocstring(textOrParagraphs: string | readonly string[]): void {
-    const text =
-      typeof textOrParagraphs === "string"
-        ? textOrParagraphs
-        : textOrParagraphs.filter((t) => t.length).join("\n\n");
+  private pushDocstring(textOrLines: string | readonly string[]): void {
+    const text = (
+      typeof textOrLines === "string" ? textOrLines : textOrLines.join("\n")
+    )
+      .replace(/^\s*\n+/g, "")
+      .replace(/\n+\s*$/g, "")
+      .replace(/\n{3,}/g, "\n\n");
+
     if (text.length <= 0) {
       return;
     }
+
     const lines = text.split("\n");
     const escape = (line: string): string => line.replace(/\*\//g, "* /");
     if (lines.length === 1) {

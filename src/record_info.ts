@@ -50,8 +50,6 @@ export interface EnumInfo {
   readonly constantVariants: readonly EnumConstantVariant[];
   readonly wrapperVariants: readonly EnumWrapperVariant[];
   readonly kindType: TsType;
-  /** Union of `undefined` and the frozen type of all the wrapper variants. */
-  readonly valueType: TsType;
   readonly initializerType: TsType;
   readonly valueOnlyInitializerType: TsType;
   readonly unionViewType: TsType;
@@ -270,7 +268,6 @@ class RecordInfoCreator {
     const constantVariants: EnumConstantVariant[] = [];
     const wrapperVariants: EnumWrapperVariant[] = [];
     const typesInKindTypeUnion: TsType[] = [];
-    const typesInValueTypeUnion: TsType[] = [TsType.UNDEFINED];
     const typesInInitializerUnion: TsType[] = [];
     const typesInValueOnlyInitializerUnion: TsType[] = [];
     const typesInUnionView: TsType[] = [];
@@ -311,7 +308,6 @@ class RecordInfoCreator {
         const nameLiteral = TsType.literal(name);
         const { frozen, initializer } = enumVariant.tsTypes;
         wrapperVariants.push(enumVariant);
-        typesInValueTypeUnion.push(frozen);
         typesInKindTypeUnion.push(nameLiteral);
         typesInInitializerUnion.push(
           TsType.inlineInterface({
@@ -344,7 +340,6 @@ class RecordInfoCreator {
       constantVariants: constantVariants,
       wrapperVariants: wrapperVariants,
       kindType: TsType.union(typesInKindTypeUnion),
-      valueType: TsType.union(typesInValueTypeUnion),
       initializerType: TsType.union(typesInInitializerUnion),
       valueOnlyInitializerType: TsType.union(typesInValueOnlyInitializerUnion),
       unionViewType: TsType.union(typesInUnionView),
