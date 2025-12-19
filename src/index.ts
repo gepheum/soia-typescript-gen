@@ -1,5 +1,3 @@
-// TODO: option to generate .ts code
-
 import * as paths from "path";
 import type {
   CodeGenerator,
@@ -215,9 +213,7 @@ class TsModuleCodeGenerator {
     this.pushDocstring([
       this.getDocTextForDocstring(struct.doc),
       `Deeply immutable. If you need mutability, use \`${className.type}.Mutable\`.`,
-      className.isNested
-        ? `The preferred way to refer to this class is \`${className.type}\`.`
-        : "",
+      className.isNested ? `@alias ${className.type}` : "",
     ]);
     this.push(!className.isNested ? "export " : "");
     if (fileType === ".d.ts") {
@@ -239,7 +235,7 @@ class TsModuleCodeGenerator {
        * Creates a new instance of \`${className.type}\`.
        *
        * You must specify all the fields unless you use \`create<"partial">({...})>\`,
-       * in which case missing fields will be set to their default values.
+       * in which case missing fields are set to their default values.
        */
       static create<_Wholeness extends "whole" | "partial" = "whole">(
         initializer: ${className.type}.Initializer<_Wholeness>
@@ -296,6 +292,7 @@ class TsModuleCodeGenerator {
   }
 
   private declareNestedClasses(nestedKeys: readonly RecordKey[]): void {
+    this.pushEol();
     const { typeSpeller } = this;
     // Export the constructor of every nested class as a property of this class.
     for (const nestedKey of nestedKeys) {
@@ -310,7 +307,7 @@ class TsModuleCodeGenerator {
     const { className, fields, fieldsWithMutableGetter } = struct;
     this.pushDocstring([
       `Mutable version of \`${className.type}\`.`,
-      `The preferred way to refer to this class is \`${className.type}.Mutable\`.`,
+      `@alias ${className.type}.Mutable`,
     ]);
     if (fileType === ".d.ts") {
       this.push("declare ");
@@ -342,10 +339,7 @@ class TsModuleCodeGenerator {
 
     this.push(`
       /** Returns a deeply-immutable copy of this instance. */
-      toFrozen(): ${className.type};
-
-      /** Returns a mutable shallow copy of this instance. */
-      toMutable(): this;\n`);
+      toFrozen(): ${className.type};`);
     this.pushEol();
     this.push("readonly [$._INITIALIZER]: ");
     this.push(`${className.type}.Initializer | undefined;\n`);
@@ -355,9 +349,12 @@ class TsModuleCodeGenerator {
   private writeClassForEnum(enumInfo: EnumInfo): void {
     const { fileType } = this;
     const { className } = enumInfo;
-    this.push(
-      className.isNested ? `// Exported as '${className.type}'\n` : "export ",
-    );
+    this.pushDocstring([
+      this.getDocTextForDocstring(enumInfo.doc),
+      "Deeply immutable.",
+      className.isNested ? `@alias ${className.type}` : "",
+    ]);
+    this.push(!className.isNested ? "export " : "");
     if (fileType === ".d.ts") {
       this.push("declare ");
     }
@@ -373,19 +370,40 @@ class TsModuleCodeGenerator {
   }
 
   private declarePropertiesOfClassForEnum(enumInfo: EnumInfo): void {
-    const {
-      className,
-      constantVariants: constantFields,
-      onlyConstants,
-    } = enumInfo;
+    const { className, constantVariants, onlyConstants, wrapperVariants } =
+      enumInfo;
 
     // Declare the enum constants.
-    for (const field of constantFields) {
-      this.push(`static readonly ${field.property}:  ${className.type};\n`);
+    for (const variant of constantVariants) {
+      this.pushDocstring(this.getDocTextForDocstring(variant.doc));
+      this.push(`static readonly ${variant.property}:  ${className.type};\n`);
     }
     this.pushEol();
 
     // Declare the `create` function.
+    {
+      const docParagraphs = [
+        `Gets or creates a \`${className.type}\` instance from the given initializer.`,
+      ];
+      if (!onlyConstants) {
+        docParagraphs.push(
+          [
+            "To create wrapper variants, use `create({kind: ..., value: ...})`.\n",
+            "Possible values for `kind` are: ",
+            wrapperVariants.map((v) => `'${v.name}'`).join(", "),
+            ".",
+          ].join(""),
+        );
+      }
+      for (const variant of wrapperVariants) {
+        if (variant.doc.text.length <= 0) {
+          continue;
+        }
+        const variantDoc = this.getDocTextForDocstring(variant.doc);
+        docParagraphs.push(`Doc for '${variant.name}': ${variantDoc}`);
+      }
+      this.pushDocstring(docParagraphs);
+    }
     this.push(
       `static create<_Wholeness extends "whole" | "partial" = "whole">(
         initializer: ${className.type}.Initializer<_Wholeness>
@@ -393,13 +411,33 @@ class TsModuleCodeGenerator {
     );
 
     // Declare the `kind`, `value` and `union` properties.
+    {
+      let docText = "Identifies the enum variant for this instance.";
+      if (!onlyConstants) {
+        docText +=
+          "\n\n" +
+          "If you want to access the value held by the wrapper variants (`union.value`),\n" +
+          "using `union.kind` will give you more type safety.";
+      }
+      this.pushDocstring(docText);
+    }
     this.push(`readonly kind: ${className.type}.Kind;\n`);
     if (!onlyConstants) {
-      this.push(`declare readonly value: ${className.type}.Value;\n`);
+      this.pushEol();
+      {
+        let docText = "This instance as the union of all the variant types.";
+        if (!onlyConstants) {
+          docText +=
+            "\n\nUse `union.kind` to identify the variant for this instance." +
+            "\nIf it's a wrapper variant, `union.value` is the value held by this instance.";
+        }
+        this.pushDocstring(docText);
+      }
       this.push(`declare readonly union: ${className.type}.UnionView;\n`);
     }
     this.pushEol();
 
+    this.pushDocstring(`Serializer for \`${className.type}\` instances.`);
     this.push(`static readonly serializer: $.Serializer<${className.type}>;\n`);
     this.declareNestedClasses(enumInfo.nestedRecords);
   }

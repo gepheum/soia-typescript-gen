@@ -10,6 +10,7 @@ describe("simple enum", () => {
 
   describe("#create", () => {
     it("unknown field", () => {
+      JsonValue.create({ kind: "boolean", value: true });
       expect(Weekday.create("?")).toBe(Weekday.UNKNOWN);
     });
 
